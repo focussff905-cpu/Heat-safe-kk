@@ -12,6 +12,7 @@ import {
   FaLeaf,
   FaEye,
   FaEyeSlash,
+  FaWater,
 } from 'react-icons/fa';
 import { MdLocationCity } from 'react-icons/md';
 import {
@@ -51,6 +52,15 @@ const LAYER_BUTTONS = [
     activeBg: 'rgba(239,68,68,0.15)',
     activeBorder: 'rgba(239,68,68,0.5)',
     iconColor: '#EF4444',
+  },
+  {
+    id: 'stream',
+    label: 'ร่องน้ำ',
+    icon: FaWater,
+    activeColor: 'from-sky-500 to-cyan-400',
+    activeBg: 'rgba(14,165,233,0.15)',
+    activeBorder: 'rgba(14,165,233,0.5)',
+    iconColor: '#0EA5E9',
   },
 ];
 

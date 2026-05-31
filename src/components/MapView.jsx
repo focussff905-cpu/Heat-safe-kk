@@ -5,6 +5,7 @@ import TemperatureLayer from './layers/TemperatureLayer';
 import PM25Layer from './layers/PM25Layer';
 import HeatAccumulationLayer from './layers/HeatAccumulationLayer';
 import TMDTempTileLayer from './layers/TMDTempTileLayer';
+import StreamLayer from './layers/StreamLayer';
 import 'leaflet/dist/leaflet.css';
 
 function BoundsLocker() {
@@ -88,6 +89,10 @@ export default function MapView({ activeLayer, selectedDistrict, onDistrictClick
           selectedId={selectedId}
           opacity={s('heat').opacity}
         />
+      )}
+
+      {activeLayer === 'stream' && s('stream').visible && (
+        <StreamLayer opacity={s('stream').opacity} />
       )}
     </MapContainer>
   );

@@ -13,6 +13,7 @@ export default function App() {
     temperature: { visible: true, opacity: 0.75 },
     pm25:        { visible: true, opacity: 0.78 },
     heat:        { visible: true, opacity: 0.78 },
+    stream:      { visible: true, opacity: 0.85 },
   });
   const updateLayerSetting = useCallback((id, key, value) => {
     setLayerSettings(prev => ({ ...prev, [id]: { ...prev[id], [key]: value } }));
