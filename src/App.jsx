@@ -2,12 +2,18 @@ import { useState, useCallback } from 'react';
 import MapView from './components/MapView';
 import Sidebar from './components/Sidebar';
 import ChatBot from './components/ChatBot';
+import ForecastTimePicker, { toApiStr } from './components/ForecastTimePicker';
 
 export default function App() {
   const [activeLayer, setActiveLayer] = useState('temperature');
   const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [forecastDatetime, setForecastDatetime] = useState(() => {
+    const now = new Date();
+    const h = Math.floor(now.getUTCHours() / 3) * 3;
+    return toApiStr(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), h)));
+  });
 
   const handleMapClick = useCallback(() => {
     setSelectedDistrict(null);
@@ -27,6 +33,7 @@ export default function App() {
         selectedDistrict={selectedDistrict}
         onDistrictClick={handleDistrictSelect}
         onMapClick={handleMapClick}
+        forecastDatetime={forecastDatetime}
       />
       <Sidebar
         activeLayer={activeLayer}
@@ -38,6 +45,13 @@ export default function App() {
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen((v) => !v)}
       />
+      {activeLayer === 'temperature' && (
+        <ForecastTimePicker
+          datetime={forecastDatetime}
+          onChange={setForecastDatetime}
+          sidebarOpen={sidebarOpen}
+        />
+      )}
       <ChatBot />
     </div>
   );

@@ -4,6 +4,7 @@ import { KK_CENTER, KK_BOUNDS, KK_DEFAULT_ZOOM, districts } from '../data/mockDa
 import TemperatureLayer from './layers/TemperatureLayer';
 import PM25Layer from './layers/PM25Layer';
 import HeatAccumulationLayer from './layers/HeatAccumulationLayer';
+import TMDTempTileLayer from './layers/TMDTempTileLayer';
 import 'leaflet/dist/leaflet.css';
 
 function BoundsLocker() {
@@ -25,7 +26,7 @@ function MapClickHandler({ onMapClick }) {
   return null;
 }
 
-export default function MapView({ activeLayer, selectedDistrict, onDistrictClick, onMapClick }) {
+export default function MapView({ activeLayer, selectedDistrict, onDistrictClick, onMapClick, forecastDatetime }) {
   const selectedId = selectedDistrict?.id;
 
   return (
@@ -56,6 +57,10 @@ export default function MapView({ activeLayer, selectedDistrict, onDistrictClick
           <div className="leaflet-control-zoom leaflet-bar leaflet-control" />
         </div>
       </div>
+
+      {activeLayer === 'temperature' && forecastDatetime && (
+        <TMDTempTileLayer datetime={forecastDatetime} />
+      )}
 
       {activeLayer === 'temperature' && (
         <TemperatureLayer
