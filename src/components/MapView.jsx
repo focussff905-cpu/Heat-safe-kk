@@ -15,24 +15,36 @@ const HIST_MIN_YEAR = 2000;
 const HIST_MAX_YEAR = 2026;
 
 function getHistSource(year) {
-  // Sentinel-2 EOxCloudless มีข้อมูลถึงปี 2024 (annual mosaic)
-  if (year >= 2016 && year <= 2024) {
+  // 2025–2026: Esri World Imagery (ล่าสุด, ความละเอียดสูง)
+  if (year >= 2025) {
+    return {
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      satellite: 'Esri Latest',
+      resolution: '0.3m+',
+      maxNativeZoom: 19,
+      attr: 'Tiles &copy; Esri — World Imagery (latest)',
+      color: '#10b981',
+    };
+  }
+  // 2016–2024: Sentinel-2 cloudless annual (EOxCloudless)
+  if (year >= 2016) {
     return {
       url: `https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-${year}_3857/default/g/{z}/{y}/{x}.jpg`,
       satellite: 'Sentinel-2',
       resolution: '10m',
       maxNativeZoom: 14,
       attr: `Sentinel-2 cloudless ${year} &copy; <a href="https://eox.at">EOxCloudless</a>`,
+      color: '#6366f1',
     };
   }
-  // 2025–2026: MODIS Terra รายวัน (ใช้ข้อมูลกลางปี)
-  const modisDate = year >= 2025 ? `${year}-06-01` : `${year}-01-15`;
+  // 2000–2015: NASA MODIS Terra
   return {
-    url: `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/${modisDate}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`,
-    satellite: 'MODIS Terra',
+    url: `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/${year}-01-15/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`,
+    satellite: 'Satellite',
     resolution: '250m',
     maxNativeZoom: 9,
-    attr: `NASA GIBS MODIS Terra ${year}`,
+    attr: `NASA GIBS · MODIS Terra ${year}`,
+    color: '#0ea5e9',
   };
 }
 
@@ -118,7 +130,7 @@ function HistoryYearPanel({ selectedYear, onSelect }) {
         style={{ maxHeight: '180px', overflowY: 'auto', scrollbarWidth: 'thin' }}
       >
         {allYears.map((y) => {
-          const isS2 = y >= 2016;
+          const src = getHistSource(y);
           const active = selectedYear === y;
           return (
             <button
@@ -126,11 +138,9 @@ function HistoryYearPanel({ selectedYear, onSelect }) {
               onClick={() => onSelect(y)}
               className="py-1 rounded-md text-[11px] font-semibold transition-all"
               style={{
-                background: active
-                  ? (isS2 ? '#6366f1' : '#ef4444')
-                  : 'rgba(0,0,0,0.04)',
-                color: active ? '#fff' : '#374151',
-                border: `1px solid ${active ? (isS2 ? '#6366f1' : '#ef4444') : 'rgba(0,0,0,0.06)'}`,
+                background: active ? src.color : 'rgba(0,0,0,0.04)',
+                color: active ? '#fff' : src.color,
+                border: `1px solid ${active ? src.color : `${src.color}40`}`,
               }}
             >
               {y}
@@ -139,16 +149,17 @@ function HistoryYearPanel({ selectedYear, onSelect }) {
         })}
       </div>
 
-      {/* Legend */}
-      <div className="px-3 pb-2.5 flex items-center gap-3">
-        <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-sm" style={{ background: '#6366f1' }} />
-          <span className="text-[10px] text-slate-500">Sentinel-2</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-sm" style={{ background: '#ef4444' }} />
-          <span className="text-[10px] text-slate-500">MODIS Terra</span>
-        </div>
+      <div className="px-3 pb-2.5 space-y-1">
+        {[
+          { color: '#10b981', label: 'Esri Latest · 0.3m+' },
+          { color: '#6366f1', label: 'Sentinel-2 · 10m' },
+          { color: '#0ea5e9', label: 'Satellite · 250m' },
+        ].map(({ color, label }) => (
+          <div key={label} className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ background: color }} />
+            <span className="text-[10px] text-slate-500">{label}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
