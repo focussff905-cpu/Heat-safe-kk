@@ -149,7 +149,7 @@ export default function MapView({ activeLayers, tambons, selectedDistrict, onDis
 
       {/* Basemap toggle — bottom right, above zoom control */}
       <div
-        className="absolute bottom-28 right-3 z-[1000] flex rounded-xl overflow-hidden"
+        className="absolute bottom-6 right-3 z-[1000] flex rounded-xl overflow-hidden"
         style={{
           background: 'rgba(255,255,255,0.96)',
           backdropFilter: 'blur(12px)',

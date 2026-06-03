@@ -44,7 +44,7 @@ export default function MonthPicker({ selectedMonth, onChange, sidebarOpen }) {
       className="fixed bottom-4 z-[999] flex items-center gap-3 px-4 py-2.5 rounded-2xl"
       style={{
         left: leftOffset,
-        right: '90px',
+        right: '240px',
         background: 'rgba(8,12,26,0.92)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
