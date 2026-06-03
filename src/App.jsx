@@ -9,7 +9,7 @@ import { KK_CENTER, KK_DEFAULT_ZOOM } from './data/mockData';
 
 export default function App() {
   const { tambons, status: weatherStatus, lastUpdated, refresh: refreshWeather } = useRealtimeWeather();
-  const [activeLayers, setActiveLayers] = useState(new Set(['temperature']));
+  const [activeLayers, setActiveLayers] = useState(new Set());
   const [infoLayer, setInfoLayer] = useState('temperature');
   const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
