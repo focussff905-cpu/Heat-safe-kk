@@ -140,7 +140,56 @@ function LayerLegend({ layer }) {
   );
 }
 
-function InfoCard({ selectedDistrict, activeLayer, onClear }) {
+function LayerRanking({ tambons, field, unit, colorFn, hiLabel, loLabel, decimals = 1 }) {
+  if (!tambons || tambons.length === 0) return null;
+  const sorted = [...tambons].sort((a, b) => b[field] - a[field]);
+  const max = sorted[0][field];
+  const min = sorted[sorted.length - 1][field];
+  const avg = tambons.reduce((s, d) => s + d[field], 0) / tambons.length;
+  const fmt = (v) => Number(v).toFixed(decimals);
+
+  return (
+    <div className="mt-3 space-y-2">
+      <div className="grid grid-cols-3 gap-1.5">
+        {[
+          { label: 'สูงสุด', value: `${fmt(max)}${unit}`, color: '#ef4444' },
+          { label: 'เฉลี่ย',  value: `${fmt(avg)}${unit}`, color: '#f97316' },
+          { label: 'ต่ำสุด', value: `${fmt(min)}${unit}`, color: '#3b82f6' },
+        ].map(({ label, value, color }) => (
+          <div key={label} className="rounded-lg p-2 text-center" style={{ background: `${color}10`, border: `1px solid ${color}30` }}>
+            <p className="text-[10px] text-slate-500">{label}</p>
+            <p className="text-xs font-bold mt-0.5" style={{ color }}>{value}</p>
+          </div>
+        ))}
+      </div>
+      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest pt-1">
+        อันดับตำบล ({hiLabel} → {loLabel})
+      </p>
+      <div className="space-y-1">
+        {sorted.map((d, i) => {
+          const pct = (d[field] - min) / (max - min || 1);
+          const color = colorFn(d[field]);
+          return (
+            <div key={d.id} className="flex items-center gap-2">
+              <span className="text-[10px] font-bold w-4 text-right shrink-0" style={{ color: i < 3 ? '#ef4444' : '#94a3b8' }}>
+                {i + 1}
+              </span>
+              <span className="text-xs text-slate-700 w-20 shrink-0 truncate">ต.{d.name}</span>
+              <div className="flex-1 h-1.5 rounded-full bg-black/5 overflow-hidden">
+                <div className="h-full rounded-full" style={{ width: `${pct * 100}%`, background: color }} />
+              </div>
+              <span className="text-[11px] font-semibold w-14 text-right shrink-0" style={{ color }}>
+                {fmt(d[field])}{unit}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function InfoCard({ selectedDistrict, activeLayer, onClear, tambons }) {
   const info = layerInfo[activeLayer];
 
   if (!selectedDistrict) {
@@ -158,11 +207,28 @@ function InfoCard({ selectedDistrict, activeLayer, onClear }) {
           <p className="text-xs text-slate-500 mb-2">ระดับค่า ({info.unit})</p>
           <LayerLegend layer={activeLayer} />
         </div>
-        <div className="mt-4 rounded-lg p-3" style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.25)' }}>
-          <p className="text-xs text-indigo-600">
-            คลิกที่วงกลมบนแผนที่เพื่อดูข้อมูลรายละเอียดของแต่ละอำเภอ
-          </p>
-        </div>
+
+        {/* Layer rankings */}
+        {activeLayer === 'temperature' && tambons?.length > 0 && (
+          <div className="mt-3 border-t border-slate-200 pt-3">
+            <LayerRanking tambons={tambons} field="temperature" unit="°C"
+              colorFn={getTemperatureColor} hiLabel="ร้อน" loLabel="เย็น" />
+          </div>
+        )}
+        {activeLayer === 'pm25' && tambons?.length > 0 && (
+          <div className="mt-3 border-t border-slate-200 pt-3">
+            <LayerRanking tambons={tambons} field="pm25" unit=" µg" decimals={0}
+              colorFn={getPM25Color} hiLabel="มาก" loLabel="น้อย" />
+          </div>
+        )}
+
+        {activeLayer !== 'temperature' && activeLayer !== 'pm25' && (
+          <div className="mt-4 rounded-lg p-3" style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.25)' }}>
+            <p className="text-xs text-indigo-600">
+              คลิกที่วงกลมบนแผนที่เพื่อดูข้อมูลรายละเอียดของแต่ละอำเภอ
+            </p>
+          </div>
+        )}
       </div>
     );
   }
@@ -628,6 +694,28 @@ export default function Sidebar({
                       </div>
                     </button>
 
+                    {/* Mini-stats row for temperature / pm25 layers */}
+                    {isActive && (btn.id === 'temperature' || btn.id === 'pm25') && tambons.length > 0 && (() => {
+                      const field = btn.id === 'temperature' ? 'temperature' : 'pm25';
+                      const unit  = btn.id === 'temperature' ? '°C' : ' µg';
+                      const dec   = btn.id === 'temperature' ? 1 : 0;
+                      const vals  = tambons.map(d => d[field]);
+                      const avg   = (vals.reduce((s, v) => s + v, 0) / vals.length).toFixed(dec);
+                      const max   = Math.max(...vals).toFixed(dec);
+                      const min   = Math.min(...vals).toFixed(dec);
+                      return (
+                        <div className="grid grid-cols-3 divide-x divide-black/5 text-center"
+                          style={{ background: `${btn.iconColor}06`, borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+                          {[['ต่ำสุด', `${min}${unit}`, '#3b82f6'], ['เฉลี่ย', `${avg}${unit}`, '#f97316'], ['สูงสุด', `${max}${unit}`, '#ef4444']].map(([lbl, val, clr]) => (
+                            <div key={lbl} className="py-1.5">
+                              <p className="text-[9px] text-slate-400">{lbl}</p>
+                              <p className="text-[11px] font-bold" style={{ color: clr }}>{val}</p>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+
                     {/* Opacity + visibility controls — shown only when layer is on */}
                     {isActive && (
                       <div
@@ -688,6 +776,7 @@ export default function Sidebar({
               selectedDistrict={selectedDistrict}
               activeLayer={infoLayer}
               onClear={() => onDistrictSelect(null)}
+              tambons={tambons}
             />
           </div>
 
@@ -697,7 +786,7 @@ export default function Sidebar({
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2">
               ภาพรวมจังหวัด
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {[
                 {
                   label: 'อุณหภูมิเฉลี่ย',
@@ -707,13 +796,19 @@ export default function Sidebar({
                 },
                 {
                   label: 'PM2.5 เฉลี่ย',
-                  value: `${Math.round(tambons.reduce((s, d) => s + d.pm25, 0) / tambons.length)} AQI`,
+                  value: `${(tambons.reduce((s, d) => s + d.pm25, 0) / tambons.length).toFixed(1)} µg/m³`,
                   icon: FaWind,
                   color: '#22C55E',
                 },
                 {
+                  label: 'ความชื้นเฉลี่ย',
+                  value: `${Math.round(tambons.reduce((s, d) => s + (d.humidity ?? 0), 0) / tambons.length)}%`,
+                  icon: FaTint,
+                  color: '#38bdf8',
+                },
+                {
                   label: 'จำนวนตำบล',
-                  value: `${tambons.length}`,
+                  value: `${tambons.length} ตำบล`,
                   icon: FaLeaf,
                   color: '#6366f1',
                 },
