@@ -100,7 +100,7 @@ export default function Map3DView({ onClose }) {
       maxPitch: 85,
     });
 
-    map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
+    map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'bottom-right');
 
     map.on('load', () => {
       map.setTerrain({ source: 'terrain', exaggeration: 2 });
@@ -200,10 +200,11 @@ export default function Map3DView({ onClose }) {
         3D Terrain · DEM
       </div>
 
-      {/* Controls panel */}
+      {/* Controls panel — offset below the fixed "แบบจำลอง" button */}
       <div
-        className="absolute top-4 right-14 z-10 rounded-xl p-3 flex flex-col gap-3"
+        className="absolute right-14 z-10 rounded-xl p-3 flex flex-col gap-3"
         style={{
+          top: '72px',
           width: '190px',
           background: 'rgba(15,23,42,0.9)',
           backdropFilter: 'blur(14px)',
