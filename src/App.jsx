@@ -1,16 +1,15 @@
 import { useState, useCallback } from 'react';
 import MapView from './components/MapView';
 import Sidebar from './components/Sidebar';
-import ChatBot from './components/ChatBot';
 import BottomNav from './components/BottomNav';
 import HomeView from './components/HomeView';
 import SimulationView from './components/SimulationView';
 import RiskAreasView from './components/RiskAreasView';
 import RecurringView from './components/RecurringView';
+import ChatBotView from './components/ChatBotView';
 import ForecastTimePicker, { toApiStr } from './components/ForecastTimePicker';
 import MonthPicker from './components/MonthPicker';
 import { useRealtimeWeather } from './hooks/useRealtimeWeather';
-import { KK_CENTER, KK_DEFAULT_ZOOM } from './data/mockData';
 
 export default function App() {
   const { tambons, status: weatherStatus, lastUpdated, refresh: refreshWeather } = useRealtimeWeather();
@@ -71,17 +70,19 @@ export default function App() {
       {/* ── Map tab ── */}
       {onMap && (
         <>
-          <MapView
-            activeLayers={activeLayers}
-            tambons={tambons}
-            selectedDistrict={selectedDistrict}
-            onDistrictClick={handleDistrictSelect}
-            onMapClick={handleMapClick}
-            forecastDatetime={forecastDatetime}
-            layerSettings={layerSettings}
-            selectedMonth={selectedMonth}
-            flyToTarget={flyToTarget}
-          />
+          <div className="absolute inset-x-0 top-0" style={{ bottom: '60px' }}>
+            <MapView
+              activeLayers={activeLayers}
+              tambons={tambons}
+              selectedDistrict={selectedDistrict}
+              onDistrictClick={handleDistrictSelect}
+              onMapClick={handleMapClick}
+              forecastDatetime={forecastDatetime}
+              layerSettings={layerSettings}
+              selectedMonth={selectedMonth}
+              flyToTarget={flyToTarget}
+            />
+          </div>
           <Sidebar
             activeLayers={activeLayers}
             infoLayer={infoLayer}
@@ -106,7 +107,6 @@ export default function App() {
           {activeLayers.has('monthly_temp') && (
             <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} sidebarOpen={sidebarOpen} />
           )}
-          <ChatBot />
         </>
       )}
 
@@ -128,6 +128,9 @@ export default function App() {
 
       {/* ── Recurring tab ── */}
       {activeTab === 'recurring' && <RecurringView />}
+
+      {/* ── ChatBot tab ── */}
+      {activeTab === 'chatbot' && <ChatBotView />}
 
       {/* ── Bottom nav (always visible) ── */}
       <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />

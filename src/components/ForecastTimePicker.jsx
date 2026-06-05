@@ -73,7 +73,7 @@ export default function ForecastTimePicker({ datetime, onChange, sidebarOpen }) 
     <div
       className="fixed z-[999] flex items-center gap-3 px-4 py-2.5 rounded-2xl"
       style={{
-        bottom: '80px',
+        bottom: '76px',
         left: leftOffset,
         right: '240px',
         background: 'rgba(8,12,26,0.92)',
