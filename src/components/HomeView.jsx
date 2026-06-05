@@ -151,8 +151,8 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
 
   if (!tambons || tambons.length === 0) {
     return (
-      <div className="absolute top-0 right-0 bottom-0 flex items-center justify-center"
-        style={{ left: 'var(--nav-x)', background: 'linear-gradient(180deg,#eff6ff,#f8faff)' }}>
+      <div className="absolute top-0 right-0 flex items-center justify-center"
+        style={{ left: 'var(--nav-x)', bottom: 'var(--nav-bottom)', background: 'linear-gradient(180deg,#eff6ff,#f8faff)' }}>
         <div className="text-blue-300 text-sm animate-pulse">กำลังโหลดข้อมูล...</div>
       </div>
     );
@@ -177,10 +177,10 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
   const uvLevel     = currentUV !== null ? getUVLevel(currentUV) : null;
 
   return (
-    <div className="absolute top-0 right-0 bottom-0 overflow-y-auto"
-      style={{ left: 'var(--nav-x)', background: 'linear-gradient(180deg,#eff6ff,#f8faff)' }}>
+    <div className="absolute top-0 right-0 overflow-y-auto"
+      style={{ left: 'var(--nav-x)', bottom: 'var(--nav-bottom)', background: 'linear-gradient(180deg,#eff6ff,#f8faff)' }}>
 
-      <div className="max-w-md md:max-w-5xl mx-auto px-4 md:px-8 pt-5 pb-[76px] md:pb-10 space-y-4">
+      <div className="max-w-md md:max-w-5xl mx-auto px-4 md:px-8 pt-5 pb-8 space-y-4">
 
         {/* ══ HEADER (full width) ══ */}
         <div className="flex items-start justify-between">

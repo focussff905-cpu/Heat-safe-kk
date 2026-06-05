@@ -7,8 +7,8 @@ export default function SimulationView() {
   const [key, setKey] = useState(0);
 
   return (
-    <div className="absolute top-0 right-0 bottom-0 flex flex-col"
-      style={{ left: 'var(--nav-x)', paddingBottom: 'var(--nav-bottom)' }}>
+    <div className="absolute top-0 right-0 flex flex-col"
+      style={{ left: 'var(--nav-x)', bottom: 'var(--nav-bottom)' }}>
       {/* Header */}
       <div
         className="flex-shrink-0 flex items-center gap-3 px-4 py-3"

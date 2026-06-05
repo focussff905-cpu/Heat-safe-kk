@@ -288,10 +288,11 @@ export default function Sidebar({
 
       {/* ── Panel ── */}
       <aside
-        className="fixed top-0 h-full z-[999] flex flex-col sidebar-transition"
+        className="fixed top-0 z-[999] flex flex-col sidebar-transition"
         style={{
           left: 'var(--nav-x, 0px)',
           width: 'min(340px, 85vw)',
+          height: 'calc(100vh - var(--nav-bottom, 0px))',
           transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
           opacity: isOpen ? 1 : 0,
           background: '#f8faff',
@@ -343,7 +344,7 @@ export default function Sidebar({
         </div>
 
         {/* ── Scrollable content ── */}
-        <div className="flex-1 overflow-y-auto px-3 md:px-4 pb-[76px] md:pb-6 space-y-2.5 md:space-y-4 pt-2.5 md:pt-0">
+        <div className="flex-1 overflow-y-auto px-3 md:px-4 pb-6 space-y-2.5 md:space-y-4 pt-2.5 md:pt-0">
 
           {/* Quick stats — desktop only */}
           <div className="hidden md:grid grid-cols-3 gap-2">
