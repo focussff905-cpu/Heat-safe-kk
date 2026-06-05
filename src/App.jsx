@@ -12,7 +12,7 @@ import MonthPicker from './components/MonthPicker';
 import { useRealtimeWeather } from './hooks/useRealtimeWeather';
 
 export default function App() {
-  const { tambons, status: weatherStatus, lastUpdated, refresh: refreshWeather } = useRealtimeWeather();
+  const { tambons, forecast, status: weatherStatus, lastUpdated, refresh: refreshWeather } = useRealtimeWeather();
   const [activeTab, setActiveTab] = useState('home');
   const [activeLayers, setActiveLayers] = useState(new Set());
   const [infoLayer, setInfoLayer] = useState('temperature');
@@ -116,6 +116,7 @@ export default function App() {
       {activeTab === 'home' && (
         <HomeView
           tambons={tambons}
+          forecast={forecast}
           weatherStatus={weatherStatus}
           lastUpdated={lastUpdated}
           onRefresh={refreshWeather}
