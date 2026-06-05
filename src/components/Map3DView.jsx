@@ -21,6 +21,7 @@ export default function Map3DView({ onClose }) {
   const [hillshadeIntensity, setHillshadeIntensity] = useState(0.5);
   const [demOpacity, setDemOpacity] = useState(0.6);
   const [satOpacity, setSatOpacity] = useState(1);
+  const [panelOpen, setPanelOpen] = useState(true);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -125,10 +126,54 @@ export default function Map3DView({ onClose }) {
         3D Terrain · DEM
       </div>
 
-      <div className="absolute right-14 z-10 rounded-xl p-3 flex flex-col gap-3"
-        style={{ top: '72px', width: '190px', background: 'rgba(15,23,42,0.9)', backdropFilter: 'blur(14px)', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 4px 24px rgba(0,0,0,0.45)' }}>
+      {/* ── Floating re-open pill (mobile only, when panel is hidden) ── */}
+      {!panelOpen && (
+        <button
+          onClick={() => setPanelOpen(true)}
+          className="absolute z-10 md:hidden flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold transition-all active:scale-95"
+          style={{
+            top: '72px', right: '8px',
+            background: 'rgba(15,23,42,0.88)',
+            backdropFilter: 'blur(12px)',
+            color: '#a5b4fc',
+            border: '1px solid rgba(99,102,241,0.4)',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.4)',
+          }}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+            <line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
+            <line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/>
+          </svg>
+          ตั้งค่า
+        </button>
+      )}
 
-        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest -mb-1">Terrain</p>
+      {/* ── Control panel (always visible on desktop, togglable on mobile) ── */}
+      <div
+        className={`absolute right-14 z-10 rounded-xl flex flex-col gap-3 transition-all duration-200 ${panelOpen ? 'flex' : 'hidden md:flex'}`}
+        style={{
+          top: '72px', width: '190px', padding: '12px',
+          background: 'rgba(15,23,42,0.9)',
+          backdropFilter: 'blur(14px)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.45)',
+        }}
+      >
+        {/* Panel header */}
+        <div className="flex items-center justify-between -mb-1">
+          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Terrain</p>
+          {/* Collapse button — mobile only */}
+          <button
+            onClick={() => setPanelOpen(false)}
+            className="md:hidden w-5 h-5 rounded-md flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/10 transition-all"
+            title="ซ่อนเมนู"
+          >
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
 
         <Slider label="มุมก้ม"   value={pitch}        unit="°" color="#6366f1" textColor="text-indigo-400"  min={0}   max={85}  step={1}    onChange={applyPitch} />
         <Slider label="ความสูง"  value={exaggeration} unit="x" color="#10b981" textColor="text-emerald-400" min={1}   max={5}   step={0.5}  onChange={applyExaggeration} />
