@@ -216,6 +216,24 @@ function ForecastStrip({ forecast, tmdData }) {
   );
 }
 
+/* ── Weather activity assessment ── */
+function getWeatherAlert(temp, humidity, uv, pm25) {
+  const t = parseFloat(temp);
+  const h = parseFloat(humidity);
+  const u = parseFloat(uv ?? 0);
+  const p = parseFloat(pm25 ?? 0);
+
+  if (t >= 38 || h >= 90 || u >= 11 || p >= 150)
+    return { icon: '🚨', title: 'อันตราย', desc: 'ไม่ควรทำกิจกรรมกลางแจ้ง', color: '#ef4444', bg: 'rgba(239,68,68,0.18)', border: 'rgba(239,68,68,0.35)' };
+  if (t >= 35 || h >= 85 || u >= 8 || p >= 75)
+    return { icon: '🥵', title: 'ระวัง', desc: 'จำกัดเวลาอยู่กลางแจ้ง', color: '#f97316', bg: 'rgba(249,115,22,0.18)', border: 'rgba(249,115,22,0.35)' };
+  if (t >= 32 || h >= 78 || u >= 6 || p >= 50)
+    return { icon: '⚠️', title: 'พอใช้', desc: 'ทำกิจกรรมได้ แต่พักบ้าง', color: '#eab308', bg: 'rgba(234,179,8,0.18)', border: 'rgba(234,179,8,0.35)' };
+  if (t >= 20 && h <= 75 && u <= 5 && p <= 35)
+    return { icon: '😁', title: 'ดีมาก', desc: 'เหมาะสำหรับกิจกรรมกลางแจ้ง', color: '#22c55e', bg: 'rgba(34,197,94,0.18)', border: 'rgba(34,197,94,0.35)' };
+  return   { icon: '😊', title: 'ดี', desc: 'เหมาะสำหรับกิจกรรมทั่วไป', color: '#10b981', bg: 'rgba(16,185,129,0.18)', border: 'rgba(16,185,130,0.35)' };
+}
+
 /* ═══════════════════════════════════════════════
    Main component
    ═══════════════════════════════════════════════ */
@@ -255,12 +273,13 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
   const hasTMDLive      = tmdData != null;
   const pm25Color   = getPM25Color(parseFloat(avgPM25));
 
-  const displayMin  = tmdTempMin ?? minTemp;
-  const displayMax  = tmdTempMax ?? maxTemp;
+  const displayMin    = tmdTempMin ?? minTemp;
+  const displayMax    = tmdTempMax ?? maxTemp;
   const hasTMD      = tmdTempMax != null && tmdTempMin != null;
   const tempPct     = Math.max(0, Math.min(100, ((parseFloat(displayTemp) - displayMin) / (displayMax - displayMin || 1)) * 100));
   const currentUV   = forecast?.[0]?.uvIndex ?? null;
   const uvLevel     = currentUV !== null ? getUVLevel(currentUV) : null;
+  const weatherAlert  = getWeatherAlert(displayTemp, displayHumidity, currentUV, avgPM25);
 
   /* Live dot */
   const dotCfg = {
@@ -343,7 +362,17 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
                     <span className="text-6xl md:text-7xl font-black text-white leading-none">{displayTemp}</span>
                     <span className="text-2xl font-bold text-cyan-300 mb-2">°C</span>
                   </div>
-                  <p className="text-white/50 text-[11px] mt-1">
+                  {/* Weather alert — inline, no box */}
+                  <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                    <span className="text-sm leading-none">{weatherAlert.icon}</span>
+                    <span className="text-xs font-black leading-none" style={{ color: weatherAlert.color }}>{weatherAlert.title}</span>
+                    <span className="text-[11px] text-white/60 leading-none">· {weatherAlert.desc}</span>
+                    {parseFloat(displayTemp) >= 35 && <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(239,68,68,0.3)', color: '#fca5a5' }}>ร้อนจัด</span>}
+                    {parseFloat(displayHumidity) >= 85 && <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(6,182,212,0.3)', color: '#67e8f9' }}>ชื้นมาก</span>}
+                    {parseFloat(avgPM25) >= 50 && <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(249,115,22,0.3)', color: '#fdba74' }}>ฝุ่นสูง</span>}
+                    {currentUV >= 6 && <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(234,179,8,0.3)', color: '#fde68a' }}>UV สูง</span>}
+                  </div>
+                  <p className="text-white/40 text-[10px] mt-1.5">
                     {hasTMDLive ? `อัปเดต ${tmdData.observedAt ?? ''}` : `${tambons.length} ตำบล · ขอนแก่น`}
                   </p>
                 </div>
@@ -351,7 +380,7 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
               </div>
 
               {/* Max / Min row */}
-              <div className="relative flex gap-2.5 mt-4">
+              <div className="relative flex gap-2.5 mt-3">
                 <div className="flex items-center gap-2 rounded-2xl px-3 py-2.5 flex-1"
                   style={{ background: 'linear-gradient(135deg,rgba(254,215,170,0.25),rgba(252,129,74,0.25))', border: '1px solid rgba(251,146,60,0.4)' }}>
                   <div className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0"
