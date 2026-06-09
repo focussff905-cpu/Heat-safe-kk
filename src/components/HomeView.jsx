@@ -380,28 +380,21 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
               </div>
 
               {/* Max / Min row */}
-              <div className="relative flex gap-2.5 mt-3">
-                <div className="flex items-center gap-2 rounded-2xl px-3 py-2.5 flex-1"
-                  style={{ background: 'linear-gradient(135deg,rgba(254,215,170,0.25),rgba(252,129,74,0.25))', border: '1px solid rgba(251,146,60,0.4)' }}>
-                  <div className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: 'linear-gradient(135deg,#fb923c,#f97316)' }}>
-                    <span className="text-white text-xs font-black">↑</span>
-                  </div>
+              <div className="relative flex gap-4 mt-3 px-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-orange-300 text-xs font-black">↑</span>
                   <div>
-                    <p className="text-orange-200 text-[9px] leading-none">สูงสุด</p>
+                    <p className="text-orange-200/70 text-[9px] leading-none">สูงสุด</p>
                     <p className="text-white text-lg font-black leading-tight">
                       {displayMax != null ? displayMax : '--'}°<span className="text-xs">C</span>
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 rounded-2xl px-3 py-2.5 flex-1"
-                  style={{ background: 'linear-gradient(135deg,rgba(165,243,252,0.2),rgba(34,211,238,0.2))', border: '1px solid rgba(34,211,238,0.35)' }}>
-                  <div className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: 'linear-gradient(135deg,#22d3ee,#0891b2)' }}>
-                    <span className="text-white text-xs font-black">↓</span>
-                  </div>
+                <div className="w-px self-stretch" style={{ background: 'rgba(255,255,255,0.15)' }} />
+                <div className="flex items-center gap-1.5">
+                  <span className="text-cyan-300 text-xs font-black">↓</span>
                   <div>
-                    <p className="text-cyan-200 text-[9px] leading-none">ต่ำสุด</p>
+                    <p className="text-cyan-200/70 text-[9px] leading-none">ต่ำสุด</p>
                     <p className="text-white text-lg font-black leading-tight">
                       {displayMin != null ? displayMin : '--'}°<span className="text-xs">C</span>
                     </p>
