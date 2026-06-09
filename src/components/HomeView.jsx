@@ -219,7 +219,7 @@ function ForecastStrip({ forecast, tmdData }) {
 /* ═══════════════════════════════════════════════
    Main component
    ═══════════════════════════════════════════════ */
-export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated, tmdTempMax, tmdTempMin, tmdData }) {
+export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated, tmdTempMax, tmdTempMin, tmdData, onTambonClick }) {
   const now     = new Date();
   const dateStr = `วัน${DAY_TH[now.getDay()]} ${now.getDate()} ${MONTH_TH[now.getMonth()]} ${now.getFullYear() + 543}`;
   const geo     = useGeolocationName();
@@ -387,109 +387,68 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
 
             {/* ── 5 stat cards ── */}
             <div className="grid grid-cols-3 gap-2.5">
-
-              {/* PM2.5 */}
-              <div className="rounded-2xl p-3 flex flex-col items-center gap-1.5" style={{
-                background: 'linear-gradient(145deg,#fff7ed,#fed7aa)',
-                border: '1px solid rgba(251,191,36,0.4)',
-                boxShadow: '0 4px 20px rgba(251,146,60,0.18)',
-              }}>
-                <div className="w-9 h-9 rounded-2xl flex items-center justify-center"
-                  style={{ background: 'linear-gradient(135deg,#f97316,#fb923c)', boxShadow: '0 4px 12px rgba(249,115,22,0.4)' }}>
-                  <FaWind color="white" size={14} />
-                </div>
-                <p className="text-[10px] text-orange-700/70 font-medium leading-none">ฝุ่น PM2.5</p>
-                <p className="text-xl font-black text-orange-800 leading-none">{avgPM25}</p>
-                <p className="text-[9px] text-orange-600/70 leading-none">µg/m³</p>
-                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
-                  style={{ background: `${pm25Color}20`, color: pm25Color, border: `1px solid ${pm25Color}40` }}>
-                  {pm25Level.label}
-                </span>
-              </div>
-
-              {/* Humidity */}
-              <div className="rounded-2xl p-3 flex flex-col items-center gap-1.5" style={{
-                background: 'linear-gradient(145deg,#ecfeff,#a5f3fc)',
-                border: '1px solid rgba(34,211,238,0.4)',
-                boxShadow: '0 4px 20px rgba(6,182,212,0.16)',
-              }}>
-                <div className="w-9 h-9 rounded-2xl flex items-center justify-center"
-                  style={{ background: 'linear-gradient(135deg,#06b6d4,#0891b2)', boxShadow: '0 4px 12px rgba(6,182,212,0.4)' }}>
-                  <FaTint color="white" size={14} />
-                </div>
-                <p className="text-[10px] text-cyan-800/70 font-medium leading-none">ความชื้น</p>
-                <p className="text-xl font-black text-cyan-900 leading-none">{displayHumidity}</p>
-                <p className="text-[9px] text-cyan-700/70 leading-none">%</p>
-                <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(6,182,212,0.2)' }}>
-                  <div className="h-full rounded-full" style={{ width: `${displayHumidity}%`, background: 'linear-gradient(90deg,#22d3ee,#0891b2)' }} />
-                </div>
-              </div>
-
-              {/* Wind */}
-              <div className="rounded-2xl p-3 flex flex-col items-center gap-1.5" style={{
-                background: 'linear-gradient(145deg,#f0fdf4,#bbf7d0)',
-                border: '1px solid rgba(52,211,153,0.4)',
-                boxShadow: '0 4px 20px rgba(16,185,129,0.15)',
-              }}>
-                <div className="w-9 h-9 rounded-2xl flex items-center justify-center"
-                  style={{ background: 'linear-gradient(135deg,#10b981,#059669)', boxShadow: '0 4px 12px rgba(16,185,129,0.4)' }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+              {[
+                {
+                  icon: <FaWind color="white" size={13} />,
+                  iconBg: 'linear-gradient(135deg,#f97316,#fb923c)',
+                  label: 'ฝุ่น PM2.5',
+                  value: avgPM25,
+                  unit: 'µg/m³',
+                  extra: <span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
+                    style={{ background: `${pm25Color}20`, color: pm25Color, border: `1px solid ${pm25Color}40` }}>
+                    {pm25Level.label}
+                  </span>,
+                },
+                {
+                  icon: <FaTint color="white" size={13} />,
+                  iconBg: 'linear-gradient(135deg,#06b6d4,#0891b2)',
+                  label: 'ความชื้น',
+                  value: displayHumidity,
+                  unit: '%',
+                  extra: <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: 'rgba(99,102,241,0.12)' }}>
+                    <div className="h-full rounded-full" style={{ width: `${displayHumidity}%`, background: 'linear-gradient(90deg,#22d3ee,#6366f1)' }} />
+                  </div>,
+                },
+                {
+                  icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
                     <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/>
-                  </svg>
-                </div>
-                <p className="text-[10px] text-emerald-800/70 font-medium leading-none">ลม</p>
-                <p className="text-xl font-black text-emerald-900 leading-none">{displayWind}</p>
-                <p className="text-[9px] text-emerald-700/70 leading-none">km/h</p>
-              </div>
-
-              {/* UV Index */}
-              {uvLevel ? (
-                <div className="rounded-2xl p-3 flex flex-col items-center gap-1.5" style={{
-                  background: uvLevel.bg,
-                  border: `1px solid ${uvLevel.color}40`,
-                  boxShadow: `0 4px 20px ${uvLevel.color}22`,
+                  </svg>,
+                  iconBg: 'linear-gradient(135deg,#10b981,#059669)',
+                  label: 'ลม',
+                  value: displayWind,
+                  unit: 'km/h',
+                },
+                {
+                  icon: <FaSun color="white" size={13} />,
+                  iconBg: uvLevel ? `linear-gradient(135deg,${uvLevel.color}cc,${uvLevel.color})` : 'linear-gradient(135deg,#eab308,#ca8a04)',
+                  label: 'UV Index',
+                  value: currentUV ?? '--',
+                  unit: uvLevel?.label ?? '',
+                },
+                {
+                  icon: <FaCloudRain color="white" size={13} />,
+                  iconBg: 'linear-gradient(135deg,#3b82f6,#2563eb)',
+                  label: 'ฝน',
+                  value: displayRainfall != null ? displayRainfall : '--',
+                  unit: 'mm',
+                },
+              ].map(({ icon, iconBg, label, value, unit, extra }) => (
+                <div key={label} className="rounded-2xl p-3 flex flex-col items-center gap-1.5" style={{
+                  background: 'rgba(255,255,255,0.6)',
+                  border: '1px solid rgba(186,230,253,0.55)',
+                  backdropFilter: 'blur(12px)',
+                  boxShadow: '0 2px 12px rgba(99,102,241,0.07)',
                 }}>
-                  <div className="w-9 h-9 rounded-2xl flex items-center justify-center"
-                    style={{ background: `linear-gradient(135deg,${uvLevel.color}cc,${uvLevel.color})`, boxShadow: `0 4px 12px ${uvLevel.color}40` }}>
-                    <FaSun color="white" size={14} />
+                  <div className="w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: iconBg, boxShadow: '0 3px 10px rgba(0,0,0,0.15)' }}>
+                    {icon}
                   </div>
-                  <p className="text-[10px] font-medium leading-none" style={{ color: uvLevel.color }}>UV Index</p>
-                  <p className="text-xl font-black leading-none" style={{ color: uvLevel.color }}>{currentUV}</p>
-                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
-                    style={{ background: `${uvLevel.color}20`, color: uvLevel.color, border: `1px solid ${uvLevel.color}40` }}>
-                    {uvLevel.label}
-                  </span>
+                  <p className="text-[10px] text-slate-500 font-medium leading-none">{label}</p>
+                  <p className="text-xl font-black text-slate-700 leading-none">{value}</p>
+                  <p className="text-[9px] text-slate-400 leading-none">{unit}</p>
+                  {extra}
                 </div>
-              ) : (
-                <div className="rounded-2xl p-3 flex flex-col items-center gap-1.5" style={{
-                  background: 'linear-gradient(145deg,#fefce8,#fef9c3)',
-                  border: '1px solid rgba(234,179,8,0.3)',
-                }}>
-                  <div className="w-9 h-9 rounded-2xl flex items-center justify-center"
-                    style={{ background: 'linear-gradient(135deg,#eab308,#ca8a04)' }}>
-                    <FaSun color="white" size={14} />
-                  </div>
-                  <p className="text-[10px] text-yellow-700/70 font-medium">UV Index</p>
-                  <p className="text-xs text-yellow-500 animate-pulse">กำลังโหลด</p>
-                </div>
-              )}
-
-              {/* Rainfall */}
-              <div className="rounded-2xl p-3 flex flex-col items-center gap-1.5" style={{
-                background: 'linear-gradient(145deg,#eff6ff,#bfdbfe)',
-                border: '1px solid rgba(96,165,250,0.4)',
-                boxShadow: '0 4px 20px rgba(59,130,246,0.15)',
-              }}>
-                <div className="w-9 h-9 rounded-2xl flex items-center justify-center"
-                  style={{ background: 'linear-gradient(135deg,#3b82f6,#2563eb)', boxShadow: '0 4px 12px rgba(59,130,246,0.4)' }}>
-                  <FaCloudRain color="white" size={14} />
-                </div>
-                <p className="text-[10px] text-blue-800/70 font-medium leading-none">ฝน</p>
-                <p className="text-xl font-black text-blue-900 leading-none">
-                  {displayRainfall != null ? displayRainfall : '--'}
-                </p>
-                <p className="text-[9px] text-blue-600/70 leading-none">mm</p>
-              </div>
+              ))}
             </div>
           </div>
 
@@ -510,13 +469,14 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
                 const pc = getPM25Color(d.pm25);
                 return (
                   <div key={d.id}
-                    className="rounded-2xl px-3 py-2.5 flex items-center gap-2.5 transition-transform hover:scale-[1.01]"
+                    className="rounded-2xl px-3 py-2.5 flex items-center gap-2.5 transition-transform hover:scale-[1.01] cursor-pointer active:scale-[0.98]"
                     style={{
                       background: 'rgba(255,255,255,0.75)',
                       border: `1px solid ${tc}30`,
                       backdropFilter: 'blur(8px)',
                       boxShadow: idx === 0 ? `0 4px 16px ${tc}18` : 'none',
-                    }}>
+                    }}
+                    onClick={() => onTambonClick?.(d)}>
                     {/* Temp badge */}
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                       style={{ background: `linear-gradient(135deg,${tc}22,${tc}44)`, border: `1.5px solid ${tc}50` }}>

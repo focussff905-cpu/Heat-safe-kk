@@ -133,6 +133,12 @@ export default function App() {
           tmdTempMax={tmdData?.tempMax ?? omDailyMax}
           tmdTempMin={tmdData?.tempMin ?? omDailyMin}
           tmdData={tmdData}
+          onTambonClick={(tambon) => {
+            setFlyToTarget({ lat: tambon.lat, lng: tambon.lng, ts: Date.now() });
+            setSelectedDistrict(tambon);
+            setSidebarOpen(true);
+            setActiveTab('map');
+          }}
         />
       )}
 
