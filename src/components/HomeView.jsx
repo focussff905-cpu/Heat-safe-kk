@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { FaWind, FaTint, FaMapMarkerAlt, FaThermometerHalf, FaSun, FaCrosshairs } from 'react-icons/fa';
+import { useState, useEffect, useRef } from 'react';
+import { FaWind, FaTint, FaMapMarkerAlt, FaThermometerHalf, FaSun, FaCrosshairs, FaCloudRain } from 'react-icons/fa';
 import { getTemperatureColor, getPM25Color, getPM25Level } from '../data/mockData';
 
 function useGeolocationName() {
@@ -77,8 +77,47 @@ function SunCloud() {
   );
 }
 
+/* ── Radar iframe (scale-to-fit, no distortion) ── */
+const RADAR_URL  = 'https://weather.tmd.go.th/kkn240_HQ_Loop_edit2.php';
+const RADAR_ORIG_W = 980;
+const RADAR_ORIG_H = 780;
+
+function RadarFrame() {
+  const wrapRef = useRef(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    if (!wrapRef.current) return;
+    const ro = new ResizeObserver(([e]) => {
+      setScale(e.contentRect.width / RADAR_ORIG_W);
+    });
+    ro.observe(wrapRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  return (
+    <div ref={wrapRef} className="w-full overflow-hidden rounded-2xl"
+      style={{ height: `${RADAR_ORIG_H * scale}px` }}>
+      <iframe
+        src={RADAR_URL}
+        title="เรดาร์ฝนขอนแก่น"
+        scrolling="no"
+        loading="lazy"
+        style={{
+          width:           `${RADAR_ORIG_W}px`,
+          height:          `${RADAR_ORIG_H}px`,
+          border:          'none',
+          transform:       `scale(${scale})`,
+          transformOrigin: 'top left',
+          display:         'block',
+        }}
+      />
+    </div>
+  );
+}
+
 /* ── Forecast strip ── */
-function ForecastStrip({ forecast }) {
+function ForecastStrip({ forecast, tmdData }) {
   if (!forecast || forecast.length === 0) {
     return (
       <div className="rounded-3xl p-4" style={{
@@ -110,15 +149,20 @@ function ForecastStrip({ forecast }) {
           <span className="flex items-center gap-0.5"><FaThermometerHalf size={7} className="text-orange-400" /> อุณหภูมิ</span>
           <span className="flex items-center gap-0.5"><FaTint size={7} className="text-cyan-400" /> ชื้น</span>
           <span className="flex items-center gap-0.5"><FaSun size={7} className="text-yellow-400" /> UV</span>
+          <span className="flex items-center gap-0.5"><FaCloudRain size={7} className="text-blue-400" /> ฝน</span>
         </div>
       </div>
 
       <div className="flex gap-2 overflow-x-auto px-4 pb-4 pt-1"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {forecast.map((h) => {
-          const tc  = getTemperatureColor(h.temperature);
-          const pc  = getPM25Color(h.pm25);
-          const uvc = getUVLevel(h.uvIndex ?? 0).color;
+          const tc   = getTemperatureColor(h.temperature);
+          const pc   = getPM25Color(h.pm25);
+          const uvc  = getUVLevel(h.uvIndex ?? 0).color;
+          const rain = h.isCurrent && tmdData?.rainfall != null
+            ? tmdData.rainfall
+            : (h.precipitation ?? 0);
+          const hasRain = rain > 0;
           return (
             <div key={h.time}
               className="flex-shrink-0 rounded-2xl flex flex-col items-center gap-1.5 pt-3 pb-3 px-2.5"
@@ -157,6 +201,15 @@ function ForecastStrip({ forecast }) {
                 </span>
                 <span className="text-[8.5px]" style={{ color: h.isCurrent ? 'rgba(255,255,255,0.65)' : '#94a3b8' }}>
                   {h.windSpeed}k
+                </span>
+              </div>
+              {/* Rain row */}
+              <div className="w-full h-px" style={{ background: h.isCurrent ? 'rgba(255,255,255,0.15)' : '#e2e8f0' }} />
+              <div className="flex items-center justify-center gap-0.5">
+                <FaCloudRain size={7} style={{ color: h.isCurrent ? 'rgba(255,255,255,0.7)' : hasRain ? '#3b82f6' : '#cbd5e1' }} />
+                <span className="text-[8.5px] font-semibold"
+                  style={{ color: h.isCurrent ? (hasRain ? 'rgba(147,210,255,1)' : 'rgba(255,255,255,0.5)') : (hasRain ? '#2563eb' : '#cbd5e1') }}>
+                  {rain > 0 ? `${rain}` : '0'}<span className="text-[7px]">mm</span>
                 </span>
               </div>
             </div>
@@ -202,6 +255,7 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
   const displayTemp     = tmdData?.temperature != null ? tmdData.temperature.toFixed(1) : avgTemp;
   const displayHumidity = tmdData?.humidity     != null ? Math.round(tmdData.humidity) : avgHumidity;
   const displayWind     = tmdData?.windSpeed    != null ? tmdData.windSpeed.toFixed(1)  : avgWind;
+  const displayRainfall = tmdData?.rainfall     != null ? tmdData.rainfall : null;
   const hasTMDLive      = tmdData != null;
   const pm25Color   = getPM25Color(parseFloat(avgPM25));
 
@@ -294,55 +348,61 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
                     <span className="text-2xl font-bold text-cyan-300 mb-2">°C</span>
                   </div>
                   <p className="text-white/50 text-[11px] mt-1">
-                    {hasTMDLive ? `WMO 48381 · ${tmdData.observedAt ?? ''}` : `${tambons.length} ตำบล · ขอนแก่น`}
+                    {hasTMDLive ? `อัปเดต ${tmdData.observedAt ?? ''}` : `${tambons.length} ตำบล · ขอนแก่น`}
                   </p>
                 </div>
                 <SunCloud />
               </div>
 
-              {/* Max / Min row */}
-              <div className="relative flex gap-2.5 mt-4">
-                <div className="flex items-center gap-2 rounded-2xl px-3 py-2.5 flex-1"
-                  style={{ background: 'linear-gradient(135deg,rgba(254,215,170,0.25),rgba(252,129,74,0.25))', border: '1px solid rgba(251,146,60,0.4)' }}>
-                  <div className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: 'linear-gradient(135deg,#fb923c,#f97316)' }}>
-                    <span className="text-white text-xs font-black">↑</span>
-                  </div>
-                  <div>
-                    <p className="text-orange-200 text-[9px] leading-none">สูงสุด</p>
-                    <p className="text-white text-lg font-black leading-tight">{displayMax}°<span className="text-xs">C</span></p>
-                  </div>
+            </div>
+
+            {/* ── Max / Min cards ── */}
+            <div className="grid grid-cols-2 gap-2.5">
+              {/* Max */}
+              <div className="rounded-2xl p-4 flex items-center gap-3" style={{
+                background: 'linear-gradient(145deg,#fff7ed,#fed7aa)',
+                border: '1px solid rgba(251,146,60,0.45)',
+                boxShadow: '0 4px 20px rgba(251,146,60,0.2)',
+              }}>
+                <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'linear-gradient(135deg,#fb923c,#f97316)', boxShadow: '0 4px 12px rgba(249,115,22,0.4)' }}>
+                  <span className="text-white text-base font-black">↑</span>
                 </div>
-                <div className="flex items-center gap-2 rounded-2xl px-3 py-2.5 flex-1"
-                  style={{ background: 'linear-gradient(135deg,rgba(165,243,252,0.2),rgba(34,211,238,0.2))', border: '1px solid rgba(34,211,238,0.35)' }}>
-                  <div className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: 'linear-gradient(135deg,#22d3ee,#0891b2)' }}>
-                    <span className="text-white text-xs font-black">↓</span>
-                  </div>
-                  <div>
-                    <p className="text-cyan-200 text-[9px] leading-none">ต่ำสุด</p>
-                    <p className="text-white text-lg font-black leading-tight">{displayMin}°<span className="text-xs">C</span></p>
+                <div>
+                  <p className="text-[10px] text-orange-600/70 font-medium leading-none mb-1">สูงสุดวันนี้</p>
+                  <div className="flex items-end gap-0.5">
+                    <span className="text-2xl font-black text-orange-800 leading-none">
+                      {displayMax != null ? displayMax : '--'}
+                    </span>
+                    <span className="text-sm font-bold text-orange-500 mb-0.5">°C</span>
                   </div>
                 </div>
               </div>
 
-              {/* Range bar */}
-              <div className="relative mt-4">
-                <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.15)' }}>
-                  <div className="h-full rounded-full" style={{ width: '100%', background: 'linear-gradient(90deg,#22d3ee,#f97316,#ef4444)' }} />
+              {/* Min */}
+              <div className="rounded-2xl p-4 flex items-center gap-3" style={{
+                background: 'linear-gradient(145deg,#ecfeff,#a5f3fc)',
+                border: '1px solid rgba(34,211,238,0.4)',
+                boxShadow: '0 4px 20px rgba(6,182,212,0.18)',
+              }}>
+                <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'linear-gradient(135deg,#22d3ee,#0891b2)', boxShadow: '0 4px 12px rgba(6,182,212,0.4)' }}>
+                  <span className="text-white text-base font-black">↓</span>
                 </div>
-                <div className="absolute top-0 h-0">
-                  <div className="absolute -top-[3px] w-3.5 h-3.5 rounded-full bg-white shadow-lg"
-                    style={{ left: `calc(${tempPct}% - 7px)`, boxShadow: '0 0 0 2px rgba(255,255,255,0.5)' }} />
+                <div>
+                  <p className="text-[10px] text-cyan-700/70 font-medium leading-none mb-1">ต่ำสุดวันนี้</p>
+                  <div className="flex items-end gap-0.5">
+                    <span className="text-2xl font-black text-cyan-900 leading-none">
+                      {displayMin != null ? displayMin : '--'}
+                    </span>
+                    <span className="text-sm font-bold text-cyan-500 mb-0.5">°C</span>
+                  </div>
                 </div>
-                {hasTMD && (
-                  <p className="text-white/35 text-[9px] mt-2 text-right">พยากรณ์รายวัน · Open-Meteo</p>
-                )}
               </div>
             </div>
 
-            {/* ── 4 stat cards ── */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+            {/* ── 5 stat cards ── */}
+            <div className="grid grid-cols-3 gap-2.5">
 
               {/* PM2.5 */}
               <div className="rounded-2xl p-3 flex flex-col items-center gap-1.5" style={{
@@ -429,6 +489,23 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
                   <p className="text-xs text-yellow-500 animate-pulse">กำลังโหลด</p>
                 </div>
               )}
+
+              {/* Rainfall */}
+              <div className="rounded-2xl p-3 flex flex-col items-center gap-1.5" style={{
+                background: 'linear-gradient(145deg,#eff6ff,#bfdbfe)',
+                border: '1px solid rgba(96,165,250,0.4)',
+                boxShadow: '0 4px 20px rgba(59,130,246,0.15)',
+              }}>
+                <div className="w-9 h-9 rounded-2xl flex items-center justify-center"
+                  style={{ background: 'linear-gradient(135deg,#3b82f6,#2563eb)', boxShadow: '0 4px 12px rgba(59,130,246,0.4)' }}>
+                  <FaCloudRain color="white" size={14} />
+                </div>
+                <p className="text-[10px] text-blue-800/70 font-medium leading-none">ฝน</p>
+                <p className="text-xl font-black text-blue-900 leading-none">
+                  {displayRainfall != null ? displayRainfall : '--'}
+                </p>
+                <p className="text-[9px] text-blue-600/70 leading-none">mm</p>
+              </div>
             </div>
           </div>
 
@@ -488,8 +565,49 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
 
         </div>
 
+        {/* ══ RADAR ══ */}
+        <div className="rounded-3xl overflow-hidden" style={{
+          background: 'linear-gradient(145deg,#0f172a,#1e1b4b,#0c1a3a)',
+          boxShadow: '0 20px 60px rgba(6,182,212,0.2), 0 4px 16px rgba(0,0,0,0.3)',
+        }}>
+          {/* Header */}
+          <div className="px-5 pt-5 pb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              {/* Pulse dot */}
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                  style={{ background: '#22d3ee' }} />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5"
+                  style={{ background: '#06b6d4' }} />
+              </span>
+              <div>
+                <p className="text-[13px] font-extrabold tracking-wide text-white leading-none">เรดาร์ฝนขอนแก่น</p>
+                <p className="text-[9px] text-cyan-400/70 mt-0.5 leading-none">Khon Kaen Doppler Radar · TMD</p>
+              </div>
+            </div>
+            <a href="https://weather.tmd.go.th/kkn240_HQ_Loop_edit2.php"
+              target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] font-semibold transition-all hover:scale-105"
+              style={{ background: 'rgba(34,211,238,0.15)', border: '1px solid rgba(34,211,238,0.3)', color: '#67e8f9' }}>
+              เต็มจอ
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+              </svg>
+            </a>
+          </div>
+
+          {/* Radar frame */}
+          <div className="px-4 pb-5">
+            <div className="rounded-2xl overflow-hidden" style={{
+              boxShadow: '0 0 0 1px rgba(34,211,238,0.2), 0 8px 32px rgba(0,0,0,0.4)',
+            }}>
+              <RadarFrame />
+            </div>
+          </div>
+        </div>
+
         {/* ══ FORECAST STRIP ══ */}
-        <ForecastStrip forecast={forecast} />
+        <ForecastStrip forecast={forecast} tmdData={tmdData} />
 
       </div>
     </div>

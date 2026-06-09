@@ -48,7 +48,7 @@ export function useRealtimeWeather() {
       const fcstWxPromise = fetch(
         `https://api.open-meteo.com/v1/forecast` +
         `?latitude=${KK_LAT}&longitude=${KK_LNG}` +
-        `&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,uv_index` +
+        `&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,uv_index,precipitation` +
         `&daily=temperature_2m_max,temperature_2m_min` +
         `&forecast_days=2&timezone=Asia%2FBangkok&wind_speed_unit=kmh`
       ).then(r => r.json());
@@ -114,8 +114,9 @@ export function useRealtimeWeather() {
             humidity:    Math.round( wx.hourly.relative_humidity_2m[i]  ?? 0),
             windSpeed:   Math.round((wx.hourly.wind_speed_10m[i]        ?? 0) * 10) / 10,
             pm25:        Math.round( aq?.hourly?.pm2_5?.[i]             ?? 0),
-            uvIndex:     Math.round((wx.hourly.uv_index?.[i]            ?? 0) * 10) / 10,
-            weatherCode: wx.hourly.weather_code?.[i] ?? 0,
+            uvIndex:      Math.round((wx.hourly.uv_index?.[i]      ?? 0) * 10) / 10,
+            precipitation: Math.round((wx.hourly.precipitation?.[i] ?? 0) * 10) / 10,
+            weatherCode:  wx.hourly.weather_code?.[i] ?? 0,
             isCurrent:   i === startIdx,
           });
         }

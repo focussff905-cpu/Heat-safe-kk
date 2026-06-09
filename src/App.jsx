@@ -15,7 +15,7 @@ import { usePins } from './hooks/usePins';
 
 export default function App() {
   const { tambons, forecast, dailyMax: omDailyMax, dailyMin: omDailyMin, status: weatherStatus, lastUpdated, refresh: refreshWeather } = useRealtimeWeather();
-  const { data: tmdData, dailyMax: tmdDailyMax, dailyMin: tmdDailyMin } = useTMDWeather();
+  const { data: tmdData } = useTMDWeather();
   const { pins, count: pinCount, addPin, deleteLastPin, isSupabase } = usePins();
   const [activeTab, setActiveTab] = useState('home');
   const [activeLayers, setActiveLayers] = useState(new Set());
@@ -130,8 +130,8 @@ export default function App() {
           weatherStatus={weatherStatus}
           lastUpdated={lastUpdated}
           onRefresh={refreshWeather}
-          tmdTempMax={tmdDailyMax ?? omDailyMax}
-          tmdTempMin={tmdDailyMin ?? omDailyMin}
+          tmdTempMax={tmdData?.tempMax ?? omDailyMax}
+          tmdTempMin={tmdData?.tempMin ?? omDailyMin}
           tmdData={tmdData}
         />
       )}

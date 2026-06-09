@@ -1,51 +1,18 @@
 import { useState, useEffect } from 'react';
 
-const KK_WMO       = '48381'; // KHON KAEN Weather Observing Station
-const STORAGE_KEY  = 'tmd_kk_daily';
-const CACHE_KEY    = 'tmd_kk_last';
+const KK_WMO    = '48381';
+const CACHE_KEY = 'tmd_kk_last';
 
-/* Bangkok-local date string YYYY-MM-DD */
-function bkkDateStr() {
-  return new Date().toLocaleString('sv', { timeZone: 'Asia/Bangkok' }).slice(0, 10);
+/* Cache with 3-hour TTL (matches TMD update interval) */
+function saveCache(d) {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ d, t: Date.now() })); } catch {}
 }
-
-/* Persist a temperature reading and return today's accumulated max/min */
-function recordReading(temp) {
-  const today = bkkDateStr();
-  let store = {};
-  try { store = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}'); } catch {}
-
-  // Keep only today's readings
-  const readings = (store[today] ?? []).filter(r => typeof r === 'number');
-  readings.push(temp);
-
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ [today]: readings }));
-
-  return {
-    max: Math.max(...readings),
-    min: Math.min(...readings),
-  };
-}
-
-/* Save/load the last successful TMD observation to localStorage */
-function saveLastData(d) {
-  try { localStorage.setItem(CACHE_KEY, JSON.stringify(d)); } catch {}
-}
-function loadLastData() {
-  try { return JSON.parse(localStorage.getItem(CACHE_KEY) ?? 'null'); } catch { return null; }
-}
-
-/* Read accumulated max/min for today without adding a new reading */
-function getDailyMaxMin() {
-  const today = bkkDateStr();
+function loadCache() {
   try {
-    const store    = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}');
-    const readings = (store[today] ?? []).filter(r => typeof r === 'number');
-    if (!readings.length) return { max: null, min: null };
-    return { max: Math.max(...readings), min: Math.min(...readings) };
-  } catch {
-    return { max: null, min: null };
-  }
+    const raw = JSON.parse(localStorage.getItem(CACHE_KEY) ?? 'null');
+    if (!raw || Date.now() - raw.t > 3 * 60 * 60 * 1000) return null;
+    return raw.d;
+  } catch { return null; }
 }
 
 function parseNum(v) {
@@ -78,9 +45,8 @@ function extractKhonKaen(xmlText) {
 }
 
 export function useTMDWeather() {
-  const [data,        setData]        = useState(() => loadLastData());
-  const [dailyMaxMin, setDailyMaxMin] = useState(() => getDailyMaxMin());
-  const [status,      setStatus]      = useState('loading');
+  const [data,   setData]   = useState(() => loadCache());
+  const [status, setStatus] = useState('loading');
 
   useEffect(() => {
     let cancelled = false;
@@ -93,18 +59,8 @@ export function useTMDWeather() {
         const kk = extractKhonKaen(await res.text());
 
         if (!cancelled) {
-          if (kk?.temperature != null) {
-            recordReading(kk.temperature);
-          }
-          // Prefer direct API max/min; fall back to accumulated localStorage values
-          const apiMM = { max: kk?.tempMax ?? null, min: kk?.tempMin ?? null };
-          const stored = getDailyMaxMin();
-          setDailyMaxMin({
-            max: apiMM.max ?? stored.max,
-            min: apiMM.min ?? stored.min,
-          });
-          if (kk) saveLastData(kk);
-          setData(kk ?? loadLastData());
+          if (kk) saveCache(kk);
+          setData(kk ?? loadCache());
           setStatus(kk ? 'ok' : 'error');
         }
       } catch {
@@ -117,10 +73,5 @@ export function useTMDWeather() {
     return () => { cancelled = true; clearInterval(id); };
   }, []);
 
-  return {
-    data,
-    status,
-    dailyMax: dailyMaxMin.max,
-    dailyMin: dailyMaxMin.min,
-  };
+  return { data, status };
 }
