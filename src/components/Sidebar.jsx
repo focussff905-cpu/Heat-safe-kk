@@ -352,7 +352,7 @@ export default function Sidebar({
         </div>
 
         {/* ── Scrollable content ── */}
-        <div className="flex-1 overflow-y-auto px-3 md:px-4 pb-6 space-y-2.5 md:space-y-4 pt-2.5 md:pt-0">
+        <div className="flex-1 overflow-y-auto px-3 md:px-4 pb-6 pt-2.5 md:pt-0 flex flex-col gap-2.5 md:gap-4">
 
           {/* Quick stats — desktop only */}
           <div className="hidden md:grid grid-cols-3 gap-2">
@@ -374,7 +374,7 @@ export default function Sidebar({
           </div>
 
           {/* Search */}
-          <div ref={searchRef} className="relative">
+          <div ref={searchRef} className="relative order-2 md:order-none">
             <label className="block text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1.5">ค้นหา</label>
             <div className="relative">
               <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-300" size={11} />
@@ -440,7 +440,7 @@ export default function Sidebar({
           </div>
 
           {/* Layer controls */}
-          <div>
+          <div className="order-3 md:order-none">
             <label className="block text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2">เลเยอร์ข้อมูล</label>
             <div className="space-y-2">
               {LAYER_BUTTONS.map(btn => {
@@ -508,7 +508,7 @@ export default function Sidebar({
           </div>
 
           {/* Info card */}
-          <div>
+          <div className="order-1 md:order-none">
             <label className="block text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1.5">
               {selectedDistrict ? 'ข้อมูลพื้นที่' : 'ข้อมูลเลเยอร์'}
             </label>
