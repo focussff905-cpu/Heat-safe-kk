@@ -2,9 +2,11 @@ import { useEffect, useRef } from 'react';
 import { useMap } from 'react-leaflet';
 import L from 'leaflet';
 
-export default function StreamLayer({ opacity = 1 }) {
+export default function StreamLayer({ opacity = 1, basemap = 'satellite' }) {
   const map = useMap();
   const layerRef = useRef(null);
+  const color  = basemap === 'dem' ? '#1d4ed8' : '#38bdf8';
+  const weight = basemap === 'dem' ? 2.5 : 2;
 
   useEffect(() => {
     let cancelled = false;
@@ -15,8 +17,8 @@ export default function StreamLayer({ opacity = 1 }) {
         if (cancelled) return;
         const layer = L.geoJSON(data, {
           style: {
-            color: '#38bdf8',
-            weight: 2,
+            color,
+            weight,
             opacity,
             fillOpacity: 0,
             lineCap: 'round',
@@ -45,14 +47,13 @@ export default function StreamLayer({ opacity = 1 }) {
         layerRef.current = null;
       }
     };
-  }, [map]);
+  }, [map, color, weight]);
 
-  // Update opacity without re-fetching
   useEffect(() => {
     if (layerRef.current) {
-      layerRef.current.setStyle({ color: '#38bdf8', weight: 2, opacity, fillOpacity: 0 });
+      layerRef.current.setStyle({ color, weight, opacity, fillOpacity: 0 });
     }
-  }, [opacity]);
+  }, [opacity, color, weight]);
 
   return null;
 }

@@ -21,6 +21,7 @@ export default function Map3DView({ onClose }) {
   const [hillshadeIntensity, setHillshadeIntensity] = useState(0.5);
   const [demOpacity, setDemOpacity] = useState(0.6);
   const [satOpacity, setSatOpacity] = useState(1);
+  const [showStream, setShowStream] = useState(false);
   const [panelOpen, setPanelOpen] = useState(true);
 
   useEffect(() => {
@@ -84,7 +85,26 @@ export default function Map3DView({ onClose }) {
     });
 
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'bottom-right');
-    map.on('load', () => map.setTerrain({ source: 'terrain', exaggeration: 2 }));
+
+    map.on('load', () => {
+      map.setTerrain({ source: 'terrain', exaggeration: 2 });
+
+      fetch('/geo.geojson')
+        .then(r => r.json())
+        .then(data => {
+          if (!mapRef.current) return;
+          map.addSource('stream-source', { type: 'geojson', data });
+          map.addLayer({
+            id: 'stream',
+            type: 'line',
+            source: 'stream-source',
+            layout: { visibility: 'none', 'line-cap': 'round', 'line-join': 'round' },
+            paint: { 'line-color': '#38bdf8', 'line-width': 2, 'line-opacity': 0.85 },
+          });
+        })
+        .catch(err => console.error('stream 3D fetch error:', err));
+    });
+
     map.on('pitchend', () => setPitch(Math.round(map.getPitch())));
     map.on('rotateend', () => setBearing(Math.round(map.getBearing())));
 
@@ -106,6 +126,15 @@ export default function Map3DView({ onClose }) {
   };
   const applyHillshadeInt = (v) => { setHillshadeIntensity(v); if (demMode === 'hillshade') mapRef.current?.setPaintProperty('hillshade', 'hillshade-exaggeration', v); };
   const applyDemOpacity   = (v) => { setDemOpacity(v);         if (demMode === 'colordem')  mapRef.current?.setPaintProperty('colordem',  'raster-opacity', v); };
+
+  const toggleStream = () => {
+    const map = mapRef.current; if (!map) return;
+    const next = !showStream;
+    setShowStream(next);
+    if (map.getLayer('stream')) {
+      map.setLayoutProperty('stream', 'visibility', next ? 'visible' : 'none');
+    }
+  };
 
   const resetView = () => {
     mapRef.current?.flyTo({ center: [KK_CENTER_LNG, KK_CENTER_LAT], zoom: 9, pitch: 55, bearing: -20, duration: 1500 });
@@ -199,6 +228,29 @@ export default function Map3DView({ onClose }) {
             <p className="text-[9px] text-slate-500 mt-1">Esri Shaded Relief</p>
           </>}
           {demMode === 'none' && <p className="text-[9px] text-slate-600">เลือก Hillshade หรือ Elevation Color</p>}
+        </div>
+
+        {/* Stream layer toggle */}
+        <div className="pt-1 border-t border-white/10">
+          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-2">Layers</p>
+          <button
+            onClick={toggleStream}
+            className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg transition-all"
+            style={{
+              background: showStream ? 'rgba(56,189,248,0.15)' : 'rgba(255,255,255,0.05)',
+              border: `1px solid ${showStream ? 'rgba(56,189,248,0.5)' : 'rgba(255,255,255,0.08)'}`,
+            }}
+          >
+            <div className="flex items-center gap-1.5">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={showStream ? '#38bdf8' : '#475569'} strokeWidth="2.5" strokeLinecap="round">
+                <path d="M3 12 C6 8, 9 16, 12 12 S18 8, 21 12"/>
+              </svg>
+              <span className="text-[10px] font-semibold" style={{ color: showStream ? '#38bdf8' : '#475569' }}>ร่องน้ำ</span>
+            </div>
+            <div className="w-7 h-3.5 rounded-full relative transition-all" style={{ background: showStream ? 'rgba(56,189,248,0.4)' : 'rgba(255,255,255,0.1)' }}>
+              <div className="absolute top-0.5 w-2.5 h-2.5 rounded-full transition-all" style={{ background: showStream ? '#38bdf8' : '#475569', left: showStream ? '15px' : '2px' }} />
+            </div>
+          </button>
         </div>
 
         <div className="flex flex-col gap-1 pt-1 border-t border-white/10">
