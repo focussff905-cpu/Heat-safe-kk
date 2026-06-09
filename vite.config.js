@@ -6,4 +6,13 @@ export default defineConfig({
   optimizeDeps: {
     include: ['leaflet', 'react-leaflet'],
   },
+  server: {
+    proxy: {
+      '/tmd-api': {
+        target: 'http://www.aws-observation.tmd.go.th',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/tmd-api/, ''),
+      },
+    },
+  },
 })

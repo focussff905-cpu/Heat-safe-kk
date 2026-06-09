@@ -1,5 +1,45 @@
-import { FaWind, FaTint, FaMapMarkerAlt, FaThermometerHalf, FaSun } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
+import { FaWind, FaTint, FaMapMarkerAlt, FaThermometerHalf, FaSun, FaCrosshairs } from 'react-icons/fa';
 import { getTemperatureColor, getPM25Color, getPM25Level } from '../data/mockData';
+
+function useGeolocationName() {
+  const [name, setName]   = useState(null);
+  const [state, setState] = useState('idle'); // idle | requesting | ok | denied | error
+
+  function request() {
+    if (!navigator.geolocation) { setState('error'); return; }
+    setState('requesting');
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords: { latitude, longitude } }) => {
+        try {
+          const res  = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=th`,
+            { headers: { 'Accept-Language': 'th' } }
+          );
+          const data = await res.json();
+          const a    = data.address ?? {};
+          const road = a.road ? (a.house_number ? `${a.road} ${a.house_number}` : a.road) : null;
+          const best = a.tourism || a.amenity || a.building || a.leisure
+                    || a.shop    || a.office  || a.man_made
+                    || road
+                    || a.neighbourhood || a.suburb
+                    || data.display_name?.split(',')[0];
+          setName(best ?? 'ตำแหน่งปัจจุบัน');
+          setState('ok');
+        } catch {
+          setName('ตำแหน่งปัจจุบัน');
+          setState('ok');
+        }
+      },
+      () => setState('denied'),
+      { timeout: 10000, maximumAge: 60000 }
+    );
+  }
+
+  useEffect(() => { request(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return { name, state, retry: request };
+}
 
 function getUVLevel(uv) {
   if (uv <= 2)  return { label: 'ต่ำ',        color: '#22c55e' };
@@ -145,9 +185,10 @@ function ForecastStrip({ forecast }) {
 /* ══════════════════════════════════════════════════════════════
    Main component
    ══════════════════════════════════════════════════════════════ */
-export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated }) {
+export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated, tmdTempMax, tmdTempMin }) {
   const now     = new Date();
   const dateStr = `วัน${DAY_TH[now.getDay()]} ${now.getDate()} ${MONTH_TH[now.getMonth()]} ${now.getFullYear() + 543}`;
+  const geo     = useGeolocationName();
 
   if (!tambons || tambons.length === 0) {
     return (
@@ -172,7 +213,12 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
   const avgWind     = (winds.reduce((s,v)=>s+v,0) / winds.length).toFixed(1);
   const pm25Level   = getPM25Level(parseFloat(avgPM25));
   const pm25Color   = getPM25Color(parseFloat(avgPM25));
-  const tempPct     = Math.max(0, Math.min(100, ((parseFloat(avgTemp) - minTemp) / (maxTemp - minTemp || 1)) * 100));
+
+  /* Use official TMD station values when available, fall back to tambons-derived */
+  const displayMin  = tmdTempMin ?? minTemp;
+  const displayMax  = tmdTempMax ?? maxTemp;
+  const hasTMD      = tmdTempMax != null && tmdTempMin != null;
+  const tempPct     = Math.max(0, Math.min(100, ((parseFloat(avgTemp) - displayMin) / (displayMax - displayMin || 1)) * 100));
   const currentUV   = forecast?.[0]?.uvIndex ?? null;
   const uvLevel     = currentUV !== null ? getUVLevel(currentUV) : null;
 
@@ -187,7 +233,25 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
           <div>
             <div className="flex items-center gap-1.5 mb-0.5">
               <FaMapMarkerAlt className="text-blue-500" size={12} />
-              <span className="text-blue-700 text-sm font-bold">อ.เมืองขอนแก่น</span>
+              {geo.state === 'requesting' ? (
+                <span className="text-blue-400 text-sm font-bold animate-pulse">กำลังระบุตำแหน่ง...</span>
+              ) : geo.state === 'ok' ? (
+                <span className="text-blue-700 text-sm font-bold">{geo.name}</span>
+              ) : geo.state === 'denied' ? (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-blue-700 text-sm font-bold">อ.เมืองขอนแก่น</span>
+                  <button
+                    onClick={geo.retry}
+                    title="ขอสิทธิ์เข้าถึงตำแหน่ง"
+                    className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full text-blue-500 hover:bg-blue-50 transition-colors"
+                    style={{ border: '1px solid #bfdbfe' }}>
+                    <FaCrosshairs size={8} />
+                    <span>ระบุตำแหน่ง</span>
+                  </button>
+                </div>
+              ) : (
+                <span className="text-blue-700 text-sm font-bold">อ.เมืองขอนแก่น</span>
+              )}
             </div>
             <p className="text-blue-400 text-xs">{dateStr}</p>
           </div>
@@ -217,12 +281,29 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
                 </div>
                 <WeatherIllustration />
               </div>
-              {/* Min/Max range bar */}
-              <div className="mt-4">
-                <div className="flex justify-between text-xs text-blue-600/80 mb-1.5">
-                  <span>ต่ำสุด {minTemp}°C</span>
-                  <span>สูงสุด {maxTemp}°C</span>
+
+              {/* Max / Min badges */}
+              <div className="flex gap-2 mt-3">
+                <div className="flex items-center gap-2 rounded-xl px-3 py-2 flex-1"
+                  style={{ background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.22)' }}>
+                  <span className="text-red-400 text-base leading-none font-bold">↑</span>
+                  <div>
+                    <p className="text-[9px] text-red-400/70 leading-none mb-0.5">สูงสุด</p>
+                    <p className="text-xl font-black text-red-500 leading-none">{displayMax}°<span className="text-xs font-semibold">C</span></p>
+                  </div>
                 </div>
+                <div className="flex items-center gap-2 rounded-xl px-3 py-2 flex-1"
+                  style={{ background: 'rgba(59,130,246,0.10)', border: '1px solid rgba(59,130,246,0.22)' }}>
+                  <span className="text-blue-400 text-base leading-none font-bold">↓</span>
+                  <div>
+                    <p className="text-[9px] text-blue-400/70 leading-none mb-0.5">ต่ำสุด</p>
+                    <p className="text-xl font-black text-blue-500 leading-none">{displayMin}°<span className="text-xs font-semibold">C</span></p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Range bar */}
+              <div className="mt-3">
                 <div className="h-2 rounded-full bg-blue-200/50 overflow-hidden">
                   <div className="h-full rounded-full" style={{ width: '100%', background: 'linear-gradient(90deg,#60a5fa,#fb923c,#ef4444)', opacity: 0.8 }} />
                 </div>
@@ -230,6 +311,11 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
                   <div className="absolute -top-3.5 w-3 h-3 rounded-full bg-white border-2 border-blue-500 shadow"
                     style={{ left: `calc(${tempPct}% - 6px)` }} />
                 </div>
+                {hasTMD && (
+                  <p className="text-[9px] text-blue-400/70 mt-2 text-right">
+                    พยากรณ์รายวัน · Open-Meteo
+                  </p>
+                )}
               </div>
             </div>
 

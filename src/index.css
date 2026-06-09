@@ -174,3 +174,8 @@ html, body, #root {
 .hotspot-ring {
   animation: hotspotRing 2s ease-out infinite;
 }
+
+/* Himawari animation frames — smooth opacity crossfade between frames */
+.himawari-frame {
+  transition: opacity 0.45s ease-in-out;
+}

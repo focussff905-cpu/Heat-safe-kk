@@ -9,6 +9,7 @@ import TMDTempTileLayer from './layers/TMDTempTileLayer';
 import StreamLayer from './layers/StreamLayer';
 import NASATempMonthlyLayer from './layers/NASATempMonthlyLayer';
 import HotspotLayer from './layers/HotspotLayer';
+import HimawariLayer, { HIMAWARI_BANDS, generateFrames } from './layers/HimawariLayer';
 import PinLayer from './layers/PinLayer';
 import Map3DView from './Map3DView';
 import 'leaflet/dist/leaflet.css';
@@ -168,6 +169,131 @@ function HistoryYearPanel({ selectedYear, onSelect }) {
   );
 }
 
+/* ── Himawari animated satellite panel ── */
+function HimawariPanel({ band, onBandChange, playing, onTogglePlay, frameIdx, frames, onScrub }) {
+  const currentTime = frames[frameIdx] ?? '';
+  const timeStr = currentTime
+    ? new Date(currentTime).toLocaleString('th-TH', {
+        hour: '2-digit', minute: '2-digit',
+        day: 'numeric', month: 'short',
+        timeZone: 'Asia/Bangkok',
+      })
+    : '--:--';
+
+  return (
+    <div
+      className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000] rounded-xl overflow-hidden"
+      style={{
+        background: 'rgba(15,23,42,0.93)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        border: '1px solid rgba(8,145,178,0.4)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.35)',
+        minWidth: '260px',
+      }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-3 py-2"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+        <div className="flex items-center gap-2">
+          <span className={`inline-block w-1.5 h-1.5 rounded-full ${playing ? 'bg-cyan-400 animate-pulse' : 'bg-slate-500'}`} />
+          <span className="text-[11px] font-bold text-cyan-300 uppercase tracking-widest">Himawari-9 AHI</span>
+        </div>
+        <span className="text-[10px] text-slate-300 font-mono">{timeStr} ICT</span>
+      </div>
+
+      {/* Band selector */}
+      <div className="flex gap-1 px-1.5 pt-1.5">
+        {HIMAWARI_BANDS.map(b => (
+          <button
+            key={b.id}
+            onClick={() => onBandChange(b.id)}
+            title={b.desc}
+            className="flex-1 py-1.5 px-1 rounded-lg text-[10px] font-semibold transition-all duration-150 leading-tight text-center"
+            style={{
+              background: band === b.id ? 'rgba(8,145,178,0.85)' : 'rgba(255,255,255,0.07)',
+              color:      band === b.id ? '#fff' : '#94a3b8',
+              border:     `1px solid ${band === b.id ? 'rgba(8,145,178,0.6)' : 'transparent'}`,
+            }}
+          >
+            {b.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Timeline scrubber */}
+      <div className="px-3 pt-2">
+        <input
+          type="range"
+          min={0}
+          max={frames.length - 1}
+          value={frameIdx}
+          onChange={e => onScrub(Number(e.target.value))}
+          className="w-full h-1 rounded-full cursor-pointer"
+          style={{ accentColor: '#0891b2' }}
+        />
+      </div>
+
+      {/* Controls */}
+      <div className="flex items-center justify-between px-3 py-2">
+        <button
+          onClick={onTogglePlay}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-150"
+          style={{
+            background: playing ? 'rgba(8,145,178,0.85)' : 'rgba(255,255,255,0.1)',
+            color:      playing ? '#fff' : '#94a3b8',
+            border:     `1px solid ${playing ? 'rgba(8,145,178,0.6)' : 'rgba(255,255,255,0.1)'}`,
+          }}
+        >
+          {playing ? (
+            <>
+              <svg width="9" height="10" viewBox="0 0 9 10" fill="currentColor">
+                <rect x="0" y="0" width="3.5" height="10" rx="1"/>
+                <rect x="5.5" y="0" width="3.5" height="10" rx="1"/>
+              </svg>
+              หยุด
+            </>
+          ) : (
+            <>
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+                <polygon points="0,0 10,5 0,10"/>
+              </svg>
+              เล่น
+            </>
+          )}
+        </button>
+
+        <div className="flex items-center gap-1.5">
+          {/* Frame dots */}
+          <div className="flex gap-0.5">
+            {frames.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => onScrub(i)}
+                className="rounded-full transition-all duration-100"
+                style={{
+                  width:  i === frameIdx ? '10px' : '4px',
+                  height: '4px',
+                  background: i <= frameIdx ? '#0891b2' : 'rgba(255,255,255,0.2)',
+                  flexShrink: 0,
+                }}
+              />
+            ))}
+          </div>
+          <span className="text-[9px] text-slate-500 font-mono ml-1">
+            {frameIdx + 1}/{frames.length}
+          </span>
+        </div>
+      </div>
+
+      {/* Resolution note */}
+      <div className="px-3 pb-2 text-[9px] text-slate-600 border-t border-white/[0.05] pt-1.5">
+        {HIMAWARI_BANDS.find(b => b.id === band)?.desc} · ทุก 10 นาที · 2 ชั่วโมงย้อนหลัง
+      </div>
+    </div>
+  );
+}
+
 function BoundsLocker() {
   const map = useMap();
   useEffect(() => {
@@ -285,6 +411,19 @@ export default function MapView({ activeLayers, tambons, selectedDistrict, onDis
   const [show3D, setShow3D] = useState(false);
   const [tempPoint, setTempPoint] = useState(null);
   const [pinMode, setPinMode] = useState(false);
+  const [himawariband, setHimawariband] = useState('visible');
+  const [himawariFrames] = useState(() => generateFrames(12));
+  const [himawariFrameIdx, setHimawariFrameIdx] = useState(11); // start at latest
+  const [himawariPlaying, setHimawariPlaying] = useState(false);
+
+  // Advance frame every 700ms when playing
+  useEffect(() => {
+    if (!himawariPlaying) return;
+    const id = setInterval(() => {
+      setHimawariFrameIdx(i => (i + 1) % himawariFrames.length);
+    }, 1500);
+    return () => clearInterval(id);
+  }, [himawariPlaying, himawariFrames.length]);
 
   const handlePointClick = useCallback((lat, lng) => {
     setTempPoint({ lat, lng, status: 'loading' });
@@ -385,7 +524,31 @@ export default function MapView({ activeLayers, tambons, selectedDistrict, onDis
         {has('hotspot') && s('hotspot').visible && (
           <HotspotLayer hotspots={hotspots} opacity={s('hotspot').opacity} />
         )}
+        {/* Render all frames simultaneously — inactive ones opacity=0 so tiles are cached */}
+        {has('himawari') && himawariFrames.map((t, i) => (
+          <HimawariLayer
+            key={`${himawariband}-${t}`}
+            band={himawariband}
+            opacity={s('himawari').visible && i === himawariFrameIdx
+              ? s('himawari').opacity
+              : 0}
+            time={t}
+          />
+        ))}
       </MapContainer>
+
+      {/* Himawari animated panel */}
+      {has('himawari') && (
+        <HimawariPanel
+          band={himawariband}
+          onBandChange={setHimawariband}
+          playing={himawariPlaying}
+          onTogglePlay={() => setHimawariPlaying(v => !v)}
+          frameIdx={himawariFrameIdx}
+          frames={himawariFrames}
+          onScrub={(i) => { setHimawariFrameIdx(i); setHimawariPlaying(false); }}
+        />
+      )}
 
       {/* Year panel ภาพย้อนหลัง */}
       {basemap === 'historical' && (

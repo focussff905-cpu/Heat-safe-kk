@@ -193,4 +193,15 @@ export const layerInfo = {
       { color: '#FF7700', label: '40–43°C', desc: 'สูงมาก' },
     ],
   },
+  himawari: {
+    id: 'himawari',
+    name: 'ภาพ Himawari-9 AHI',
+    description: 'ภาพถ่ายดาวเทียม Himawari-9 จาก NASA GIBS แสดงเมฆและสภาพอากาศแบบ Real-time อัพเดตทุก 10 นาที สามารถเลือกดูได้ 3 band: แสงที่มองเห็น, อินฟราเรด, และไอน้ำ',
+    unit: 'band',
+    legend: [
+      { color: '#87ceeb', label: 'แสงที่มองเห็น', desc: '1 km/px' },
+      { color: '#ff6b35', label: 'อินฟราเรด',    desc: '2 km/px' },
+      { color: '#4299e1', label: 'ไอน้ำ',         desc: '2 km/px' },
+    ],
+  },
 };

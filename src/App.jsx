@@ -13,7 +13,7 @@ import { useRealtimeWeather } from './hooks/useRealtimeWeather';
 import { usePins } from './hooks/usePins';
 
 export default function App() {
-  const { tambons, forecast, status: weatherStatus, lastUpdated, refresh: refreshWeather } = useRealtimeWeather();
+  const { tambons, forecast, dailyMax, dailyMin, status: weatherStatus, lastUpdated, refresh: refreshWeather } = useRealtimeWeather();
   const { pins, count: pinCount, addPin, deleteLastPin, isSupabase } = usePins();
   const [activeTab, setActiveTab] = useState('home');
   const [activeLayers, setActiveLayers] = useState(new Set());
@@ -28,6 +28,7 @@ export default function App() {
     stream:       { visible: true, opacity: 0.85 },
     monthly_temp: { visible: true, opacity: 0.80 },
     hotspot:      { visible: true, opacity: 0.90 },
+    himawari:     { visible: true, opacity: 0.85 },
   });
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
@@ -127,6 +128,8 @@ export default function App() {
           weatherStatus={weatherStatus}
           lastUpdated={lastUpdated}
           onRefresh={refreshWeather}
+          tmdTempMax={dailyMax}
+          tmdTempMin={dailyMin}
         />
       )}
 

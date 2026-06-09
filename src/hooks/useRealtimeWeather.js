@@ -18,9 +18,11 @@ function bkkHourKey() {
 }
 
 export function useRealtimeWeather() {
-  const [tambons,  setTambons]  = useState(baseTambons);
-  const [forecast, setForecast] = useState([]);
-  const [status,   setStatus]   = useState('loading');
+  const [tambons,    setTambons]    = useState(baseTambons);
+  const [forecast,   setForecast]   = useState([]);
+  const [dailyMax,   setDailyMax]   = useState(null);
+  const [dailyMin,   setDailyMin]   = useState(null);
+  const [status,     setStatus]     = useState('loading');
   const [lastUpdated, setLastUpdated] = useState(null);
 
   const refresh = useCallback(async () => {
@@ -42,11 +44,12 @@ export function useRealtimeWeather() {
         `&current=pm2_5&timezone=Asia%2FBangkok`
       ).then(r => r.json());
 
-      /* ── 3. Hourly forecast for KK center (next 2 days) ── */
+      /* ── 3. Hourly + daily forecast for KK center (next 2 days) ── */
       const fcstWxPromise = fetch(
         `https://api.open-meteo.com/v1/forecast` +
         `?latitude=${KK_LAT}&longitude=${KK_LNG}` +
         `&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,uv_index` +
+        `&daily=temperature_2m_max,temperature_2m_min` +
         `&forecast_days=2&timezone=Asia%2FBangkok&wind_speed_unit=kmh`
       ).then(r => r.json());
 
@@ -80,6 +83,15 @@ export function useRealtimeWeather() {
           heatValue:   heatFromTemp(temp),
         };
       }));
+
+      /* ── Daily max / min for today ── */
+      if (fcstWxRes.status === 'fulfilled') {
+        const wx = fcstWxRes.value;
+        const max = wx.daily?.temperature_2m_max?.[0];
+        const min = wx.daily?.temperature_2m_min?.[0];
+        if (max != null) setDailyMax(Math.round(max * 10) / 10);
+        if (min != null) setDailyMin(Math.round(min * 10) / 10);
+      }
 
       /* ── Build hourly forecast array (next 24 h from now) ── */
       if (fcstWxRes.status === 'fulfilled') {
@@ -123,5 +135,5 @@ export function useRealtimeWeather() {
     return () => clearInterval(id);
   }, [refresh]);
 
-  return { tambons, forecast, status, lastUpdated, refresh };
+  return { tambons, forecast, dailyMax, dailyMin, status, lastUpdated, refresh };
 }

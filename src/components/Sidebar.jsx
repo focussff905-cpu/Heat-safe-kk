@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   FaThermometerHalf, FaWind, FaFireAlt, FaSun, FaSearch, FaChevronLeft,
   FaChevronRight, FaTimes, FaMapMarkerAlt, FaTint, FaLeaf, FaEye,
-  FaEyeSlash, FaWater, FaSatelliteDish,
+  FaEyeSlash, FaWater, FaSatelliteDish, FaSatellite,
 } from 'react-icons/fa';
 import {
   layerInfo, getTemperatureColor, getPM25Color, getPM25Level,
@@ -16,6 +16,7 @@ const LAYER_BUTTONS = [
   { id: 'stream',      label: 'ร่องน้ำ',                 icon: FaWater,           activeBg: 'rgba(14,165,233,0.10)',  activeBorder: 'rgba(14,165,233,0.4)',  iconColor: '#0EA5E9' },
   { id: 'monthly_temp',label: 'อุณหภูมิ MODIS รายเดือน', icon: FaSatelliteDish,   activeBg: 'rgba(139,92,246,0.10)', activeBorder: 'rgba(139,92,246,0.4)', iconColor: '#8B5CF6' },
   { id: 'hotspot',     label: 'จุดความร้อนสูง',          icon: FaSun,             activeBg: 'rgba(255,80,0,0.10)',   activeBorder: 'rgba(255,80,0,0.4)',   iconColor: '#FF5000' },
+  { id: 'himawari',   label: 'ภาพ Himawari-9 AHI',      icon: FaSatellite,       activeBg: 'rgba(8,145,178,0.10)',  activeBorder: 'rgba(8,145,178,0.4)', iconColor: '#0891b2' },
 ];
 
 /* ── Weather illustration SVG ── */
@@ -121,6 +122,13 @@ function LayerRanking({ tambons, field, unit, colorFn, hiLabel, loLabel, decimal
 /* ── District info card ── */
 function InfoCard({ selectedDistrict, activeLayer, onClear, tambons }) {
   const info = layerInfo[activeLayer];
+  if (!info) {
+    return (
+      <div className="rounded-2xl p-3 text-center" style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.2)' }}>
+        <p className="text-xs text-indigo-600">คลิกที่วงกลมบนแผนที่เพื่อดูข้อมูลรายละเอียด</p>
+      </div>
+    );
+  }
   if (!selectedDistrict) {
     return (
       <div className="animate-fade-in">
