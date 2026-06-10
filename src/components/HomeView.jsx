@@ -426,43 +426,6 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
             {/* ── Hourly forecast ── */}
             <ForecastStrip forecast={forecast} tmdData={tmdData} />
 
-            {/* ── Radar ── */}
-            <div className="rounded-3xl overflow-hidden" style={{
-              background: 'linear-gradient(145deg,#0f172a,#1e1b4b,#0c1a3a)',
-              boxShadow: '0 20px 60px rgba(6,182,212,0.2), 0 4px 16px rgba(0,0,0,0.3)',
-            }}>
-              <div className="px-5 pt-5 pb-3 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <span className="relative flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-                      style={{ background: '#22d3ee' }} />
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5"
-                      style={{ background: '#06b6d4' }} />
-                  </span>
-                  <div>
-                    <p className="text-[13px] font-extrabold tracking-wide text-white leading-none">เรดาร์ฝนขอนแก่น</p>
-                    <p className="text-[9px] text-cyan-400/70 mt-0.5 leading-none">Khon Kaen Doppler Radar · TMD</p>
-                  </div>
-                </div>
-                <a href="https://weather.tmd.go.th/kkn240_HQ_Loop_edit2.php"
-                  target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] font-semibold transition-all hover:scale-105"
-                  style={{ background: 'rgba(34,211,238,0.15)', border: '1px solid rgba(34,211,238,0.3)', color: '#67e8f9' }}>
-                  เต็มจอ
-                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
-                  </svg>
-                </a>
-              </div>
-              <div className="px-4 pb-5">
-                <div className="rounded-2xl overflow-hidden" style={{
-                  boxShadow: '0 0 0 1px rgba(34,211,238,0.2), 0 8px 32px rgba(0,0,0,0.4)',
-                }}>
-                  <RadarFrame />
-                </div>
-              </div>
-            </div>
-
             {/* ── 5 stat cards ── */}
             <div className="grid grid-cols-3 gap-2.5">
               {[
@@ -528,6 +491,44 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
                 </div>
               ))}
             </div>
+
+            {/* ── Radar ── */}
+            <div className="rounded-3xl overflow-hidden" style={{
+              background: 'linear-gradient(145deg,#0f172a,#1e1b4b,#0c1a3a)',
+              boxShadow: '0 20px 60px rgba(6,182,212,0.2), 0 4px 16px rgba(0,0,0,0.3)',
+            }}>
+              <div className="px-5 pt-5 pb-3 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                      style={{ background: '#22d3ee' }} />
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5"
+                      style={{ background: '#06b6d4' }} />
+                  </span>
+                  <div>
+                    <p className="text-[13px] font-extrabold tracking-wide text-white leading-none">เรดาร์ฝนขอนแก่น</p>
+                    <p className="text-[9px] text-cyan-400/70 mt-0.5 leading-none">Khon Kaen Doppler Radar · TMD</p>
+                  </div>
+                </div>
+                <a href="https://weather.tmd.go.th/kkn240_HQ_Loop_edit2.php"
+                  target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] font-semibold transition-all hover:scale-105"
+                  style={{ background: 'rgba(34,211,238,0.15)', border: '1px solid rgba(34,211,238,0.3)', color: '#67e8f9' }}>
+                  เต็มจอ
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                  </svg>
+                </a>
+              </div>
+              <div className="px-4 pb-5">
+                <div className="rounded-2xl overflow-hidden" style={{
+                  boxShadow: '0 0 0 1px rgba(34,211,238,0.2), 0 8px 32px rgba(0,0,0,0.4)',
+                }}>
+                  <RadarFrame />
+                </div>
+              </div>
+            </div>
+
           </div>
 
           {/* ── Right column: tambon list ── */}
