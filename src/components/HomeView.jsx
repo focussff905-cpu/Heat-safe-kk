@@ -236,6 +236,18 @@ function ForecastStrip({ forecast, tmdData }) {
   );
 }
 
+/* ── Clothing recommendation ── */
+function getClothingAdvice(temp) {
+  const t = parseFloat(temp);
+  if (t >= 38) return { icon: '🥵', outfit: 'เสื้อผ้าบางมาก สีอ่อน', tip: 'สวมหมวก + ครีมกันแดด หลีกเลี่ยงออกแดด' };
+  if (t >= 35) return { icon: '☀️', outfit: 'เสื้อแขนสั้นบาง สีอ่อน', tip: 'สวมหมวกและแว่นกันแดด' };
+  if (t >= 32) return { icon: '🌤️', outfit: 'เสื้อแขนสั้ต ระบายอากาศดี', tip: 'หลีกเลี่ยงเสื้อสีเข้ม' };
+  if (t >= 28) return { icon: '😊', outfit: 'เสื้อแขนสั้นสบาย', tip: 'อากาศดี เหมาะออกกิจกรรม' };
+  if (t >= 24) return { icon: '🌥️', outfit: 'เสื้อแขนสั้น หรือแขนยาวเบา', tip: 'อากาศเย็นสบาย' };
+  if (t >= 20) return { icon: '🌬️', outfit: 'เสื้อแขนยาว หรือแจ็กเก็ตบาง', tip: 'เตรียมเสื้อกันหนาวบางไว้' };
+  return          { icon: '🧥', outfit: 'เสื้อกันหนาว + แจ็กเก็ต', tip: 'อากาศหนาว ใส่เสื้อหนาหลายชั้น' };
+}
+
 /* ── Weather activity assessment ── */
 function getWeatherAlert(temp, humidity, uv, pm25) {
   const t = parseFloat(temp);
@@ -304,6 +316,7 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
   const currentUV   = forecast?.[0]?.uvIndex ?? null;
   const uvLevel     = currentUV !== null ? getUVLevel(currentUV) : null;
   const weatherAlert  = getWeatherAlert(displayTemp, displayHumidity, currentUV, avgPM25);
+  const clothingAdvice = getClothingAdvice(displayTemp);
 
   /* Live dot */
   const dotCfg = {
@@ -438,6 +451,16 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
                       {displayMin != null ? displayMin : '--'}°<span className="text-xs">C</span>
                     </p>
                   </div>
+                </div>
+              </div>
+
+              {/* Clothing advice */}
+              <div className="relative mt-3 px-3 py-2.5 rounded-2xl flex items-center gap-2.5"
+                style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                <span className="text-xl leading-none flex-shrink-0">{clothingAdvice.icon}</span>
+                <div className="min-w-0">
+                  <p className="text-white text-[11px] font-bold leading-none">👕 {clothingAdvice.outfit}</p>
+                  <p className="text-white/55 text-[10px] mt-1 leading-none">{clothingAdvice.tip}</p>
                 </div>
               </div>
 
