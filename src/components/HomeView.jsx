@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { FaWind, FaTint, FaMapMarkerAlt, FaThermometerHalf, FaSun, FaCrosshairs, FaCloudRain } from 'react-icons/fa';
 import { getTemperatureColor, getPM25Color, getPM25Level } from '../data/mockData';
+import NotificationToggle from './NotificationToggle';
 
 function useGeolocationName() {
   const [name, setName]   = useState(null);
@@ -530,6 +531,9 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
           </div>
 
         </div>
+
+        {/* ── Notification toggle ── */}
+        <NotificationToggle />
 
         {/* ══ RADAR ══ */}
         <div className="rounded-3xl overflow-hidden" style={{
