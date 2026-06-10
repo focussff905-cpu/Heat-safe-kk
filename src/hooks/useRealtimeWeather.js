@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { tambons as baseTambons } from '../data/mockData';
 
-const REFRESH_MS = 30 * 60 * 1000;
+const REFRESH_MS = 5 * 60 * 1000;
 const KK_LAT = 16.445;
 const KK_LNG = 102.820;
 
@@ -133,7 +133,9 @@ export function useRealtimeWeather() {
   useEffect(() => {
     refresh();
     const id = setInterval(refresh, REFRESH_MS);
-    return () => clearInterval(id);
+    const onVisible = () => { if (document.visibilityState === 'visible') refresh(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVisible); };
   }, [refresh]);
 
   return { tambons, forecast, dailyMax, dailyMin, status, lastUpdated, refresh };

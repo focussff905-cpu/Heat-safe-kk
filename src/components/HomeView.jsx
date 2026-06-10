@@ -238,7 +238,11 @@ function getWeatherAlert(temp, humidity, uv, pm25) {
    Main component
    ═══════════════════════════════════════════════ */
 export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated, tmdTempMax, tmdTempMin, tmdData, onTambonClick, needsNotifyBanner = false, onEnableNotify }) {
-  const now     = new Date();
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
   const dateStr = `วัน${DAY_TH[now.getDay()]} ${now.getDate()} ${MONTH_TH[now.getMonth()]} ${now.getFullYear() + 543}`;
   const geo     = useGeolocationName();
 
