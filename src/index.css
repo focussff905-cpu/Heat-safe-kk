@@ -13,7 +13,7 @@
   --nav-top:    12px;
   --nav-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
 }
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   :root {
     --nav-x:      80px;
     --nav-top:    0px;

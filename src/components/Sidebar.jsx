@@ -311,7 +311,7 @@ export default function Sidebar({
         }}
       >
         {/* ── Mobile: compact 1-line header ── */}
-        <div className="md:hidden flex-shrink-0 px-3 py-2 flex items-center justify-between"
+        <div className="lg:hidden flex-shrink-0 px-3 py-2 flex items-center justify-between"
           style={{ borderBottom: '1px solid #e0eaff' }}>
           <div className="flex items-center gap-1.5 min-w-0">
             <FaMapMarkerAlt className="text-blue-400 flex-shrink-0" size={10} />
@@ -324,7 +324,7 @@ export default function Sidebar({
         </div>
 
         {/* ── Desktop: full hero card ── */}
-        <div className="hidden md:block flex-shrink-0 px-4 pt-4 pb-3">
+        <div className="hidden lg:block flex-shrink-0 px-4 pt-4 pb-3">
           <div className="rounded-3xl p-4"
             style={{
               background: 'linear-gradient(135deg,#dbeafe 0%,#bfdbfe 55%,#93c5fd 100%)',
@@ -355,7 +355,7 @@ export default function Sidebar({
         <div className="flex-1 overflow-y-auto px-3 md:px-4 pb-6 pt-2.5 md:pt-0 flex flex-col gap-2.5 md:gap-4">
 
           {/* Quick stats — desktop only */}
-          <div className="hidden md:grid grid-cols-3 gap-2">
+          <div className="hidden lg:grid grid-cols-3 gap-2">
             {[
               { icon: FaWind, label: 'ลม', value: avgWind, unit: 'km/h', color: '#3b82f6' },
               { icon: FaTint, label: 'ความชื้น', value: avgHumidity, unit: '%', color: '#0ea5e9' },
@@ -471,7 +471,7 @@ export default function Sidebar({
                       const vals  = tambons.map(d => d[field]);
                       const avg   = (vals.reduce((s,v)=>s+v,0)/vals.length).toFixed(dec);
                       return (
-                        <div className="hidden md:grid grid-cols-3 divide-x divide-blue-50 text-center"
+                        <div className="hidden lg:grid grid-cols-3 divide-x divide-blue-50 text-center"
                           style={{ background: `${btn.iconColor}06`, borderTop: `1px solid ${btn.activeBorder}` }}>
                           {[['ต่ำสุด',`${Math.min(...vals).toFixed(dec)}${unit}`,'#3b82f6'],['เฉลี่ย',`${avg}${unit}`,'#f97316'],['สูงสุด',`${Math.max(...vals).toFixed(dec)}${unit}`,'#ef4444']].map(([lbl,val,clr])=>(
                             <div key={lbl} className="py-1.5">
@@ -485,7 +485,7 @@ export default function Sidebar({
 
                     {/* Opacity controls — desktop only */}
                     {isActive && (
-                      <div className="hidden md:flex items-center gap-2.5 px-3.5 py-2"
+                      <div className="hidden lg:flex items-center gap-2.5 px-3.5 py-2"
                         style={{ background: `${btn.iconColor}06`, borderTop: `1px solid ${btn.activeBorder}` }}>
                         <button onClick={() => onLayerSettingChange(btn.id,'visible',!settings.visible)}
                           className="shrink-0 p-1 rounded-lg hover:bg-black/5 transition-colors">
@@ -507,18 +507,20 @@ export default function Sidebar({
             </div>
           </div>
 
-          {/* Info card */}
-          <div className="order-1 md:order-none">
-            <label className="block text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1.5">
-              {selectedDistrict ? 'ข้อมูลพื้นที่' : 'ข้อมูลเลเยอร์'}
-            </label>
-            <div className="rounded-2xl md:rounded-3xl p-3 md:p-4 bg-white" style={{ border: '1px solid #e0eaff' }}>
-              <InfoCard selectedDistrict={selectedDistrict} activeLayer={infoLayer} onClear={() => onDistrictSelect(null)} tambons={tambons} />
+          {/* Info card — แสดงเฉพาะเมื่อเลือกพื้นที่ */}
+          {selectedDistrict && (
+            <div className="order-1 md:order-none">
+              <label className="block text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1.5">
+                ข้อมูลพื้นที่
+              </label>
+              <div className="rounded-2xl md:rounded-3xl p-3 md:p-4 bg-white" style={{ border: '1px solid #e0eaff' }}>
+                <InfoCard selectedDistrict={selectedDistrict} activeLayer={infoLayer} onClear={() => onDistrictSelect(null)} tambons={tambons} />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Province summary — desktop only */}
-          <div className="hidden md:block">
+          <div className="hidden lg:block">
             <label className="block text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2">ภาพรวม</label>
             <div className="grid grid-cols-2 gap-2">
               {[

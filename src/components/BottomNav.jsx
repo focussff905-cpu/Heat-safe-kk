@@ -38,7 +38,7 @@ export default function BottomNav({ activeTab, onTabChange }) {
           MOBILE  –  horizontal bottom bar  (hidden on md+)
           ══════════════════════════════════════════════════════════ */}
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-[1001]"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-[1001]"
         style={{
           height: 'calc(60px + env(safe-area-inset-bottom, 0px))',
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
@@ -99,7 +99,7 @@ export default function BottomNav({ activeTab, onTabChange }) {
           DESKTOP  –  vertical left rail  (hidden below md)
           ══════════════════════════════════════════════════════════ */}
       <nav
-        className="hidden md:flex fixed left-0 top-0 bottom-0 z-[1001] flex-col"
+        className="hidden lg:flex fixed left-0 top-0 bottom-0 z-[1001] flex-col"
         style={{
           width: '80px',
           background: 'rgba(255,255,255,0.97)',

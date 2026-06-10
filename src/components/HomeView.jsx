@@ -248,22 +248,36 @@ function getClothingAdvice(temp) {
   return          { icon: '🧥', outfit: 'เสื้อกันหนาว + แจ็กเก็ต', tip: 'อากาศหนาว ใส่เสื้อหนาหลายชั้น' };
 }
 
-/* ── Weather activity assessment ── */
-function getWeatherAlert(temp, humidity, uv, pm25) {
-  const t = parseFloat(temp);
-  const h = parseFloat(humidity);
-  const u = parseFloat(uv ?? 0);
-  const p = parseFloat(pm25 ?? 0);
+/* ── Weather activity assessment (กลางวันอิง temp+UV, กลางคืนอิง temp) ── */
+function getWeatherAlert(temp, humidity, uv, pm25, hour) {
+  const t      = parseFloat(temp);
+  const u      = parseFloat(uv ?? 0);
+  const isDay  = hour >= 6 && hour < 18;
 
-  if (t >= 38 || h >= 90 || u >= 11 || p >= 150)
-    return { icon: '🚨', title: 'อันตราย', desc: 'ไม่ควรทำกิจกรรมกลางแจ้ง', color: '#ef4444', bg: 'rgba(239,68,68,0.18)', border: 'rgba(239,68,68,0.35)' };
-  if (t >= 35 || h >= 85 || u >= 8 || p >= 75)
-    return { icon: '🥵', title: 'ระวัง', desc: 'จำกัดเวลาอยู่กลางแจ้ง', color: '#f97316', bg: 'rgba(249,115,22,0.18)', border: 'rgba(249,115,22,0.35)' };
-  if (t >= 32 || h >= 78 || u >= 6 || p >= 50)
-    return { icon: '⚠️', title: 'พอใช้', desc: 'ทำกิจกรรมได้ แต่พักบ้าง', color: '#eab308', bg: 'rgba(234,179,8,0.18)', border: 'rgba(234,179,8,0.35)' };
-  if (t >= 20 && h <= 75 && u <= 5 && p <= 35)
-    return { icon: '😁', title: 'ดีมาก', desc: 'เหมาะสำหรับกิจกรรมกลางแจ้ง', color: '#22c55e', bg: 'rgba(34,197,94,0.18)', border: 'rgba(34,197,94,0.35)' };
-  return   { icon: '😊', title: 'ดี', desc: 'เหมาะสำหรับกิจกรรมทั่วไป', color: '#10b981', bg: 'rgba(16,185,129,0.18)', border: 'rgba(16,185,130,0.35)' };
+  if (isDay) {
+    if (t >= 40 || u >= 11)
+      return { title: 'อันตรายมาก', desc: 'ห้ามออกแดด เสี่ยงโรคลมแดด',       color: '#ef4444' };
+    if (t >= 37 || u >= 8)
+      return { title: 'ร้อนจัด',    desc: 'จำกัดเวลากลางแจ้ง ดื่มน้ำมากๆ',  color: '#f97316' };
+    if (t >= 34 || u >= 6)
+      return { title: 'ร้อน',       desc: 'ทาครีมกันแดด สวมหมวก',            color: '#eab308' };
+    if (t >= 30 || u >= 3)
+      return { title: 'อุ่น',       desc: 'ดื่มน้ำสม่ำเสมอ',                 color: '#84cc16' };
+    if (t >= 25)
+      return { title: 'สบาย',       desc: 'เหมาะสำหรับกิจกรรมกลางแจ้ง',     color: '#22c55e' };
+    return   { title: 'เย็นสบาย',  desc: 'อากาศดี เหมาะออกกำลังกาย',        color: '#10b981' };
+  }
+
+  // กลางคืน — UV ไม่มีผล อิงอุณหภูมิอย่างเดียว
+  if (t >= 32)
+    return { title: 'คืนร้อนอบอ้าว', desc: 'เปิดแอร์/พัดลม นอนหลับยาก',    color: '#f97316' };
+  if (t >= 28)
+    return { title: 'คืนร้อน',        desc: 'อากาศอุ่น ดื่มน้ำก่อนนอน',     color: '#eab308' };
+  if (t >= 24)
+    return { title: 'คืนอุ่น',        desc: 'อากาศพอดี นอนหลับสบาย',        color: '#22c55e' };
+  if (t >= 20)
+    return { title: 'คืนเย็น',        desc: 'อากาศเย็นสบาย เหมาะพักผ่อน',   color: '#10b981' };
+  return     { title: 'คืนหนาว',      desc: 'อากาศเย็น ห่มผ้าเพิ่ม',         color: '#06b6d4' };
 }
 
 /* ═══════════════════════════════════════════════
@@ -315,7 +329,7 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
   const tempPct     = Math.max(0, Math.min(100, ((parseFloat(displayTemp) - displayMin) / (displayMax - displayMin || 1)) * 100));
   const currentUV   = forecast?.[0]?.uvIndex ?? null;
   const uvLevel     = currentUV !== null ? getUVLevel(currentUV) : null;
-  const weatherAlert  = getWeatherAlert(displayTemp, displayHumidity, currentUV, avgPM25);
+  const weatherAlert  = getWeatherAlert(displayTemp, displayHumidity, currentUV, avgPM25, now.getHours());
   const clothingAdvice = getClothingAdvice(displayTemp);
 
   /* Live dot */
@@ -330,7 +344,7 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
     <div className="absolute right-0 overflow-y-auto"
       style={{ top: 'var(--nav-top)', left: 'var(--nav-x)', bottom: 'var(--nav-bottom)', background: 'linear-gradient(160deg,#cffafe 0%,#e0e7ff 45%,#fce7f3 100%)' }}>
 
-      <div className="max-w-md md:max-w-5xl mx-auto px-4 md:px-8 pt-5 pb-8 space-y-4">
+      <div className="max-w-md md:max-w-3xl lg:max-w-5xl mx-auto px-4 md:px-6 lg:px-8 pt-5 pb-8 space-y-4">
 
         {/* ── Notification permission banner ── */}
         {needsNotifyBanner && (
@@ -389,7 +403,7 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
         </div>
 
         {/* ══ TWO-COLUMN ══ */}
-        <div className="md:flex md:gap-5 md:items-start">
+        <div className="md:flex md:gap-4 lg:gap-5 md:items-start">
 
           {/* ── Left column ── */}
           <div className="md:flex-1 space-y-3">
@@ -416,7 +430,6 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
                   </div>
                   {/* Weather alert — inline, no box */}
                   <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                    <span className="text-sm leading-none">{weatherAlert.icon}</span>
                     <span className="text-xs font-black leading-none" style={{ color: weatherAlert.color }}>{weatherAlert.title}</span>
                     <span className="text-[11px] text-white/60 leading-none">· {weatherAlert.desc}</span>
                     {parseFloat(displayTemp) >= 35 && <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(239,68,68,0.3)', color: '#fca5a5' }}>ร้อนจัด</span>}
@@ -582,7 +595,7 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
           </div>
 
           {/* ── Right column: tambon list ── */}
-          <div className="mt-3 md:mt-0 md:w-72 lg:w-80 md:flex-shrink-0">
+          <div className="mt-3 md:mt-0 md:w-64 lg:w-80 md:flex-shrink-0">
             <div className="flex items-center gap-2 mb-2.5">
               <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg,#6366f1,transparent)' }} />
               <p className="text-[10px] font-extrabold uppercase tracking-widest px-1"
