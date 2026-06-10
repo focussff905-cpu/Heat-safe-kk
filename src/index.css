@@ -182,3 +182,11 @@ html, body, #root {
 .himawari-frame {
   transition: opacity 0.45s ease-in-out;
 }
+
+/* Rain drop fall animation */
+@keyframes rainDrop {
+  0%   { transform: translateY(-4px); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translateY(14px); opacity: 0; }
+}
+.rain-drop { animation: rainDrop linear infinite; }
