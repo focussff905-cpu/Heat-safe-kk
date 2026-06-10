@@ -5,7 +5,6 @@ import BottomNav from './components/BottomNav';
 import HomeView from './components/HomeView';
 import SimulationView from './components/SimulationView';
 import RiskAreasView from './components/RiskAreasView';
-import RecurringView from './components/RecurringView';
 import ChatBotView from './components/ChatBotView';
 import ForecastTimePicker, { toApiStr } from './components/ForecastTimePicker';
 import MonthPicker from './components/MonthPicker';
@@ -159,8 +158,6 @@ export default function App() {
         />
       )}
 
-      {/* ── Recurring tab ── */}
-      {activeTab === 'recurring' && <RecurringView />}
 
       {/* ── ChatBot tab ── */}
       {activeTab === 'chatbot' && <ChatBotView />}

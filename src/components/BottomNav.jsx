@@ -1,11 +1,10 @@
-import { FaHome, FaMap, FaFireAlt, FaExclamationTriangle, FaWater, FaCommentDots } from 'react-icons/fa';
+import { FaHome, FaMap, FaFireAlt, FaExclamationTriangle, FaCommentDots } from 'react-icons/fa';
 
 const TABS = [
   { id: 'home',        label: 'หน้าหลัก',  icon: FaHome },
   { id: 'map',         label: 'แผนที่',     icon: FaMap },
   { id: 'simulation',  label: 'แบบจำลอง',  icon: FaFireAlt },
   { id: 'risk-areas',  label: 'เสี่ยงภัย', icon: FaExclamationTriangle },
-  { id: 'recurring',   label: 'ท่วมซ้ำ',   icon: FaWater },
   { id: 'chatbot',     label: 'แชทบอท',    icon: FaCommentDots },
 ];
 
@@ -14,7 +13,6 @@ const TAB_COLORS = {
   map:           ['#34d399', '#10b981'],
   simulation:    ['#fb923c', '#ef4444'],
   'risk-areas':  ['#fbbf24', '#f97316'],
-  recurring:     ['#38bdf8', '#0ea5e9'],
   chatbot:       ['#a78bfa', '#8b5cf6'],
 };
 

@@ -344,7 +344,7 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
     <div className="absolute right-0 overflow-y-auto"
       style={{ top: 'var(--nav-top)', left: 'var(--nav-x)', bottom: 'var(--nav-bottom)', background: 'linear-gradient(160deg,#cffafe 0%,#e0e7ff 45%,#fce7f3 100%)' }}>
 
-      <div className="max-w-md md:max-w-3xl lg:max-w-5xl mx-auto px-4 md:px-6 lg:px-8 pt-5 pb-8 space-y-4">
+      <div className="max-w-md md:max-w-4xl lg:max-w-5xl mx-auto px-4 md:px-6 lg:px-8 pt-5 pb-8 space-y-4">
 
         {/* ── Notification permission banner ── */}
         {needsNotifyBanner && (
@@ -595,7 +595,7 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
           </div>
 
           {/* ── Right column: tambon list ── */}
-          <div className="mt-3 md:mt-0 md:w-64 lg:w-80 md:flex-shrink-0">
+          <div className="mt-3 md:mt-0 md:w-72 lg:w-80 md:flex-shrink-0 md:sticky md:top-0">
             <div className="flex items-center gap-2 mb-2.5">
               <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg,#6366f1,transparent)' }} />
               <p className="text-[10px] font-extrabold uppercase tracking-widest px-1"
@@ -605,7 +605,7 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
               <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg,transparent,#8b5cf6)' }} />
             </div>
 
-            <div className="space-y-1.5 md:max-h-[430px] md:overflow-y-auto md:pr-1">
+            <div className="space-y-1.5 md:max-h-[calc(100dvh-180px)] md:overflow-y-auto md:pr-1">
               {[...tambons].sort((a,b) => b.temperature - a.temperature).map((d, idx) => {
                 const tc = getTemperatureColor(d.temperature);
                 const pc = getPM25Color(d.pm25);
