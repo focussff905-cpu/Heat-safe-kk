@@ -15,7 +15,6 @@ const LAYER_BUTTONS = [
   { id: 'heat',        label: 'การสะสมความร้อน',         icon: FaFireAlt,         activeBg: 'rgba(239,68,68,0.10)',   activeBorder: 'rgba(239,68,68,0.4)',   iconColor: '#EF4444' },
   { id: 'stream',      label: 'ร่องน้ำ',                 icon: FaWater,           activeBg: 'rgba(14,165,233,0.10)',  activeBorder: 'rgba(14,165,233,0.4)',  iconColor: '#0EA5E9' },
   { id: 'monthly_temp',label: 'อุณหภูมิ MODIS รายเดือน', icon: FaSatelliteDish,   activeBg: 'rgba(139,92,246,0.10)', activeBorder: 'rgba(139,92,246,0.4)', iconColor: '#8B5CF6' },
-  { id: 'hotspot',     label: 'จุดความร้อนสูง',          icon: FaSun,             activeBg: 'rgba(255,80,0,0.10)',   activeBorder: 'rgba(255,80,0,0.4)',   iconColor: '#FF5000' },
   { id: 'himawari',   label: 'ภาพ Himawari-9 AHI',      icon: FaSatellite,       activeBg: 'rgba(8,145,178,0.10)',  activeBorder: 'rgba(8,145,178,0.4)', iconColor: '#0891b2' },
 ];
 
@@ -299,7 +298,7 @@ export default function Sidebar({
         className="fixed top-0 z-[999] flex flex-col sidebar-transition"
         style={{
           left: 'var(--nav-x, 0px)',
-          width: 'min(340px, 85vw)',
+          width: 'min(300px, 78vw)',
           height: 'calc(100vh - var(--nav-bottom, 0px))',
           transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
           opacity: isOpen ? 1 : 0,
@@ -310,16 +309,45 @@ export default function Sidebar({
           boxShadow: '4px 0 32px rgba(59,130,246,0.10)',
         }}
       >
-        {/* ── Mobile: compact 1-line header ── */}
-        <div className="lg:hidden flex-shrink-0 px-3 py-2 flex items-center justify-between"
-          style={{ borderBottom: '1px solid #e0eaff' }}>
-          <div className="flex items-center gap-1.5 min-w-0">
-            <FaMapMarkerAlt className="text-blue-400 flex-shrink-0" size={10} />
-            <span className="text-blue-700 text-xs font-bold truncate">แผนที่ขอนแก่น</span>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+        {/* ── Mobile/Tablet: hero card ── */}
+        <div className="lg:hidden flex-shrink-0 px-3 pt-3 pb-1">
+          <div className="rounded-2xl p-3"
+            style={{
+              background: 'linear-gradient(135deg,#dbeafe 0%,#bfdbfe 55%,#93c5fd 100%)',
+              border: '1px solid rgba(147,197,253,0.5)',
+              boxShadow: '0 4px 16px rgba(59,130,246,0.12)',
+            }}>
+            <div className="flex items-start justify-between mb-1.5">
+              <div>
+                <div className="flex items-center gap-1 mb-0.5">
+                  <FaMapMarkerAlt className="text-blue-500 flex-shrink-0" size={9} />
+                  <span className="text-blue-700 text-[11px] font-semibold">แผนที่ขอนแก่น</span>
+                </div>
+                <p className="text-blue-600/70 text-[10px]">{dateStr}</p>
+              </div>
+              <div className="flex items-end gap-1">
+                <span className="text-3xl font-black text-blue-900 leading-none">{avgTemp}°</span>
+                <span className="text-blue-600 text-xs mb-0.5">C</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-1 mb-1.5">
+              {[
+                { icon: FaWind, label: 'ลม', value: avgWind, unit: 'km/h', color: '#3b82f6' },
+                { icon: FaTint, label: 'ความชื้น', value: avgHumidity, unit: '%', color: '#0ea5e9' },
+                { icon: FaLeaf, label: 'PM2.5', value: avgPM25, unit: 'µg', color: '#22c55e' },
+              ].map(s => {
+                const Icon = s.icon;
+                return (
+                  <div key={s.label} className="rounded-xl p-1.5 bg-white/60 flex flex-col items-center gap-0.5"
+                    style={{ border: '1px solid rgba(147,197,253,0.3)' }}>
+                    <Icon size={10} style={{ color: s.color }} />
+                    <span className="text-blue-900 font-bold text-[11px] leading-none">{s.value}</span>
+                    <span className="text-blue-500 text-[9px]">{s.unit}</span>
+                  </div>
+                );
+              })}
+            </div>
             <LiveBadge status={weatherStatus} lastUpdated={lastUpdated} onRefresh={onRefreshWeather} />
-            <span className="text-blue-900 text-sm font-black ml-1">{avgTemp}°</span>
           </div>
         </div>
 
@@ -440,25 +468,25 @@ export default function Sidebar({
           </div>
 
           {/* Layer controls */}
-          <div className="order-3 md:order-none">
+          <div className="order-3 lg:order-none">
             <label className="block text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2">เลเยอร์ข้อมูล</label>
-            <div className="space-y-2">
+            <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5 lg:gap-0 lg:space-y-2">
               {LAYER_BUTTONS.map(btn => {
                 const Icon = btn.icon;
                 const isActive = activeLayers?.has(btn.id) ?? false;
                 const settings = layerSettings?.[btn.id] ?? { visible: true, opacity: 0.75 };
                 return (
-                  <div key={btn.id} className="rounded-2xl overflow-hidden bg-white transition-all duration-200"
-                    style={{ border: `1.5px solid ${isActive ? btn.activeBorder : '#e0eaff'}`, boxShadow: isActive ? `0 0 16px ${btn.activeBorder}25` : 'none' }}>
+                  <div key={btn.id} className="rounded-xl lg:rounded-2xl overflow-hidden bg-white transition-all duration-200"
+                    style={{ border: `1.5px solid ${isActive ? btn.activeBorder : '#e0eaff'}`, boxShadow: isActive ? `0 0 12px ${btn.activeBorder}25` : 'none' }}>
                     <button onClick={() => onLayerToggle(btn.id)}
-                      className="w-full flex items-center gap-2.5 px-3 md:px-3.5 py-2 md:py-3 text-left"
+                      className="w-full flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-1 lg:gap-2.5 px-2 lg:px-3.5 py-2 lg:py-3 text-center lg:text-left"
                       style={{ background: isActive ? btn.activeBg : 'transparent' }}>
-                      <div className="w-7 h-7 md:w-8 md:h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                      <div className="w-7 h-7 lg:w-8 lg:h-8 rounded-lg lg:rounded-xl flex items-center justify-center flex-shrink-0"
                         style={{ background: isActive ? `${btn.iconColor}18` : '#f0f7ff' }}>
                         <Icon size={12} style={{ color: isActive ? btn.iconColor : '#93c5fd' }} />
                       </div>
-                      <span className="text-xs md:text-sm font-medium flex-1" style={{ color: isActive ? '#1e293b' : '#94a3b8' }}>{btn.label}</span>
-                      <div className="w-8 h-4 rounded-full flex-shrink-0 relative transition-all" style={{ background: isActive ? btn.iconColor : '#e0eaff' }}>
+                      <span className="text-[10px] lg:text-sm font-medium lg:flex-1 leading-tight" style={{ color: isActive ? '#1e293b' : '#94a3b8' }}>{btn.label}</span>
+                      <div className="hidden lg:block w-8 h-4 rounded-full flex-shrink-0 relative transition-all" style={{ background: isActive ? btn.iconColor : '#e0eaff' }}>
                         <div className="absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all" style={{ left: isActive ? '17px' : '2px' }} />
                       </div>
                     </button>
