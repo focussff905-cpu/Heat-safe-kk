@@ -10,7 +10,6 @@ import StreamLayer from './layers/StreamLayer';
 import NASATempMonthlyLayer from './layers/NASATempMonthlyLayer';
 import HotspotLayer from './layers/HotspotLayer';
 import HimawariLayer, { HIMAWARI_BANDS, generateFrames } from './layers/HimawariLayer';
-import PinLayer from './layers/PinLayer';
 import Map3DView from './Map3DView';
 import 'leaflet/dist/leaflet.css';
 
@@ -314,20 +313,16 @@ function BoundsLocker() {
   return null;
 }
 
-function MapClickHandler({ onMapClick, onPointClick, pinMode, onAddPin }) {
+function MapClickHandler({ onMapClick, onPointClick }) {
   const map = useMap();
   useEffect(() => {
     const fn = (e) => {
-      if (pinMode) {
-        onAddPin?.(e.latlng.lat, e.latlng.lng);
-      } else {
-        onMapClick();
-        onPointClick(e.latlng.lat, e.latlng.lng);
-      }
+      onMapClick();
+      onPointClick(e.latlng.lat, e.latlng.lng);
     };
     map.on('click', fn);
     return () => map.off('click', fn);
-  }, [map, onMapClick, onPointClick, pinMode, onAddPin]);
+  }, [map, onMapClick, onPointClick]);
   return null;
 }
 
@@ -415,12 +410,11 @@ function FlyToHandler({ target }) {
   return null;
 }
 
-export default function MapView({ activeLayers, tambons, selectedDistrict, onDistrictClick, onMapClick, forecastDatetime, layerSettings, selectedMonth, flyToTarget, pins, onAddPin, onDeleteLastPin, pinCount, isSupabase }) {
+export default function MapView({ activeLayers, tambons, selectedDistrict, onDistrictClick, onMapClick, forecastDatetime, layerSettings, selectedMonth, flyToTarget }) {
   const [basemap, setBasemap] = useState('satellite');
   const [historyYear, setHistoryYear] = useState(2026);
   const [show3D, setShow3D] = useState(false);
   const [tempPoint, setTempPoint] = useState(null);
-  const [pinMode, setPinMode] = useState(false);
   const [himawariband, setHimawariband] = useState('visible');
   const [himawariFrames] = useState(() => generateFrames(12));
   const [himawariFrameIdx, setHimawariFrameIdx] = useState(11); // start at latest
@@ -512,12 +506,9 @@ export default function MapView({ activeLayers, tambons, selectedDistrict, onDis
         <MapClickHandler
           onMapClick={onMapClick}
           onPointClick={handlePointClick}
-          pinMode={pinMode}
-          onAddPin={onAddPin}
         />
         <FlyToHandler target={flyToTarget} />
         <TempPointMarker point={tempPoint} onClose={() => setTempPoint(null)} />
-        {pins?.length > 0 && <PinLayer pins={pins} />}
 
         {/* Zoom control — bottom right */}
         <div className="leaflet-control-container">
@@ -576,79 +567,6 @@ export default function MapView({ activeLayers, tambons, selectedDistrict, onDis
       {/* Year panel ภาพย้อนหลัง */}
       {basemap === 'historical' && (
         <HistoryYearPanel selectedYear={historyYear} onSelect={setHistoryYear} />
-      )}
-
-      {/* ── Pin controls ── */}
-      <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
-        {/* Pin mode toggle */}
-        <button
-          onClick={() => setPinMode(v => !v)}
-          title={pinMode ? 'ออกจากโหมดวาง Box' : 'วาง Pixel Box บนแผนที่'}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold transition-all duration-200"
-          style={{
-            background: pinMode ? 'rgba(59,130,246,0.95)' : 'rgba(255,255,255,0.97)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            color: pinMode ? '#fff' : '#3b82f6',
-            border: `1px solid ${pinMode ? 'rgba(59,130,246,0.6)' : '#e0eaff'}`,
-            boxShadow: pinMode ? '0 4px 16px rgba(59,130,246,0.4)' : '0 2px 8px rgba(0,0,0,0.1)',
-            imageRendering: 'pixelated',
-          }}
-        >
-          {/* Pixel box icon */}
-          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="1" y="1" width="11" height="11" rx="1.5" fill="currentColor" opacity="0.9"/>
-            <rect x="2" y="2" width="3" height="3" fill="white" opacity="0.5"/>
-            <rect x="5" y="5" width="3" height="3" fill="white" opacity="0.85"/>
-          </svg>
-          {pinMode ? 'คลิกเพื่อวาง' : 'วาง Box'}
-        </button>
-
-        {/* Pin count + delete — show only when there are pins */}
-        {(pinCount ?? 0) > 0 && (
-          <div
-            className="flex items-center gap-2 px-3 py-2 rounded-xl"
-            style={{
-              background: 'rgba(255,255,255,0.97)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              border: '1px solid #e0eaff',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            }}
-          >
-            {/* Count badge */}
-            <div className="flex items-center gap-1.5">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="#6366f1">
-                <rect x="1" y="1" width="10" height="10" rx="1.5"/>
-                <rect x="2" y="2" width="3" height="3" fill="white" opacity="0.5"/>
-                <rect x="5" y="5" width="2" height="2" fill="white" opacity="0.8"/>
-              </svg>
-              <span className="text-[11px] font-bold text-slate-700">
-                {pinCount} box{isSupabase ? '' : ' (local)'}
-              </span>
-            </div>
-
-            <div className="w-px h-4 bg-slate-200" />
-
-            {/* Delete last */}
-            <button
-              onClick={onDeleteLastPin}
-              title="ลบ Box ล่าสุด"
-              className="flex items-center gap-1 text-[11px] font-semibold text-red-400 hover:text-red-600 transition-colors"
-            >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
-              </svg>
-              ลบล่าสุด
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Cursor crosshair when in pin mode */}
-      {pinMode && (
-        <div className="absolute inset-0 z-[999] pointer-events-none"
-          style={{ cursor: 'crosshair' }} />
       )}
 
       {/* Basemap toggle */}
