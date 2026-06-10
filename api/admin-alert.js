@@ -28,8 +28,14 @@ export default async function handler(req, res) {
     return;
   }
 
-  if (!VAPID_PRIVATE) {
-    res.status(503).json({ error: 'ระบบแจ้งเตือนยังไม่พร้อม' });
+  const missing = [
+    !VAPID_PRIVATE             && 'VAPID_PRIVATE_KEY',
+    !process.env.SUPABASE_URL  && 'SUPABASE_URL',
+    !process.env.SUPABASE_SERVICE_KEY && 'SUPABASE_SERVICE_KEY',
+  ].filter(Boolean);
+
+  if (missing.length) {
+    res.status(503).json({ error: `ยังไม่ได้ตั้งค่า: ${missing.join(', ')}` });
     return;
   }
 
@@ -40,9 +46,14 @@ export default async function handler(req, res) {
     process.env.SUPABASE_SERVICE_KEY
   );
 
-  const { data: subs } = await supabase
+  const { data: subs, error: dbErr } = await supabase
     .from('push_subscriptions')
     .select('endpoint, p256dh, auth');
+
+  if (dbErr) {
+    res.status(500).json({ error: `Supabase error: ${dbErr.message}` });
+    return;
+  }
 
   if (!subs?.length) {
     res.status(200).json({ ok: true, sent: 0, message: 'ไม่มีผู้ติดตามที่เปิดการแจ้งเตือน' });
