@@ -17,7 +17,7 @@ import AdminView from './components/AdminView';
 export default function App() {
   const { tambons, forecast, dailyMax: omDailyMax, dailyMin: omDailyMin, status: weatherStatus, lastUpdated, refresh: refreshWeather } = useRealtimeWeather();
   const { data: tmdData } = useTMDWeather();
-  useAutoNotify();
+  const { needsBanner, requestNow } = useAutoNotify();
 
   // Admin mode: accessible via ?admin in URL (hidden from regular nav)
   const [isAdmin] = useState(() => new URLSearchParams(window.location.search).has('admin'));
@@ -133,6 +133,8 @@ export default function App() {
           tmdTempMax={tmdData?.tempMax ?? omDailyMax}
           tmdTempMin={tmdData?.tempMin ?? omDailyMin}
           tmdData={tmdData}
+          needsNotifyBanner={needsBanner}
+          onEnableNotify={requestNow}
           onTambonClick={(tambon) => {
             setFlyToTarget({ lat: tambon.lat, lng: tambon.lng, ts: Date.now() });
             setSelectedDistrict(tambon);

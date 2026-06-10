@@ -237,7 +237,7 @@ function getWeatherAlert(temp, humidity, uv, pm25) {
 /* ═══════════════════════════════════════════════
    Main component
    ═══════════════════════════════════════════════ */
-export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated, tmdTempMax, tmdTempMin, tmdData, onTambonClick }) {
+export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated, tmdTempMax, tmdTempMin, tmdData, onTambonClick, needsNotifyBanner = false, onEnableNotify }) {
   const now     = new Date();
   const dateStr = `วัน${DAY_TH[now.getDay()]} ${now.getDate()} ${MONTH_TH[now.getMonth()]} ${now.getFullYear() + 543}`;
   const geo     = useGeolocationName();
@@ -294,6 +294,21 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
       style={{ top: 'var(--nav-top)', left: 'var(--nav-x)', bottom: 'var(--nav-bottom)', background: 'linear-gradient(160deg,#cffafe 0%,#e0e7ff 45%,#fce7f3 100%)' }}>
 
       <div className="max-w-md md:max-w-5xl mx-auto px-4 md:px-8 pt-5 pb-8 space-y-4">
+
+        {/* ── Notification permission banner ── */}
+        {needsNotifyBanner && (
+          <button
+            onClick={onEnableNotify}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left"
+            style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', boxShadow: '0 4px 16px rgba(99,102,241,0.35)' }}>
+            <span className="text-2xl">🔔</span>
+            <div className="flex-1">
+              <p className="text-white font-semibold text-sm">เปิดรับการแจ้งเตือนสภาพอากาศ</p>
+              <p className="text-indigo-200 text-xs mt-0.5">แตะเพื่อรับแจ้งเตือนเมื่อสภาพอากาศเปลี่ยนแปลง</p>
+            </div>
+            <span className="text-white text-lg">›</span>
+          </button>
+        )}
 
         {/* ══ HEADER ══ */}
         <div className="flex items-start justify-between">

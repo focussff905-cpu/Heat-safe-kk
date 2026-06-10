@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const VAPID_PUBLIC = 'BPK1ArKe9auD9PmUHEyqKDJv-Y_tucS3I73HCpGIIZSskw2_FnvxKqYxk2I4V9nVROtEtQbLDBdr63cAkMx1UnY';
 
@@ -9,29 +9,16 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
 }
 
-async function autoSubscribe() {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return;
+function isSupported() {
+  return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+}
 
-  // Already denied — can't do anything
-  if (Notification.permission === 'denied') return;
-
+async function doSubscribe() {
   const reg = await navigator.serviceWorker.ready;
-
-  // Already subscribed — nothing to do
-  const existing = await reg.pushManager.getSubscription();
-  if (existing) return;
-
-  // Request permission (shows browser prompt)
-  const perm = await Notification.requestPermission();
-  if (perm !== 'granted') return;
-
-  // Subscribe
   const sub = await reg.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC),
   });
-
-  // Save to server
   await fetch('/api/subscribe', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -40,9 +27,33 @@ async function autoSubscribe() {
 }
 
 export function useAutoNotify() {
+  // null = unknown, true = need to ask, false = done/not applicable
+  const [needsBanner, setNeedsBanner] = useState(false);
+
   useEffect(() => {
-    // Small delay so the page renders first before the permission dialog appears
-    const t = setTimeout(() => { autoSubscribe().catch(() => {}); }, 1500);
-    return () => clearTimeout(t);
+    if (!isSupported()) return;
+    if (Notification.permission === 'denied') return;
+    if (Notification.permission === 'granted') {
+      // Already granted — just make sure we're subscribed
+      navigator.serviceWorker.ready.then(reg =>
+        reg.pushManager.getSubscription()
+      ).then(existing => {
+        if (!existing) doSubscribe().catch(() => {});
+      });
+      return;
+    }
+    // permission === 'default' — show banner
+    setNeedsBanner(true);
   }, []);
+
+  // Called when user taps the banner button (user gesture — required by Chrome)
+  async function requestNow() {
+    if (!isSupported()) return;
+    setNeedsBanner(false);
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') return;
+    await doSubscribe().catch(() => {});
+  }
+
+  return { needsBanner, requestNow };
 }
