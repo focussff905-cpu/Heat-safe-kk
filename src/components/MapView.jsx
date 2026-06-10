@@ -75,16 +75,6 @@ const BASEMAPS = {
       </svg>
     ),
   },
-  dem: {
-    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}',
-    attribution: 'Tiles &copy; Esri &mdash; Source: Esri',
-    label: 'DEM',
-    icon: (
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-      </svg>
-    ),
-  },
   historical: {
     url: null,
     label: 'ย้อนเวลา',
@@ -455,12 +445,10 @@ export default function MapView({ activeLayers, tambons, selectedDistrict, onDis
 
   const tileUrl = basemap === 'satellite' ? BASEMAPS.satellite.url
     : basemap === 'street' ? BASEMAPS.street.url
-    : basemap === 'dem'    ? BASEMAPS.dem.url
     : histSrc.url;
 
   const tileAttr = basemap === 'satellite' ? BASEMAPS.satellite.attribution
     : basemap === 'street' ? BASEMAPS.street.attribution
-    : basemap === 'dem'    ? BASEMAPS.dem.attribution
     : histSrc.attr;
 
   const tileKey = basemap === 'historical' ? `hist-${historyYear}` : basemap;
