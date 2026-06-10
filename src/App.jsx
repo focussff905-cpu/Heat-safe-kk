@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import MapView from './components/MapView';
 import Sidebar from './components/Sidebar';
 import BottomNav from './components/BottomNav';
@@ -11,10 +11,14 @@ import ForecastTimePicker, { toApiStr } from './components/ForecastTimePicker';
 import MonthPicker from './components/MonthPicker';
 import { useRealtimeWeather } from './hooks/useRealtimeWeather';
 import { useTMDWeather } from './hooks/useTMDWeather';
+import AdminView from './components/AdminView';
 
 export default function App() {
   const { tambons, forecast, dailyMax: omDailyMax, dailyMin: omDailyMin, status: weatherStatus, lastUpdated, refresh: refreshWeather } = useRealtimeWeather();
   const { data: tmdData } = useTMDWeather();
+
+  // Admin mode: accessible via ?admin in URL (hidden from regular nav)
+  const [isAdmin] = useState(() => new URLSearchParams(window.location.search).has('admin'));
   const [activeTab, setActiveTab] = useState('home');
   const [activeLayers, setActiveLayers] = useState(new Set());
   const [infoLayer, setInfoLayer] = useState('temperature');
@@ -157,8 +161,11 @@ export default function App() {
       {/* ── ChatBot tab ── */}
       {activeTab === 'chatbot' && <ChatBotView />}
 
-      {/* ── Bottom nav (always visible) ── */}
-      <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
+      {/* ── Admin (hidden route via ?admin in URL) ── */}
+      {isAdmin && <AdminView />}
+
+      {/* ── Bottom nav (hidden in admin mode) ── */}
+      {!isAdmin && <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />}
     </div>
   );
 }
