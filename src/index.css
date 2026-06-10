@@ -10,7 +10,7 @@
    ─────────────────────────────────────────────────────────────────────────── */
 :root {
   --nav-x:      0px;
-  --safe-top:   env(safe-area-inset-top,    0px);
+  --safe-top:   calc(env(safe-area-inset-top, 0px) + 10px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --nav-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
 }
