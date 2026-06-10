@@ -105,7 +105,7 @@ async function fetchTMDWarnings() {
     for (const b of blocks) {
       const text = xmlVal(b, 'WarningText') ?? xmlVal(b, 'Description') ?? '';
       if (kw.some(k => text.toLowerCase().includes(k.toLowerCase()))) {
-        alerts.push(text.slice(0, 120));
+        alerts.push(text.slice(0, 800));
       }
     }
   } catch { /* ignore — warning API may not be available */ }
