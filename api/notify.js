@@ -8,8 +8,18 @@ const KK_LAT  = 16.4322;
 const KK_LNG  = 102.8359;
 const KK_WMO  = '48381';
 
-// Scheduled notification hours (ICT)
-const SCHEDULED_HOURS = new Set([7, 10, 12, 13, 16, 19]);
+// Scheduled notification times (ICT) — every 3h from 06:30 + 11:30 + 15:00
+const SCHEDULED_TIMES = [
+  { h:  0, m: 30 },
+  { h:  6, m: 30 },
+  { h:  9, m: 30 },
+  { h: 11, m: 30 },
+  { h: 12, m: 30 },
+  { h: 15, m:  0 },
+  { h: 15, m: 30 },
+  { h: 18, m: 30 },
+  { h: 21, m: 30 },
+];
 
 // Thresholds for threshold-crossing alerts
 const THR = {
@@ -236,10 +246,10 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Current ICT hour
-  const ictHour = new Date(
-    new Date().toLocaleString('en-US', { timeZone: 'Asia/Bangkok' })
-  ).getHours();
+  // Current ICT time
+  const ictNow    = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Bangkok' }));
+  const ictHour   = ictNow.getHours();
+  const ictMinute = ictNow.getMinutes();
 
   // ── Fetch all data in parallel ───────────────────────────────────────────
   const [tmd, omData, warnings, stateRow] = await Promise.allSettled([
@@ -301,15 +311,14 @@ export default async function handler(req, res) {
     }
   }
 
-  // 4. Scheduled notification hour
-  if (SCHEDULED_HOURS.has(ictHour)) {
-    if (!reasons.includes('scheduled')) reasons.push('scheduled');
-  }
+  // 4. Scheduled notification time
+  const isScheduled = SCHEDULED_TIMES.some(t => t.h === ictHour && t.m === ictMinute);
+  if (isScheduled && !reasons.includes('scheduled')) reasons.push('scheduled');
 
-  // ── Only minimum conditions to send at non-scheduled hours ──────────────
-  // At non-scheduled hours: only send for warnings, threshold crossings, or big changes
+  // ── Only minimum conditions to send at non-scheduled times ──────────────
+  // At non-scheduled times: only send for warnings, threshold crossings, or big changes
   const shouldSend = reasons.some(r => ['warning', 'threshold', 'scheduled'].includes(r)) ||
-    (reasons.includes('change') && SCHEDULED_HOURS.has(ictHour));
+    (reasons.includes('change') && isScheduled);
 
   if (!shouldSend) {
     res.status(200).json({ skipped: true, ictHour, reasons });
@@ -332,5 +341,5 @@ export default async function handler(req, res) {
     notified_at:  new Date().toISOString(),
   }, { onConflict: 'id' });
 
-  res.status(200).json({ ok: true, sent, failed, reasons, ictHour, notification });
+  res.status(200).json({ ok: true, sent, failed, reasons, ictHour, ictMinute, notification });
 }
