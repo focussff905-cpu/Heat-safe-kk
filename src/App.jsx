@@ -11,11 +11,13 @@ import ForecastTimePicker, { toApiStr } from './components/ForecastTimePicker';
 import MonthPicker from './components/MonthPicker';
 import { useRealtimeWeather } from './hooks/useRealtimeWeather';
 import { useTMDWeather } from './hooks/useTMDWeather';
+import { useAutoNotify } from './hooks/useAutoNotify';
 import AdminView from './components/AdminView';
 
 export default function App() {
   const { tambons, forecast, dailyMax: omDailyMax, dailyMin: omDailyMin, status: weatherStatus, lastUpdated, refresh: refreshWeather } = useRealtimeWeather();
   const { data: tmdData } = useTMDWeather();
+  useAutoNotify();
 
   // Admin mode: accessible via ?admin in URL (hidden from regular nav)
   const [isAdmin] = useState(() => new URLSearchParams(window.location.search).has('admin'));
