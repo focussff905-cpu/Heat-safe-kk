@@ -76,7 +76,7 @@ export function useRealtimeWeather() {
         const temp = w?.temperature_2m ?? t.temperature;
         return {
           ...t,
-          temperature: Math.round(temp * 10) / 10,
+          temperature: Math.round(temp),
           humidity:    w?.relative_humidity_2m != null ? Math.round(w.relative_humidity_2m) : t.humidity,
           windSpeed:   w?.wind_speed_10m       != null ? Math.round(w.wind_speed_10m * 10) / 10 : t.windSpeed,
           pm25:        a?.pm2_5               != null ? Math.round(a.pm2_5) : t.pm25,
@@ -89,8 +89,8 @@ export function useRealtimeWeather() {
         const wx = fcstWxRes.value;
         const max = wx.daily?.temperature_2m_max?.[0];
         const min = wx.daily?.temperature_2m_min?.[0];
-        if (max != null) setDailyMax(Math.round(max * 10) / 10);
-        if (min != null) setDailyMin(Math.round(min * 10) / 10);
+        if (max != null) setDailyMax(Math.round(max));
+        if (min != null) setDailyMin(Math.round(min));
       }
 
       /* ── Build hourly forecast array (next 24 h from now) ── */
@@ -110,7 +110,7 @@ export function useRealtimeWeather() {
             time:        timeStr,
             hour:        parseInt(timeStr.slice(11, 13)),
             dateLabel:   timeStr.slice(8, 10) !== times[startIdx].slice(8, 10) ? timeStr.slice(5, 10) : null,
-            temperature: Math.round((wx.hourly.temperature_2m[i]       ?? 0) * 10) / 10,
+            temperature: Math.round(wx.hourly.temperature_2m[i]         ?? 0),
             humidity:    Math.round( wx.hourly.relative_humidity_2m[i]  ?? 0),
             windSpeed:   Math.round((wx.hourly.wind_speed_10m[i]        ?? 0) * 10) / 10,
             pm25:        Math.round( aq?.hourly?.pm2_5?.[i]             ?? 0),

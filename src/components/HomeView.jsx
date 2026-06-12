@@ -116,38 +116,92 @@ function RadarFrame() {
   );
 }
 
-/* ── Rain cloud SVG with animated drops ── */
-function RainCloud({ rain, prob = 0, isActive }) {
-  const intensity = prob <= 0 ? 0 : prob < 30 ? 1 : prob < 70 ? 2 : 3;
-  const dropCount = [0, 2, 3, 4][intensity];
-  const dur       = ['2s', '2s', '1.4s', '0.9s'][intensity];
-  const cloudFill = isActive
-    ? 'rgba(255,255,255,0.9)'
-    : intensity === 0 ? '#cbd5e1' : intensity === 1 ? '#93c5fd' : intensity === 2 ? '#60a5fa' : '#3b82f6';
-  const dropCol   = isActive ? 'rgba(186,230,253,0.9)' : '#3b82f6';
-  // 4 possible drop x positions
-  const dropXs = [7, 13, 19, 25];
+/* ── Weather icon SVG — changes by condition ── */
+function WeatherIcon({ weatherCode = 0, hour = 12, prob = 0, isActive }) {
+  const isNight = hour >= 20 || hour < 6;
+  const code    = weatherCode ?? 0;
 
+  const isThunder     = code >= 95;
+  const isRain        = code >= 51 || prob >= 50;
+  const isOvercast    = code >= 3  && code < 51;
+  const isPartly      = code >= 1  && code < 3;
+
+  const w = isActive ? 'rgba(255,255,255,0.95)' : 'white';
+  const cloudCol  = isActive ? w : (isRain ? '#60a5fa' : isOvercast ? '#94a3b8' : '#bfdbfe');
+  const sunCol    = isActive ? w : '#fbbf24';
+  const moonCol   = isActive ? w : '#fde68a';
+  const dropCol   = isActive ? 'rgba(186,230,253,0.9)' : '#3b82f6';
+  const boltCol   = isActive ? '#fef08a' : '#fbbf24';
+
+  const intensity  = prob < 30 ? 1 : prob < 70 ? 2 : 3;
+  const dropCount  = isRain ? intensity + 1 : 0;
+  const dur        = ['1.8s','1.4s','0.9s'][intensity - 1] ?? '1.4s';
+  const dropXs     = [8, 14, 20, 26];
+
+  /* Cloud path (reused) */
+  const cloudPath = 'M9 19 Q5 19 5 15 Q5 11 9 11 Q10 7 14 7 Q17 4 21 6 Q25 4 28 8 Q32 8 32 12 Q35 12 35 16 Q35 19 31 19 Z';
+
+  /* ── Overcast / rainy / thunder ── all have the cloud prominent */
+  if (isThunder || isRain || isOvercast) {
+    return (
+      <svg width="36" height="32" viewBox="0 0 36 32" fill="none" aria-hidden="true" style={{ overflow: 'visible' }}>
+        <path d={cloudPath} fill={cloudCol}
+          style={{ filter: 'drop-shadow(0 2px 4px rgba(59,130,246,0.25))' }} />
+        {/* Rain drops */}
+        {dropXs.slice(0, dropCount).map((x, i) => (
+          <rect key={i} x={x} y={20} width="2" height="5" rx="1" fill={dropCol}
+            className="rain-drop"
+            style={{ animationDuration: dur, animationDelay: `${i * (parseFloat(dur) / dropCount)}s` }} />
+        ))}
+        {/* Lightning bolt */}
+        {isThunder && (
+          <polygon points="19,20 16,27 19,25 17,32 22,24 19,26" fill={boltCol} />
+        )}
+      </svg>
+    );
+  }
+
+  /* ── Partly cloudy ── sun + small cloud */
+  if (isPartly) {
+    return (
+      <svg width="36" height="30" viewBox="0 0 36 30" fill="none" aria-hidden="true">
+        {/* Small sun top-right */}
+        <circle cx="26" cy="10" r="6" fill={sunCol} opacity="0.9" />
+        {[0,60,120,180,240,300].map((deg, i) => {
+          const r = (Math.PI * deg) / 180;
+          return <line key={i} x1={26+Math.cos(r)*8} y1={10+Math.sin(r)*8}
+            x2={26+Math.cos(r)*10} y2={10+Math.sin(r)*10}
+            stroke={sunCol} strokeWidth="1.5" strokeLinecap="round" opacity="0.7" />;
+        })}
+        {/* Cloud covering lower-left */}
+        <path d="M4 22 Q2 22 2 19 Q2 16 5 16 Q6 13 9 13 Q11 11 14 12 Q17 10 19 13 Q22 13 22 16 Q24 16 24 19 Q24 22 21 22 Z"
+          fill={isActive ? w : '#dbeafe'} />
+      </svg>
+    );
+  }
+
+  /* ── Night clear ── crescent moon */
+  if (isNight) {
+    return (
+      <svg width="36" height="30" viewBox="0 0 36 30" fill="none" aria-hidden="true">
+        <path d="M20 6 Q12 8 12 15 Q12 22 20 24 Q13 24 9 19 Q6 15 9 10 Q13 5 20 6 Z"
+          fill={moonCol} />
+        <circle cx="24" cy="8" r="1.2" fill={moonCol} opacity="0.6" />
+        <circle cx="27" cy="14" r="0.8" fill={moonCol} opacity="0.4" />
+      </svg>
+    );
+  }
+
+  /* ── Default: clear day ── sun */
   return (
-    <svg width="36" height="30" viewBox="0 0 36 30" fill="none" aria-hidden="true" style={{ overflow: 'visible' }}>
-      {/* Cloud */}
-      <path
-        d="M8 18 Q4 18 4 14 Q4 10 8 10 Q9 6 13 6 Q16 3 20 5 Q24 3 27 7 Q31 7 31 11 Q34 11 34 15 Q34 18 30 18 Z"
-        fill={cloudFill}
-        style={{ filter: intensity > 0 ? 'drop-shadow(0 2px 4px rgba(59,130,246,0.3))' : 'none' }}
-      />
-      {/* Animated drops */}
-      {dropXs.slice(0, dropCount).map((x, i) => (
-        <rect
-          key={i}
-          x={x} y={18}
-          width="2" height="5"
-          rx="1"
-          fill={dropCol}
-          className="rain-drop"
-          style={{ animationDuration: dur, animationDelay: `${i * (parseFloat(dur) / dropCount)}s` }}
-        />
-      ))}
+    <svg width="36" height="30" viewBox="0 0 36 30" fill="none" aria-hidden="true">
+      <circle cx="18" cy="15" r="7" fill={sunCol} />
+      {[0,45,90,135,180,225,270,315].map((deg, i) => {
+        const r = (Math.PI * deg) / 180;
+        return <line key={i} x1={18+Math.cos(r)*9} y1={15+Math.sin(r)*9}
+          x2={18+Math.cos(r)*12} y2={15+Math.sin(r)*12}
+          stroke={sunCol} strokeWidth="1.8" strokeLinecap="round" opacity="0.8" />;
+      })}
     </svg>
   );
 }
@@ -219,8 +273,8 @@ function ForecastStrip({ forecast, tmdData }) {
                   style={{ color: h.isCurrent ? 'rgba(255,255,255,0.8)' : '#94a3b8' }}>
                   {String(h.hour).padStart(2,'0')}:00
                 </span>
-                {/* ก้อนเมฆจำลองฝน */}
-                <RainCloud rain={rain} prob={prob} isActive={h.isCurrent} />
+                {/* ไอคอนสภาพอากาศ */}
+                <WeatherIcon weatherCode={h.weatherCode} hour={h.hour} prob={prob} isActive={h.isCurrent} />
                 {/* โอกาสฝน % */}
                 <span className="text-[9px] font-bold leading-none -mt-0.5"
                   style={{ color: h.isCurrent ? (hasRain ? '#bae6fd' : 'rgba(255,255,255,0.4)') : (hasRain ? '#2563eb' : '#94a3b8') }}>
@@ -244,12 +298,12 @@ function ForecastStrip({ forecast, tmdData }) {
 /* ── Clothing recommendation ── */
 function getClothingAdvice(temp) {
   const t = parseFloat(temp);
-  if (t >= 38) return { icon: '🥵', outfit: 'เสื้อผ้าบางมาก สีอ่อน', tip: 'สวมหมวก + ครีมกันแดด หลีกเลี่ยงออกแดด' };
-  if (t >= 35) return { icon: '☀️', outfit: 'เสื้อแขนสั้นบาง สีอ่อน', tip: 'สวมหมวกและแว่นกันแดด' };
-  if (t >= 32) return { icon: '🌤️', outfit: 'เสื้อแขนสั้น ระบายอากาศดี', tip: 'หลีกเลี่ยงเสื้อสีเข้ม' };
-  if (t >= 28) return { icon: '😊', outfit: 'เสื้อแขนสั้นสบาย', tip: 'อากาศดี เหมาะออกกิจกรรม' };
-  if (t >= 24) return { icon: '🌥️', outfit: 'เสื้อแขนสั้น หรือแขนยาวเบา', tip: 'อากาศเย็นสบาย' };
-  if (t >= 20) return { icon: '🌬️', outfit: 'เสื้อแขนยาว หรือแจ็กเก็ตบาง', tip: 'เตรียมเสื้อกันหนาวบางไว้' };
+  if (t >= 38) return { icon: '👙', outfit: 'เสื้อผ้าบางมาก สีอ่อน', tip: 'สวมหมวก + ครีมกันแดด หลีกเลี่ยงออกแดด' };
+  if (t >= 35) return { icon: '👕', outfit: 'เสื้อแขนสั้นบาง สีอ่อน', tip: 'สวมหมวกและแว่นกันแดด' };
+  if (t >= 32) return { icon: '👔', outfit: 'เสื้อแขนสั้น ระบายอากาศดี', tip: 'หลีกเลี่ยงเสื้อสีเข้ม' };
+  if (t >= 28) return { icon: '👗', outfit: 'เสื้อแขนสั้นสบาย', tip: 'อากาศดี เหมาะออกกิจกรรม' };
+  if (t >= 24) return { icon: '🧤', outfit: 'เสื้อแขนสั้น หรือแขนยาวเบา', tip: 'อากาศเย็นสบาย' };
+  if (t >= 20) return { icon: '🧣', outfit: 'เสื้อแขนยาว หรือแจ็กเก็ตบาง', tip: 'เตรียมเสื้อกันหนาวบางไว้' };
   return          { icon: '🧥', outfit: 'เสื้อกันหนาว + แจ็กเก็ต', tip: 'อากาศหนาว ใส่เสื้อหนาหลายชั้น' };
 }
 
@@ -443,7 +497,7 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
   const humids = tambons.map(d => d.humidity ?? 0);
   const winds  = tambons.map(d => d.windSpeed ?? 0);
 
-  const avgTemp     = (temps.reduce((s,v)=>s+v,0) / temps.length).toFixed(1);
+  const avgTemp     = Math.round(temps.reduce((s,v)=>s+v,0) / temps.length);
   const minTemp     = Math.min(...temps);
   const maxTemp     = Math.max(...temps);
   const avgPM25     = (pm25s.reduce((s,v)=>s+v,0) / pm25s.length).toFixed(1);
@@ -452,7 +506,7 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
   const pm25Level   = getPM25Level(parseFloat(avgPM25));
 
   /* ── TMD station 48381 overrides (use when available) ── */
-  const displayTemp     = tmdData?.temperature != null ? tmdData.temperature.toFixed(1) : avgTemp;
+  const displayTemp     = tmdData?.temperature != null ? Math.round(tmdData.temperature) : avgTemp;
   const displayHumidity = tmdData?.humidity     != null ? Math.round(tmdData.humidity) : avgHumidity;
   const displayWind     = tmdData?.windSpeed    != null ? tmdData.windSpeed.toFixed(1)  : avgWind;
   const displayRainfall = tmdData?.rainfall     != null ? tmdData.rainfall : null;
@@ -688,9 +742,9 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
                     style={{ background: iconBg, boxShadow: '0 3px 10px rgba(0,0,0,0.15)' }}>
                     {icon}
                   </div>
-                  <p className="text-[10px] text-slate-500 font-medium leading-none text-center">{label}</p>
-                  <p className="text-xl font-black text-slate-700 leading-none">{value}</p>
-                  <p className="text-[9px] text-slate-400 leading-none">{unit}</p>
+                  <p className="text-[10px] text-white/70 font-medium leading-none text-center">{label}</p>
+                  <p className="text-xl font-black text-white leading-none">{value}</p>
+                  <p className="text-[9px] text-white/60 leading-none">{unit}</p>
                   {extra}
                 </div>
               ))}

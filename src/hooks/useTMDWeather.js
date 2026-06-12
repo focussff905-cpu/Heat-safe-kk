@@ -30,9 +30,9 @@ function extractKhonKaen(xmlText) {
     if (!obs) break;
 
     return {
-      temperature: parseNum(obs.querySelector('Temperature')?.textContent),
-      tempMax:     parseNum(obs.querySelector('MaxTemperature')?.textContent),
-      tempMin:     parseNum(obs.querySelector('MinTemperature')?.textContent),
+      temperature: (() => { const v = parseNum(obs.querySelector('Temperature')?.textContent); return v != null ? Math.round(v) : null; })(),
+      tempMax:     (() => { const v = parseNum(obs.querySelector('MaxTemperature')?.textContent); return v != null ? Math.round(v) : null; })(),
+      tempMin:     (() => { const v = parseNum(obs.querySelector('MinTemperature')?.textContent); return v != null ? Math.round(v) : null; })(),
       humidity:    parseNum(obs.querySelector('RelativeHumidity')?.textContent),
       windSpeed:   parseNum(obs.querySelector('WindSpeed')?.textContent),
       windDir:     parseNum(obs.querySelector('WindDirection')?.textContent),
