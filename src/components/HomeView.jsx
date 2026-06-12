@@ -484,7 +484,7 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
 
       <SkyDecorations type={skyStyle.type} />
 
-      <div className="relative z-10 max-w-md md:max-w-4xl lg:max-w-5xl mx-auto px-4 md:px-6 lg:px-8 pt-5 pb-8 space-y-4">
+      <div className="relative z-10 max-w-md md:max-w-xl lg:max-w-5xl mx-auto px-4 md:px-5 lg:px-8 pt-5 pb-8 space-y-4">
 
         {/* ── Notification permission banner ── */}
         {needsNotifyBanner && (
@@ -543,10 +543,10 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
         </div>
 
         {/* ══ TWO-COLUMN ══ */}
-        <div className="md:flex md:gap-4 lg:gap-5 md:items-start">
+        <div className="lg:flex lg:gap-5 lg:items-start">
 
           {/* ── Left column ── */}
-          <div className="md:flex-1 space-y-3">
+          <div className="lg:flex-1 space-y-3">
 
             {/* Hero temperature card */}
             <div className="rounded-3xl p-5 relative overflow-hidden" style={{
@@ -738,7 +738,7 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
           </div>
 
           {/* ── Right column: tambon list ── */}
-          <div className="mt-3 md:mt-0 md:w-72 lg:w-80 md:flex-shrink-0 md:sticky md:top-0">
+          <div className="mt-3 lg:mt-0 lg:w-80 lg:flex-shrink-0 lg:sticky lg:top-0">
             <div className="flex items-center gap-2 mb-2.5">
               <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg,#6366f1,transparent)' }} />
               <p className="text-[10px] font-extrabold uppercase tracking-widest px-1"
@@ -748,7 +748,7 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
               <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg,transparent,#8b5cf6)' }} />
             </div>
 
-            <div className="space-y-1.5 md:max-h-[calc(100dvh-180px)] md:overflow-y-auto md:pr-1">
+            <div className="space-y-1.5 lg:max-h-[calc(100dvh-180px)] lg:overflow-y-auto lg:pr-1">
               {[...tambons].sort((a,b) => b.temperature - a.temperature).map((d, idx) => {
                 const tc = getTemperatureColor(d.temperature);
                 const pc = getPM25Color(d.pm25);
