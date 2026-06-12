@@ -70,7 +70,7 @@ export default function App() {
     if (tab === 'map') setSidebarOpen(true);
   }, []);
 
-  const onMap = activeTab === 'map';
+  const onMap = !isAdmin && activeTab === 'map';
 
   return (
     <div className="relative w-full overflow-hidden bg-[#f8faff]"
@@ -122,7 +122,7 @@ export default function App() {
       )}
 
       {/* ── Home tab ── */}
-      {activeTab === 'home' && (
+      {!isAdmin && activeTab === 'home' && (
         <HomeView
           tambons={tambons}
           forecast={forecast}
@@ -144,10 +144,10 @@ export default function App() {
       )}
 
       {/* ── Simulation tab ── */}
-      {activeTab === 'simulation' && <SimulationView />}
+      {!isAdmin && activeTab === 'simulation' && <SimulationView />}
 
       {/* ── Risk Areas tab ── */}
-      {activeTab === 'risk-areas' && (
+      {!isAdmin && activeTab === 'risk-areas' && (
         <RiskAreasView
           tambons={tambons}
           onLocationClick={({ lat, lng }) => {
@@ -160,7 +160,7 @@ export default function App() {
 
 
       {/* ── ChatBot tab ── */}
-      {activeTab === 'chatbot' && <ChatBotView />}
+      {!isAdmin && activeTab === 'chatbot' && <ChatBotView />}
 
       {/* ── Admin (hidden route via ?admin in URL) ── */}
       {isAdmin && <AdminView />}
