@@ -157,9 +157,10 @@ function ForecastStrip({ forecast, tmdData }) {
   if (!forecast || forecast.length === 0) {
     return (
       <div className="rounded-3xl p-4" style={{
-        background: 'linear-gradient(135deg,rgba(255,255,255,0.9),rgba(240,249,255,0.9))',
-        border: '1px solid rgba(186,230,253,0.6)',
+        background: 'rgba(255,255,255,0.6)',
+        border: '1px solid rgba(186,230,253,0.55)',
         backdropFilter: 'blur(12px)',
+        boxShadow: '0 2px 12px rgba(99,102,241,0.07)',
       }}>
         <p className="text-[10px] font-bold uppercase tracking-widest mb-3"
           style={{ background: 'linear-gradient(90deg,#f97316,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
@@ -172,9 +173,10 @@ function ForecastStrip({ forecast, tmdData }) {
 
   return (
     <div className="rounded-3xl" style={{
-      background: 'linear-gradient(135deg,rgba(255,255,255,0.92),rgba(240,249,255,0.88))',
-      border: '1px solid rgba(186,230,253,0.5)',
+      background: 'rgba(255,255,255,0.6)',
+      border: '1px solid rgba(186,230,253,0.55)',
       backdropFilter: 'blur(12px)',
+      boxShadow: '0 2px 12px rgba(99,102,241,0.07)',
     }}>
       <div className="px-4 pt-3 pb-2 flex items-center justify-between">
         <p className="text-[11px] font-extrabold uppercase tracking-widest"
@@ -544,34 +546,35 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
 
             {/* Hero temperature card */}
             <div className="rounded-3xl p-5 relative overflow-hidden" style={{
-              background: 'linear-gradient(135deg,#0f172a 0%,#1d4ed8 40%,#0891b2 75%,#06b6d4 100%)',
-              boxShadow: '0 16px 48px rgba(6,182,212,0.28), 0 4px 16px rgba(0,0,0,0.2)',
+              background: 'linear-gradient(135deg,#dbeafe 0%,#bfdbfe 55%,#bae6fd 100%)',
+              border: '1px solid rgba(147,197,253,0.5)',
+              boxShadow: '0 8px 32px rgba(59,130,246,0.12), 0 2px 8px rgba(0,0,0,0.05)',
             }}>
               {/* Decorative blobs */}
-              <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full opacity-20"
-                style={{ background: 'radial-gradient(circle,#67e8f9,transparent)' }} />
-              <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full opacity-15"
-                style={{ background: 'radial-gradient(circle,#a78bfa,transparent)' }} />
+              <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full opacity-40"
+                style={{ background: 'radial-gradient(circle,#93c5fd,transparent)' }} />
+              <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full opacity-25"
+                style={{ background: 'radial-gradient(circle,#a5f3fc,transparent)' }} />
 
               <div className="relative flex items-start justify-between">
                 <div>
-                  <p className="text-cyan-200 text-xs font-medium tracking-wide mb-1">
+                  <p className="text-blue-500 text-xs font-medium tracking-wide mb-1">
                     {hasTMDLive ? 'สถานีขอนแก่น (กรมอุตุฯ)' : 'อุณหภูมิปัจจุบัน'}
                   </p>
                   <div className="flex items-end gap-1">
-                    <span className="text-6xl md:text-7xl font-black text-white leading-none">{displayTemp}</span>
-                    <span className="text-2xl font-bold text-cyan-300 mb-2">°C</span>
+                    <span className="text-6xl md:text-7xl font-black text-slate-800 leading-none">{displayTemp}</span>
+                    <span className="text-2xl font-bold text-blue-400 mb-2">°C</span>
                   </div>
                   {/* Weather alert — inline, no box */}
                   <div className="flex items-center gap-1.5 mt-2 flex-wrap">
                     <span className="text-xs font-black leading-none" style={{ color: weatherAlert.color }}>{weatherAlert.title}</span>
-                    <span className="text-[11px] text-white/60 leading-none">· {weatherAlert.desc}</span>
-                    {parseFloat(displayTemp) >= 35 && <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(239,68,68,0.3)', color: '#fca5a5' }}>ร้อนจัด</span>}
-                    {parseFloat(displayHumidity) >= 85 && <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(6,182,212,0.3)', color: '#67e8f9' }}>ชื้นมาก</span>}
-                    {parseFloat(avgPM25) >= 50 && <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(249,115,22,0.3)', color: '#fdba74' }}>ฝุ่นสูง</span>}
-                    {currentUV >= 6 && <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(234,179,8,0.3)', color: '#fde68a' }}>UV สูง</span>}
+                    <span className="text-[11px] text-slate-500 leading-none">· {weatherAlert.desc}</span>
+                    {parseFloat(displayTemp) >= 35 && <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(239,68,68,0.12)', color: '#dc2626' }}>ร้อนจัด</span>}
+                    {parseFloat(displayHumidity) >= 85 && <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(6,182,212,0.12)', color: '#0891b2' }}>ชื้นมาก</span>}
+                    {parseFloat(avgPM25) >= 50 && <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(249,115,22,0.12)', color: '#ea580c' }}>ฝุ่นสูง</span>}
+                    {currentUV >= 6 && <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(234,179,8,0.12)', color: '#b45309' }}>UV สูง</span>}
                   </div>
-                  <p className="text-white/40 text-[10px] mt-1.5">
+                  <p className="text-slate-400 text-[10px] mt-1.5">
                     {hasTMDLive ? `อัปเดต ${tmdData.observedAt ?? ''}` : `${tambons.length} ตำบล · ขอนแก่น`}
                   </p>
                 </div>
@@ -581,33 +584,23 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
               {/* Max / Min row */}
               <div className="relative flex gap-4 mt-3 px-1">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-orange-300 text-xs font-black">↑</span>
+                  <span className="text-orange-400 text-xs font-black">↑</span>
                   <div>
-                    <p className="text-orange-200/70 text-[9px] leading-none">สูงสุด</p>
-                    <p className="text-white text-lg font-black leading-tight">
+                    <p className="text-orange-400/70 text-[9px] leading-none">สูงสุด</p>
+                    <p className="text-slate-700 text-lg font-black leading-tight">
                       {displayMax != null ? displayMax : '--'}°<span className="text-xs">C</span>
                     </p>
                   </div>
                 </div>
-                <div className="w-px self-stretch" style={{ background: 'rgba(255,255,255,0.15)' }} />
+                <div className="w-px self-stretch" style={{ background: 'rgba(148,163,184,0.3)' }} />
                 <div className="flex items-center gap-1.5">
-                  <span className="text-cyan-300 text-xs font-black">↓</span>
+                  <span className="text-blue-400 text-xs font-black">↓</span>
                   <div>
-                    <p className="text-cyan-200/70 text-[9px] leading-none">ต่ำสุด</p>
-                    <p className="text-white text-lg font-black leading-tight">
+                    <p className="text-blue-400/70 text-[9px] leading-none">ต่ำสุด</p>
+                    <p className="text-slate-700 text-lg font-black leading-tight">
                       {displayMin != null ? displayMin : '--'}°<span className="text-xs">C</span>
                     </p>
                   </div>
-                </div>
-              </div>
-
-              {/* Clothing advice */}
-              <div className="relative mt-3 px-3 py-2.5 rounded-2xl flex items-center gap-2.5"
-                style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)' }}>
-                <span className="text-xl leading-none flex-shrink-0">{clothingAdvice.icon}</span>
-                <div className="min-w-0">
-                  <p className="text-white text-[11px] font-bold leading-none">👕 {clothingAdvice.outfit}</p>
-                  <p className="text-white/55 text-[10px] mt-1 leading-none">{clothingAdvice.tip}</p>
                 </div>
               </div>
 
@@ -723,6 +716,16 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
                 }}>
                   <RadarFrame />
                 </div>
+              </div>
+            </div>
+
+            {/* ── Clothing advice ── */}
+            <div className="rounded-2xl px-4 py-3 flex items-center gap-3"
+              style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.4)', boxShadow: '0 2px 12px rgba(99,102,241,0.07)' }}>
+              <span className="text-2xl leading-none flex-shrink-0">{clothingAdvice.icon}</span>
+              <div className="min-w-0">
+                <p className="text-slate-700 text-xs font-bold leading-none">👕 {clothingAdvice.outfit}</p>
+                <p className="text-slate-500 text-[11px] mt-1 leading-none">{clothingAdvice.tip}</p>
               </div>
             </div>
 
