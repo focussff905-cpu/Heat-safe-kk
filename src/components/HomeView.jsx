@@ -77,18 +77,40 @@ function SunCloud() {
   );
 }
 
-/* ── Windy radar iframe ── */
-const WINDY_URL = 'https://www.windy.com/th/-%E0%B9%80%E0%B8%A3%E0%B8%94%E0%B8%B2%E0%B8%A3%E0%B9%8C%E0%B8%AA%E0%B8%A0%E0%B8%B2%E0%B8%9E%E0%B8%AD%E0%B8%B2%E0%B8%81%E0%B8%B2%E0%B8%A8-radar?radar,16.399,102.781,8,m:egDaiUV';
+/* ── Radar iframe (scale-to-fit, no distortion) ── */
+const RADAR_URL    = 'https://weather.tmd.go.th/kkn240_HQ_Loop_edit2.php';
+const RADAR_ORIG_W = 980;
+const RADAR_ORIG_H = 780;
 
 function RadarFrame() {
+  const wrapRef = useRef(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    if (!wrapRef.current) return;
+    const ro = new ResizeObserver(([e]) => {
+      setScale(e.contentRect.width / RADAR_ORIG_W);
+    });
+    ro.observe(wrapRef.current);
+    return () => ro.disconnect();
+  }, []);
+
   return (
-    <div className="w-full rounded-2xl overflow-hidden" style={{ aspectRatio: '16/10' }}>
+    <div ref={wrapRef} className="w-full overflow-hidden rounded-2xl"
+      style={{ height: `${RADAR_ORIG_H * scale}px` }}>
       <iframe
-        src={WINDY_URL}
+        src={RADAR_URL}
         title="เรดาร์ฝนขอนแก่น"
+        scrolling="no"
         loading="lazy"
-        allow="geolocation"
-        style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+        style={{
+          width:           `${RADAR_ORIG_W}px`,
+          height:          `${RADAR_ORIG_H}px`,
+          border:          'none',
+          transform:       `scale(${scale})`,
+          transformOrigin: 'top left',
+          display:         'block',
+        }}
       />
     </div>
   );
@@ -548,10 +570,10 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
                   </span>
                   <div>
                     <p className="text-[13px] font-extrabold tracking-wide text-white leading-none">เรดาร์ฝนขอนแก่น</p>
-                    <p className="text-[9px] text-cyan-400/70 mt-0.5 leading-none">Radar · Windy</p>
+                    <p className="text-[9px] text-cyan-400/70 mt-0.5 leading-none">Khon Kaen Doppler Radar · TMD</p>
                   </div>
                 </div>
-                <a href={WINDY_URL}
+                <a href="https://weather.tmd.go.th/kkn240_HQ_Loop_edit2.php"
                   target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] font-semibold transition-all hover:scale-105"
                   style={{ background: 'rgba(34,211,238,0.15)', border: '1px solid rgba(34,211,238,0.3)', color: '#67e8f9' }}>
