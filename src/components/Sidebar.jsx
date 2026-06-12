@@ -279,7 +279,7 @@ export default function Sidebar({
         className="fixed top-1/2 -translate-y-1/2 z-[1000] flex items-center justify-center w-7 h-16 rounded-r-2xl transition-all duration-300"
         style={{
           left: isOpen
-            ? 'calc(var(--nav-x, 0px) + min(340px, 85vw))'
+            ? 'calc(var(--nav-x, 0px) + min(300px, 78vw))'
             : 'var(--nav-x, 0px)',
           background: 'rgba(255,255,255,0.97)',
           backdropFilter: 'blur(12px)',
