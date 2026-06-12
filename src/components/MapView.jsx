@@ -72,24 +72,6 @@ function HimawariPanel({ band, onBandChange, playing, onTogglePlay, frameIdx, fr
         <span className="text-[10px] text-slate-300 font-mono">{timeStr} ICT</span>
       </div>
 
-      {/* Band selector */}
-      <div className="flex gap-1 px-1.5 pt-1.5">
-        {HIMAWARI_BANDS.map(b => (
-          <button
-            key={b.id}
-            onClick={() => onBandChange(b.id)}
-            title={b.desc}
-            className="flex-1 py-1.5 px-1 rounded-lg text-[10px] font-semibold transition-all duration-150 leading-tight text-center"
-            style={{
-              background: band === b.id ? 'rgba(8,145,178,0.85)' : 'rgba(255,255,255,0.07)',
-              color:      band === b.id ? '#fff' : '#94a3b8',
-              border:     `1px solid ${band === b.id ? 'rgba(8,145,178,0.6)' : 'transparent'}`,
-            }}
-          >
-            {b.label}
-          </button>
-        ))}
-      </div>
 
       {/* Timeline scrubber */}
       <div className="px-3 pt-2">
@@ -169,7 +151,7 @@ function BoundsLocker() {
   useEffect(() => {
     map.setMaxBounds(THAILAND_BOUNDS);
     map.options.maxBoundsViscosity = 0.7;
-    map.options.minZoom = 6;
+    map.options.minZoom = 4;
   }, [map]);
   return null;
 }
@@ -274,10 +256,10 @@ function FlyToHandler({ target }) {
 export default function MapView({ activeLayers, tambons, selectedDistrict, onDistrictClick, onMapClick, forecastDatetime, layerSettings, selectedMonth, flyToTarget }) {
   const [basemap, setBasemap] = useState('satellite');
   const [tempPoint, setTempPoint] = useState(null);
-  const [himawariband, setHimawariband] = useState('visible');
+  const [himawariband, setHimawariband] = useState('ir');
   const [himawariFrames] = useState(() => generateFrames(12));
   const [himawariFrameIdx, setHimawariFrameIdx] = useState(11); // start at latest
-  const [himawariPlaying, setHimawariPlaying] = useState(false);
+  const [himawariPlaying, setHimawariPlaying] = useState(true);
   const [showMapBox, setShowMapBox] = useState(false);
 
   // Advance frame every 700ms when playing
@@ -322,7 +304,7 @@ export default function MapView({ activeLayers, tambons, selectedDistrict, onDis
         zoom={KK_DEFAULT_ZOOM}
         maxBounds={THAILAND_BOUNDS}
         maxBoundsViscosity={0.7}
-        minZoom={6}
+        minZoom={4}
         maxZoom={17}
         zoomControl={false}
         style={{ width: '100%', height: '100%' }}

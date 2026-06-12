@@ -15,7 +15,7 @@ const LAYER_BUTTONS = [
   { id: 'heat',        label: 'การสะสมความร้อน',         icon: FaFireAlt,         activeBg: 'rgba(239,68,68,0.10)',   activeBorder: 'rgba(239,68,68,0.4)',   iconColor: '#EF4444' },
   { id: 'stream',      label: 'ร่องน้ำ',                 icon: FaWater,           activeBg: 'rgba(14,165,233,0.10)',  activeBorder: 'rgba(14,165,233,0.4)',  iconColor: '#0EA5E9' },
   { id: 'monthly_temp',label: 'อุณหภูมิ MODIS รายเดือน', icon: FaSatelliteDish,   activeBg: 'rgba(139,92,246,0.10)', activeBorder: 'rgba(139,92,246,0.4)', iconColor: '#8B5CF6' },
-  { id: 'himawari',   label: 'ภาพ Himawari-9 AHI',      icon: FaSatellite,       activeBg: 'rgba(8,145,178,0.10)',  activeBorder: 'rgba(8,145,178,0.4)', iconColor: '#0891b2' },
+  { id: 'himawari',   label: 'ติดตามสภาวะอากาศ',         icon: FaSatellite,       activeBg: 'rgba(8,145,178,0.10)',  activeBorder: 'rgba(8,145,178,0.4)', iconColor: '#0891b2' },
 ];
 
 /* ── Weather illustration SVG ── */

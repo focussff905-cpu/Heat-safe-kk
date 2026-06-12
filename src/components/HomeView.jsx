@@ -229,8 +229,7 @@ function ForecastStrip({ forecast, tmdData }) {
                 {/* เส้นคั่น */}
                 <div className="w-full h-px my-0.5" style={{ background: h.isCurrent ? 'rgba(255,255,255,0.2)' : '#e2e8f0' }} />
                 {/* อุณหภูมิ */}
-                <span className="text-[17px] font-black leading-none"
-                  style={{ color: h.isCurrent ? 'white' : tc }}>
+                <span className="text-[17px] font-black leading-none text-white">
                   {h.temperature}°
                 </span>
               </div>
@@ -699,26 +698,29 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
 
             {/* ── Radar ── */}
             <div className="rounded-3xl overflow-hidden" style={{
-              background: 'linear-gradient(145deg,#0f172a,#1e1b4b,#0c1a3a)',
-              boxShadow: '0 20px 60px rgba(6,182,212,0.2), 0 4px 16px rgba(0,0,0,0.3)',
+              background: 'linear-gradient(135deg,rgba(219,234,254,0.65) 0%,rgba(191,219,254,0.65) 55%,rgba(186,230,253,0.65) 100%)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              border: '1px solid rgba(147,197,253,0.5)',
+              boxShadow: '0 8px 32px rgba(59,130,246,0.12), 0 2px 8px rgba(0,0,0,0.05)',
             }}>
               <div className="px-5 pt-5 pb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <span className="relative flex h-2.5 w-2.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-                      style={{ background: '#22d3ee' }} />
+                      style={{ background: '#3b82f6' }} />
                     <span className="relative inline-flex rounded-full h-2.5 w-2.5"
-                      style={{ background: '#06b6d4' }} />
+                      style={{ background: '#2563eb' }} />
                   </span>
                   <div>
                     <p className="text-[13px] font-extrabold tracking-wide text-white leading-none">เรดาร์ฝนขอนแก่น</p>
-                    <p className="text-[9px] text-cyan-400/70 mt-0.5 leading-none">Khon Kaen Doppler Radar · TMD</p>
+                    <p className="text-[9px] text-white/60 mt-0.5 leading-none">Khon Kaen Doppler Radar · TMD</p>
                   </div>
                 </div>
                 <a href="https://weather.tmd.go.th/kkn240_HQ_Loop_edit2.php"
                   target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] font-semibold transition-all hover:scale-105"
-                  style={{ background: 'rgba(34,211,238,0.15)', border: '1px solid rgba(34,211,238,0.3)', color: '#67e8f9' }}>
+                  style={{ background: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.5)', color: 'white' }}>
                   เต็มจอ
                   <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
@@ -727,7 +729,7 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
               </div>
               <div className="px-4 pb-5">
                 <div className="rounded-2xl overflow-hidden" style={{
-                  boxShadow: '0 0 0 1px rgba(34,211,238,0.2), 0 8px 32px rgba(0,0,0,0.4)',
+                  boxShadow: '0 0 0 1px rgba(147,197,253,0.4), 0 4px 16px rgba(0,0,0,0.1)',
                 }}>
                   <RadarFrame />
                 </div>
@@ -771,22 +773,15 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-slate-700 truncate">ต.{d.name}</p>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="text-[9px] text-slate-400 flex items-center gap-0.5">
-                          <FaTint size={7} className="text-cyan-400" />{d.humidity}%
+                        <span className="text-[9px] text-white/70 flex items-center gap-0.5">
+                          <FaTint size={7} className="text-cyan-300" />{d.humidity}%
                         </span>
-                        <span className="text-[9px] text-slate-300">·</span>
+                        <span className="text-[9px] text-white/40">·</span>
                         <span className="text-[9px] font-semibold" style={{ color: pc }}>PM{d.pm25}µg</span>
-                        <span className="text-[9px] text-slate-300">·</span>
-                        <span className="text-[9px] text-slate-400">{d.windSpeed}km</span>
+                        <span className="text-[9px] text-white/40">·</span>
+                        <span className="text-[9px] text-white/70">{d.windSpeed}km</span>
                       </div>
                     </div>
-                    {/* Rank dot for top 3 */}
-                    {idx < 3 && (
-                      <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[9px] font-black text-white"
-                        style={{ background: ['linear-gradient(135deg,#f59e0b,#d97706)', 'linear-gradient(135deg,#94a3b8,#64748b)', 'linear-gradient(135deg,#cd7c2f,#92400e)'][idx] }}>
-                        {idx + 1}
-                      </div>
-                    )}
                   </div>
                 );
               })}
