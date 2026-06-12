@@ -1,11 +1,8 @@
 import { useState, useCallback } from 'react';
 
-const SEVERITY_OPTIONS = [
-  { value: 'info',     label: 'ข้อมูล',      emoji: 'ℹ️',  color: '#3b82f6', bg: 'rgba(59,130,246,0.12)'  },
-  { value: 'warning',  label: 'เตือน',        emoji: '⚠️',  color: '#f59e0b', bg: 'rgba(245,158,11,0.12)'  },
-  { value: 'danger',   label: 'อันตราย',      emoji: '🚨',  color: '#ef4444', bg: 'rgba(239,68,68,0.12)'   },
-  { value: 'critical', label: 'เร่งด่วนมาก', emoji: '🆘',  color: '#7c3aed', bg: 'rgba(124,58,237,0.12)'  },
-];
+const ALERT_COLOR = '#ef4444';
+const ALERT_BG    = 'rgba(239,68,68,0.12)';
+const ALERT_EMOJI = '🚨';
 
 /* ── PIN pad ─────────────────────────────────────────────────────────────── */
 function PinPad({ onSuccess }) {
@@ -83,13 +80,10 @@ function PinPad({ onSuccess }) {
 
 /* ── Alert composer ──────────────────────────────────────────────────────── */
 function AlertComposer({ onLogout }) {
-  const [title,    setTitle]    = useState('');
-  const [body,     setBody]     = useState('');
-  const [severity, setSeverity] = useState('warning');
-  const [loading,  setLoading]  = useState(false);
-  const [result,   setResult]   = useState(null);
-
-  const selSev = SEVERITY_OPTIONS.find(s => s.value === severity);
+  const [title,   setTitle]  = useState('');
+  const [body,    setBody]   = useState('');
+  const [loading, setLoading] = useState(false);
+  const [result,  setResult]  = useState(null);
 
   const send = async () => {
     if (!title.trim() || !body.trim() || loading) return;
@@ -99,7 +93,7 @@ function AlertComposer({ onLogout }) {
       const res = await fetch('/api/admin-alert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin: '2569', title, body, severity }),
+        body: JSON.stringify({ pin: '2569', title, body }),
       });
       const data = await res.json();
       setResult(data.ok
@@ -129,35 +123,12 @@ function AlertComposer({ onLogout }) {
         </button>
       </div>
 
-      {/* Severity selector */}
-      <div>
-        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-2">ระดับความรุนแรง</p>
-        <div className="grid grid-cols-4 gap-2">
-          {SEVERITY_OPTIONS.map(s => (
-            <button key={s.value}
-              onClick={() => setSeverity(s.value)}
-              className="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl transition-all"
-              style={{
-                background: severity === s.value ? s.bg : 'rgba(241,245,249,0.8)',
-                border: `1.5px solid ${severity === s.value ? s.color + '60' : 'transparent'}`,
-                boxShadow: severity === s.value ? `0 2px 12px ${s.color}25` : 'none',
-              }}>
-              <span className="text-base leading-none">{s.emoji}</span>
-              <span className="text-[9px] font-bold leading-none"
-                style={{ color: severity === s.value ? s.color : '#94a3b8' }}>
-                {s.label}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Title input */}
       <div>
         <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">หัวข้อการแจ้งเตือน</p>
         <div className="relative">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base leading-none pointer-events-none">
-            {selSev.emoji}
+            {ALERT_EMOJI}
           </span>
           <input
             type="text"
@@ -168,7 +139,7 @@ function AlertComposer({ onLogout }) {
             className="w-full pl-9 pr-3 py-3 rounded-xl text-sm font-medium outline-none transition-all"
             style={{
               background: 'rgba(255,255,255,0.9)',
-              border: `1.5px solid ${title ? selSev.color + '50' : 'rgba(226,232,240,0.8)'}`,
+              border: `1.5px solid ${title ? ALERT_COLOR + '50' : 'rgba(226,232,240,0.8)'}`,
               color: '#1e293b',
             }}
           />
@@ -187,7 +158,7 @@ function AlertComposer({ onLogout }) {
           className="w-full px-3 py-3 rounded-xl text-sm outline-none resize-none transition-all"
           style={{
             background: 'rgba(255,255,255,0.9)',
-            border: `1.5px solid ${body ? selSev.color + '50' : 'rgba(226,232,240,0.8)'}`,
+            border: `1.5px solid ${body ? ALERT_COLOR + '50' : 'rgba(226,232,240,0.8)'}`,
             color: '#1e293b',
             lineHeight: 1.6,
           }}
@@ -198,13 +169,13 @@ function AlertComposer({ onLogout }) {
       {/* Preview */}
       {(title || body) && (
         <div className="rounded-2xl p-3.5 flex gap-3"
-          style={{ background: selSev.bg, border: `1px solid ${selSev.color}30` }}>
+          style={{ background: ALERT_BG, border: `1px solid ${ALERT_COLOR}30` }}>
           <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-lg"
-            style={{ background: selSev.color + '20' }}>
-            {selSev.emoji}
+            style={{ background: ALERT_COLOR + '20' }}>
+            {ALERT_EMOJI}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold truncate" style={{ color: selSev.color }}>
+            <p className="text-sm font-bold truncate" style={{ color: ALERT_COLOR }}>
               {title || '(หัวข้อ)'}
             </p>
             <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed line-clamp-2">
@@ -234,15 +205,15 @@ function AlertComposer({ onLogout }) {
         style={{
           background: (!title.trim() || !body.trim() || loading)
             ? 'rgba(148,163,184,0.4)'
-            : `linear-gradient(135deg, ${selSev.color}, ${selSev.color}cc)`,
+            : `linear-gradient(135deg, ${ALERT_COLOR}, ${ALERT_COLOR}cc)`,
           boxShadow: (!title.trim() || !body.trim() || loading)
             ? 'none'
-            : `0 8px 24px ${selSev.color}40`,
+            : `0 8px 24px ${ALERT_COLOR}40`,
           cursor: (!title.trim() || !body.trim() || loading) ? 'not-allowed' : 'pointer',
         }}>
         {loading
           ? '⏳ กำลังส่ง...'
-          : `${selSev.emoji} ส่งการแจ้งเตือนฉุกเฉิน`}
+          : `${ALERT_EMOJI} ส่งการแจ้งเตือนฉุกเฉิน`}
       </button>
 
       <p className="text-[10px] text-slate-400 text-center">
