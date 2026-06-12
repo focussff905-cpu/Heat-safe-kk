@@ -67,7 +67,7 @@ async function fetchOpenMeteo() {
   const [wxRes, aqRes] = await Promise.allSettled([
     fetch(
       `https://api.open-meteo.com/v1/forecast?latitude=${KK_LAT}&longitude=${KK_LNG}` +
-      `&current=apparent_temperature,uv_index` +
+      `&current=temperature_2m,apparent_temperature,uv_index` +
       `&hourly=precipitation_probability&timezone=Asia%2FBangkok&forecast_hours=24`
     ).then(r => r.json()),
     fetch(
@@ -78,10 +78,11 @@ async function fetchOpenMeteo() {
 
   const wx = wxRes.status === 'fulfilled' ? wxRes.value : null;
   return {
-    feelsLike:  wx?.current?.apparent_temperature ?? null,
-    uvIndex:    wx?.current?.uv_index ?? null,
-    precipProb: wx?.hourly?.precipitation_probability?.[ictHour] ?? null,
-    pm25:       aqRes.status === 'fulfilled' ? (aqRes.value.current?.pm2_5 ?? null) : null,
+    temperature: wx?.current?.temperature_2m        ?? null,
+    feelsLike:   wx?.current?.apparent_temperature  ?? null,
+    uvIndex:     wx?.current?.uv_index              ?? null,
+    precipProb:  wx?.hourly?.precipitation_probability?.[ictHour] ?? null,
+    pm25:        aqRes.status === 'fulfilled' ? (aqRes.value.current?.pm2_5 ?? null) : null,
   };
 }
 
@@ -220,7 +221,7 @@ export default async function handler(req, res) {
   const prevState = stateRow.status === 'fulfilled' ? stateRow.value?.data : null;
 
   const data = {
-    temp:       tmdData?.temperature ?? null,
+    temp:       tmdData?.temperature ?? om.temperature ?? null,
     humidity:   tmdData?.humidity    ?? null,
     windSpeed:  tmdData?.windSpeed   ?? null,
     rainfall:   tmdData?.rainfall    ?? null,
