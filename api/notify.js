@@ -15,6 +15,14 @@ const SCHEDULED_TIMES = [
   { h: 15, m:  0 },
 ];
 
+// UV levels: 3=ปานกลาง, 6=สูง, 8=สูงมาก, 11=อันตราย
+const UV_LEVELS = [
+  { min: 11, label: 'อันตราย' },
+  { min:  8, label: 'สูงมาก' },
+  { min:  6, label: 'สูง' },
+  { min:  3, label: 'ปานกลาง' },
+];
+
 webpush.setVapidDetails(VAPID_EMAIL, VAPID_PUBLIC, VAPID_PRIVATE);
 
 const supabase = createClient(
@@ -119,6 +127,7 @@ function buildNotification(data, reasons) {
 
   const tempStr = temp != null ? `${Math.round(temp)}°C` : '--';
   const uvStr   = uvIndex != null ? Math.round(uvIndex) : '--';
+  const uvLevel = uvIndex != null ? (UV_LEVELS.find(l => uvIndex >= l.min)?.label ?? 'ต่ำ') : 'ต่ำ';
 
   // Rain suffix
   let rainSuffix = '';
@@ -130,14 +139,24 @@ function buildNotification(data, reasons) {
     rainSuffix = ' และอาจมีฝนตกเล็กน้อย โปรดระวัง';
   }
 
-  // Emoji
-  const hasRain = rainfall > 0 || precipProb >= 40;
-  let emoji = hasRain ? (precipProb >= 70 || rainfall > 5 ? '🌧️' : '🌦️')
-            : uvIndex >= 8 ? '☀️' : temp >= 35 ? '🌡️' : '🌤️';
+  const body = `เวลา ${timeStr} น. อุณหภูมิ ${tempStr} UV ${uvStr} (${uvLevel})${rainSuffix}`;
+
+  // UV alert — different title
+  if (reasons.includes('uv_alert')) {
+    return {
+      title: `☀️ UV สูงขึ้นระดับปานกลาง · ขอนแก่น`,
+      body,
+    };
+  }
+
+  // Emoji for scheduled
+  const hasRain = (rainfall ?? 0) > 0 || (precipProb ?? 0) >= 40;
+  const emoji = hasRain ? ((precipProb ?? 0) >= 70 || (rainfall ?? 0) > 5 ? '🌧️' : '🌦️')
+              : (uvIndex ?? 0) >= 8 ? '☀️' : (temp ?? 0) >= 35 ? '🌡️' : '🌤️';
 
   return {
     title: `${emoji} สภาพอากาศขอนแก่น`,
-    body:  `เวลา ${timeStr} น. อุณหภูมิ ${tempStr} UV ${uvStr}${rainSuffix}`,
+    body,
   };
 }
 
@@ -220,7 +239,14 @@ export default async function handler(req, res) {
     reasons.push('warning');
   }
 
-  // 2. Scheduled time
+  // 2. UV threshold alert — triggered when UV crosses into moderate (3) or higher
+  const { uvIndex } = data;
+  const prevUV = prevState?.uv_index ?? null;
+  if (uvIndex != null && prevUV != null && prevUV < 3 && uvIndex >= 3) {
+    reasons.push('uv_alert');
+  }
+
+  // 3. Scheduled time
   const isScheduled = SCHEDULED_TIMES.some(t => t.h === ictHour && t.m === ictMinute);
   if (isScheduled) reasons.push('scheduled');
 
