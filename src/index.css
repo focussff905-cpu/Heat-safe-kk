@@ -190,3 +190,10 @@ html, body, #root {
   100% { transform: translateY(14px); opacity: 0; }
 }
 .rain-drop { animation: rainDrop linear infinite; }
+
+/* Cloud gentle float */
+@keyframes cloudFloat {
+  0%, 100% { transform: translateX(0px);  }
+  50%       { transform: translateX(14px); }
+}
+.cloud-float { animation: cloudFloat ease-in-out infinite; }

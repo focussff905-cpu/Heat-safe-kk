@@ -280,6 +280,137 @@ function getWeatherAlert(temp, humidity, uv, pm25, hour) {
   return     { title: 'คืนหนาว',      desc: 'อากาศเย็น ห่มผ้าเพิ่ม',         color: '#06b6d4' };
 }
 
+/* ── Cloud SVG shape ── */
+function CloudShape({ width, color, opacity, top, left, dur, del }) {
+  const h = Math.round(width * 0.45);
+  return (
+    <div className="cloud-float absolute" style={{ top, left, opacity, color, animationDuration: `${dur}s`, animationDelay: `${del}s` }}>
+      <svg width={width} height={h} viewBox="0 0 160 70" fill="none">
+        <ellipse cx="80"  cy="58" rx="72" ry="16" fill="currentColor" />
+        <ellipse cx="52"  cy="47" rx="36" ry="24" fill="currentColor" />
+        <ellipse cx="90"  cy="38" rx="34" ry="28" fill="currentColor" />
+        <ellipse cx="118" cy="51" rx="27" ry="20" fill="currentColor" />
+      </svg>
+    </div>
+  );
+}
+
+const SKY_CLOUDS = {
+  sunny:       [
+    { width: 130, color: 'white',   opacity: 0.72, top:  28, left: '7%',  dur:  9, del: 0 },
+    { width:  90, color: 'white',   opacity: 0.52, top:  58, left: '57%', dur: 12, del: 4 },
+  ],
+  hot:         [
+    { width: 110, color: 'white',   opacity: 0.58, top:  22, left: '9%',  dur: 11, del: 1 },
+    { width:  75, color: 'white',   opacity: 0.38, top:  62, left: '60%', dur: 14, del: 6 },
+  ],
+  cloudy:      [
+    { width: 190, color: '#cbd5e1', opacity: 0.88, top:   8, left: '1%',  dur: 10, del: 0 },
+    { width: 155, color: '#e2e8f0', opacity: 0.82, top:  48, left: '40%', dur: 13, del: 3 },
+    { width: 125, color: '#cbd5e1', opacity: 0.78, top:  22, left: '67%', dur: 11, del: 7 },
+  ],
+  rainy:       [
+    { width: 210, color: '#475569', opacity: 0.92, top:   3, left: '-2%', dur: 14, del: 0 },
+    { width: 165, color: '#334155', opacity: 0.88, top:  42, left: '37%', dur: 12, del: 4 },
+    { width: 135, color: '#475569', opacity: 0.82, top:  18, left: '64%', dur: 10, del: 8 },
+  ],
+  dawn:        [
+    { width: 145, color: '#fde68a', opacity: 0.55, top:  32, left: '4%',  dur: 10, del: 0 },
+    { width: 105, color: '#fdba74', opacity: 0.45, top:  62, left: '54%', dur: 13, del: 5 },
+  ],
+  dusk:        [
+    { width: 155, color: '#fca5a5', opacity: 0.52, top:  22, left: '2%',  dur: 11, del: 0 },
+    { width: 115, color: '#fdba74', opacity: 0.48, top:  58, left: '48%', dur: 14, del: 4 },
+    { width:  85, color: '#f9a8d4', opacity: 0.42, top:  38, left: '72%', dur: 12, del: 8 },
+  ],
+  'night-rain': [
+    { width: 210, color: '#1e293b', opacity: 0.95, top:   0, left: '-3%', dur: 18, del: 0 },
+    { width: 165, color: '#0f172a', opacity: 0.90, top:  32, left: '38%', dur: 20, del: 7 },
+  ],
+};
+
+/* ── Deterministic star positions for night sky ── */
+const STARS = Array.from({ length: 32 }, (_, i) => ({
+  top:  `${(i * 71 + 13) % 62}%`,
+  left: `${(i * 37 + 11) % 100}%`,
+  w:    ((i * 13 + 5) % 2) + 1.2,
+  op:   ((i *  7 + 2) % 5) * 0.1 + 0.25,
+  dur:  ((i * 11 + 4) % 3) + 2,
+}));
+
+function getSkyStyle(hour, temp, precipProb, humidity) {
+  const h  = hour      ?? 12;
+  const pp = precipProb ?? 0;
+  const hu = humidity   ?? 50;
+  const t  = temp       ?? 30;
+  const isNight  = h >= 20 || h < 5;
+  const isDusk   = h >= 18 && h < 20;
+  const isDawn   = h >= 5  && h < 7;
+  const isRainy  = pp >= 50;
+  const isCloudy = pp >= 25 || hu >= 78;
+  const isHot    = t  >= 35;
+  if (isNight)  return { gradient: isRainy
+    ? 'linear-gradient(180deg,#0c1120 0%,#162032 55%,#1e2d42 100%)'
+    : 'linear-gradient(180deg,#020617 0%,#0b1829 40%,#0f2242 72%,#1a3458 100%)',
+    type: isRainy ? 'night-rain' : 'night', dark: true };
+  if (isDusk)   return { gradient: 'linear-gradient(180deg,#1a2744 0%,#5b21b6 22%,#be185d 44%,#ea580c 65%,#f59e0b 82%,#fde68a 100%)', type: 'dusk',   dark: true  };
+  if (isDawn)   return { gradient: 'linear-gradient(180deg,#0f1f3d 0%,#6d28d9 28%,#db2777 52%,#f97316 72%,#fbbf24 100%)',             type: 'dawn',   dark: true  };
+  if (isRainy)  return { gradient: 'linear-gradient(180deg,#0f1923 0%,#1c2b3a 32%,#2d3f50 62%,#3d5268 100%)',                        type: 'rainy',  dark: true  };
+  if (isCloudy) return { gradient: 'linear-gradient(180deg,#334155 0%,#475569 35%,#64748b 65%,#94a3b8 100%)',                        type: 'cloudy', dark: true  };
+  if (isHot)    return { gradient: 'linear-gradient(180deg,#1e40af 0%,#2563eb 28%,#60a5fa 58%,#bae6fd 80%,#fef3c7 100%)',            type: 'hot',    dark: false };
+  return               { gradient: 'linear-gradient(180deg,#1e3a8a 0%,#1d4ed8 25%,#3b82f6 55%,#7dd3fc 80%,#dbeafe 100%)',            type: 'sunny',  dark: false };
+}
+
+function SkyDecorations({ type }) {
+  const isNight = type === 'night' || type === 'night-rain';
+  return (
+    <div className="sticky top-0 z-0 pointer-events-none" style={{ height: 0 }}>
+      <div className="absolute top-0 left-0 right-0" style={{ height: 260 }}>
+        {/* Stars */}
+        {isNight && STARS.slice(0, type === 'night' ? 32 : 10).map((s, i) => (
+          <div key={i} className="absolute rounded-full bg-white"
+            style={{ top: s.top, left: s.left, width: s.w, height: s.w, opacity: s.op,
+              animation: `livePulse ${s.dur}s ease-in-out infinite` }} />
+        ))}
+        {/* Moon */}
+        {type === 'night' && (
+          <div className="absolute" style={{ top: 18, right: 60 }}>
+            <div style={{ width: 42, height: 42, borderRadius: '50%',
+              background: 'radial-gradient(circle at 35% 35%,#fef9c3,#fde68a 60%,#ca8a04)',
+              boxShadow: '0 0 40px rgba(253,230,138,0.35),0 0 80px rgba(253,230,138,0.15)' }} />
+          </div>
+        )}
+        {/* Sun */}
+        {(type === 'sunny' || type === 'hot') && (
+          <div className="absolute" style={{ top: -20, right: 50 }}>
+            <div style={{ width: 130, height: 130, borderRadius: '50%',
+              background: 'radial-gradient(circle,rgba(253,246,178,0.95) 0%,rgba(251,191,36,0.5) 45%,transparent 70%)',
+              filter: 'blur(8px)' }} />
+          </div>
+        )}
+        {/* Dawn/dusk horizon glow */}
+        {(type === 'dawn' || type === 'dusk') && (
+          <div className="absolute bottom-0 left-0 right-0"
+            style={{ height: 100, background: type === 'dusk'
+              ? 'linear-gradient(0deg,rgba(234,88,12,0.4) 0%,transparent 100%)'
+              : 'linear-gradient(0deg,rgba(249,115,22,0.38) 0%,transparent 100%)' }} />
+        )}
+        {/* Clouds */}
+        {(SKY_CLOUDS[type] ?? []).map((c, i) => <CloudShape key={i} {...c} />)}
+
+        {/* Rain streaks */}
+        {(type === 'rainy' || type === 'night-rain') && [...Array(14)].map((_, i) => (
+          <div key={i} className="rain-drop absolute rounded-full"
+            style={{ background: type === 'night-rain' ? 'rgba(148,163,184,0.22)' : 'rgba(186,230,253,0.28)',
+              width: 1.5, height: 10, left: `${(i * 7.14 + 3) % 100}%`, top: -10,
+              animationDuration: `${0.7 + (i % 3) * 0.25}s`,
+              animationDelay:    `${(i % 5) * 0.15}s` }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ═══════════════════════════════════════════════
    Main component
    ═══════════════════════════════════════════════ */
@@ -329,8 +460,9 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
   const tempPct     = Math.max(0, Math.min(100, ((parseFloat(displayTemp) - displayMin) / (displayMax - displayMin || 1)) * 100));
   const currentUV   = forecast?.[0]?.uvIndex ?? null;
   const uvLevel     = currentUV !== null ? getUVLevel(currentUV) : null;
-  const weatherAlert  = getWeatherAlert(displayTemp, displayHumidity, currentUV, avgPM25, now.getHours());
+  const weatherAlert   = getWeatherAlert(displayTemp, displayHumidity, currentUV, avgPM25, now.getHours());
   const clothingAdvice = getClothingAdvice(displayTemp);
+  const skyStyle       = getSkyStyle(now.getHours(), parseFloat(displayTemp), forecast?.[0]?.precipProbability ?? 0, displayHumidity);
 
   /* Live dot */
   const dotCfg = {
@@ -342,9 +474,11 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
 
   return (
     <div className="absolute right-0 overflow-y-auto"
-      style={{ top: 'var(--nav-top)', left: 'var(--nav-x)', bottom: 'var(--nav-bottom)', background: 'linear-gradient(160deg,#cffafe 0%,#e0e7ff 45%,#fce7f3 100%)' }}>
+      style={{ top: 'var(--nav-top)', left: 'var(--nav-x)', bottom: 'var(--nav-bottom)', background: skyStyle.gradient, transition: 'background 1.5s ease' }}>
 
-      <div className="max-w-md md:max-w-4xl lg:max-w-5xl mx-auto px-4 md:px-6 lg:px-8 pt-5 pb-8 space-y-4">
+      <SkyDecorations type={skyStyle.type} />
+
+      <div className="relative z-10 max-w-md md:max-w-4xl lg:max-w-5xl mx-auto px-4 md:px-6 lg:px-8 pt-5 pb-8 space-y-4">
 
         {/* ── Notification permission banner ── */}
         {needsNotifyBanner && (
@@ -386,7 +520,7 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
                 )}
               </div>
             </div>
-            <p className="text-slate-500 text-xs pl-0.5">{dateStr}</p>
+            <p className={`text-xs pl-0.5 ${skyStyle.dark ? 'text-white/55' : 'text-slate-500'}`}>{dateStr}</p>
           </div>
 
           {/* Live badge */}
