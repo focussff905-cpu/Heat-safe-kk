@@ -352,8 +352,8 @@ function getSkyStyle(hour, temp, precipProb, humidity) {
   const isNight  = h >= 20 || h < 5;
   const isDusk   = h >= 18 && h < 20;
   const isDawn   = h >= 5  && h < 7;
-  const isRainy  = pp >= 50;
-  const isCloudy = pp >= 25 || hu >= 78;
+  const isRainy  = pp >= 65;
+  const isCloudy = pp >= 40;
   const isHot    = t  >= 35;
   if (isNight)  return { gradient: isRainy
     ? 'linear-gradient(180deg,#0c1120 0%,#162032 55%,#1e2d42 100%)'
