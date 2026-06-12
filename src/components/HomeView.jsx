@@ -157,10 +157,11 @@ function ForecastStrip({ forecast, tmdData }) {
   if (!forecast || forecast.length === 0) {
     return (
       <div className="rounded-3xl p-4" style={{
-        background: 'rgba(255,255,255,0.6)',
-        border: '1px solid rgba(186,230,253,0.55)',
-        backdropFilter: 'blur(12px)',
-        boxShadow: '0 2px 12px rgba(99,102,241,0.07)',
+        background: 'linear-gradient(135deg,rgba(219,234,254,0.65) 0%,rgba(191,219,254,0.65) 55%,rgba(186,230,253,0.65) 100%)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        border: '1px solid rgba(147,197,253,0.5)',
+        boxShadow: '0 8px 32px rgba(59,130,246,0.12), 0 2px 8px rgba(0,0,0,0.05)',
       }}>
         <p className="text-[10px] font-bold uppercase tracking-widest mb-3"
           style={{ background: 'linear-gradient(90deg,#f97316,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
@@ -173,10 +174,11 @@ function ForecastStrip({ forecast, tmdData }) {
 
   return (
     <div className="rounded-3xl" style={{
-      background: 'rgba(255,255,255,0.6)',
-      border: '1px solid rgba(186,230,253,0.55)',
-      backdropFilter: 'blur(12px)',
-      boxShadow: '0 2px 12px rgba(99,102,241,0.07)',
+      background: 'linear-gradient(135deg,rgba(219,234,254,0.65) 0%,rgba(191,219,254,0.65) 55%,rgba(186,230,253,0.65) 100%)',
+      backdropFilter: 'blur(16px)',
+      WebkitBackdropFilter: 'blur(16px)',
+      border: '1px solid rgba(147,197,253,0.5)',
+      boxShadow: '0 8px 32px rgba(59,130,246,0.12), 0 2px 8px rgba(0,0,0,0.05)',
     }}>
       <div className="px-4 pt-3 pb-2 flex items-center justify-between">
         <p className="text-[11px] font-extrabold uppercase tracking-widest"
@@ -206,8 +208,10 @@ function ForecastStrip({ forecast, tmdData }) {
                   width: '56px',
                   background: h.isCurrent
                     ? 'linear-gradient(160deg,#f97316,#db2777,#8b5cf6)'
-                    : 'rgba(255,255,255,0.7)',
-                  border:    h.isCurrent ? 'none' : '1px solid rgba(186,230,253,0.6)',
+                    : 'linear-gradient(135deg,rgba(219,234,254,0.55) 0%,rgba(191,219,254,0.55) 55%,rgba(186,230,253,0.55) 100%)',
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
+                  border:    h.isCurrent ? 'none' : '1px solid rgba(147,197,253,0.5)',
                   boxShadow: h.isCurrent ? '0 4px 16px rgba(219,39,119,0.3)' : 'none',
                 }}>
                 {/* เวลา */}
@@ -546,7 +550,9 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
 
             {/* Hero temperature card */}
             <div className="rounded-3xl p-5 relative overflow-hidden" style={{
-              background: 'linear-gradient(135deg,#dbeafe 0%,#bfdbfe 55%,#bae6fd 100%)',
+              background: 'linear-gradient(135deg,rgba(219,234,254,0.65) 0%,rgba(191,219,254,0.65) 55%,rgba(186,230,253,0.65) 100%)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
               border: '1px solid rgba(147,197,253,0.5)',
               boxShadow: '0 8px 32px rgba(59,130,246,0.12), 0 2px 8px rgba(0,0,0,0.05)',
             }}>
@@ -665,10 +671,11 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
                 },
               ].map(({ icon, iconBg, label, value, unit, extra }) => (
                 <div key={label} className="rounded-2xl p-3 flex flex-col items-center gap-1.5" style={{
-                  background: 'rgba(255,255,255,0.6)',
-                  border: '1px solid rgba(186,230,253,0.55)',
-                  backdropFilter: 'blur(12px)',
-                  boxShadow: '0 2px 12px rgba(99,102,241,0.07)',
+                  background: 'linear-gradient(135deg,rgba(219,234,254,0.65) 0%,rgba(191,219,254,0.65) 55%,rgba(186,230,253,0.65) 100%)',
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
+                  border: '1px solid rgba(147,197,253,0.5)',
+                  boxShadow: '0 8px 32px rgba(59,130,246,0.12), 0 2px 8px rgba(0,0,0,0.05)',
                 }}>
                   <div className="w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0"
                     style={{ background: iconBg, boxShadow: '0 3px 10px rgba(0,0,0,0.15)' }}>
@@ -721,7 +728,7 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
 
             {/* ── Clothing advice ── */}
             <div className="rounded-2xl px-4 py-3 flex items-center gap-3"
-              style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.4)', boxShadow: '0 2px 12px rgba(99,102,241,0.07)' }}>
+              style={{ background: 'linear-gradient(135deg,rgba(219,234,254,0.65) 0%,rgba(191,219,254,0.65) 55%,rgba(186,230,253,0.65) 100%)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(147,197,253,0.5)', boxShadow: '0 8px 32px rgba(59,130,246,0.12), 0 2px 8px rgba(0,0,0,0.05)' }}>
               <span className="text-2xl leading-none flex-shrink-0">{clothingAdvice.icon}</span>
               <div className="min-w-0">
                 <p className="text-slate-700 text-xs font-bold leading-none">👕 {clothingAdvice.outfit}</p>
@@ -750,10 +757,11 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
                   <div key={d.id}
                     className="rounded-2xl px-3 py-2.5 flex items-center gap-2.5 transition-transform hover:scale-[1.01] cursor-pointer active:scale-[0.98]"
                     style={{
-                      background: 'rgba(255,255,255,0.75)',
-                      border: `1px solid ${tc}30`,
-                      backdropFilter: 'blur(8px)',
-                      boxShadow: idx === 0 ? `0 4px 16px ${tc}18` : 'none',
+                      background: 'linear-gradient(135deg,rgba(219,234,254,0.65) 0%,rgba(191,219,254,0.65) 55%,rgba(186,230,253,0.65) 100%)',
+                      backdropFilter: 'blur(16px)',
+                      WebkitBackdropFilter: 'blur(16px)',
+                      border: '1px solid rgba(147,197,253,0.5)',
+                      boxShadow: idx === 0 ? '0 8px 32px rgba(59,130,246,0.12), 0 2px 8px rgba(0,0,0,0.05)' : '0 2px 8px rgba(0,0,0,0.04)',
                     }}
                     onClick={() => onTambonClick?.(d)}>
                     {/* Temp badge */}
