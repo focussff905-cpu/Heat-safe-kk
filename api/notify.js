@@ -10,7 +10,7 @@ const KK_WMO  = '48381';
 
 // Scheduled notification times (ICT)
 const SCHEDULED_TIMES = [
-  { h:  6, m: 30 },
+  { h:  7, m:  0 },
   { h: 11, m: 30 },
   { h: 15, m:  0 },
 ];
