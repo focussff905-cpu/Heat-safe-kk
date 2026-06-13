@@ -298,13 +298,13 @@ function ForecastStrip({ forecast, tmdData }) {
 /* ── Clothing recommendation ── */
 function getClothingAdvice(temp) {
   const t = parseFloat(temp);
-  if (t >= 38) return { icon: '👙', outfit: 'เสื้อผ้าบางมาก สีอ่อน', tip: 'สวมหมวก + ครีมกันแดด หลีกเลี่ยงออกแดด' };
-  if (t >= 35) return { icon: '👕', outfit: 'เสื้อแขนสั้นบาง สีอ่อน', tip: 'สวมหมวกและแว่นกันแดด' };
-  if (t >= 32) return { icon: '👔', outfit: 'เสื้อแขนสั้น ระบายอากาศดี', tip: 'หลีกเลี่ยงเสื้อสีเข้ม' };
-  if (t >= 28) return { icon: '👗', outfit: 'เสื้อแขนสั้นสบาย', tip: 'อากาศดี เหมาะออกกิจกรรม' };
-  if (t >= 24) return { icon: '🧤', outfit: 'เสื้อแขนสั้น หรือแขนยาวเบา', tip: 'อากาศเย็นสบาย' };
-  if (t >= 20) return { icon: '🧣', outfit: 'เสื้อแขนยาว หรือแจ็กเก็ตบาง', tip: 'เตรียมเสื้อกันหนาวบางไว้' };
-  return          { icon: '🧥', outfit: 'เสื้อกันหนาว + แจ็กเก็ต', tip: 'อากาศหนาว ใส่เสื้อหนาหลายชั้น' };
+  if (t >= 38) return { icon: '🩱', outfit: 'เสื้อผ้าบางมาก สีอ่อน', tip: 'สวมหมวก + ครีมกันแดด หลีกเลี่ยงออกแดด' };
+  if (t >= 35) return { icon: '👚', outfit: 'เสื้อแขนสั้นบาง สีอ่อน', tip: 'สวมหมวกและแว่นกันแดด' };
+  if (t >= 32) return { icon: '👕', outfit: 'เสื้อแขนสั้น ระบายอากาศดี', tip: 'หลีกเลี่ยงเสื้อสีเข้ม' };
+  if (t >= 28) return { icon: '👕🕶️', outfit: 'เสื้อแขนสั้นสบาย', tip: 'อากาศดี เหมาะออกกิจกรรม' };
+  if (t >= 24) return { icon: '🧥', outfit: 'เสื้อแขนสั้น หรือแขนยาวเบา', tip: 'อากาศเย็นสบาย' };
+  if (t >= 20) return { icon: '🥼🧦', outfit: 'เสื้อแขนยาว หรือแจ็กเก็ตบาง', tip: 'เตรียมเสื้อกันหนาวบางไว้' };
+  return          { icon: '🧥🧣', outfit: 'เสื้อกันหนาว + แจ็กเก็ต', tip: 'อากาศหนาว ใส่เสื้อหนาหลายชั้น' };
 }
 
 /* ── Weather activity assessment (กลางวันอิง temp+UV, กลางคืนอิง temp) ── */
