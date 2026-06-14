@@ -1,9 +1,9 @@
 import { FaHome, FaMap, FaFireAlt, FaExclamationTriangle, FaCommentDots } from 'react-icons/fa';
 
 const TABS = [
-  { id: 'home',        label: 'หน้าหลัก',  icon: FaHome },
   { id: 'map',         label: 'แผนที่',     icon: FaMap },
   { id: 'simulation',  label: 'แบบจำลอง',  icon: FaFireAlt },
+  { id: 'home',        label: 'หน้าหลัก',  icon: FaHome },
   { id: 'risk-areas',  label: 'เสี่ยงภัย', icon: FaExclamationTriangle },
   { id: 'chatbot',     label: 'แชทบอท',    icon: FaCommentDots },
 ];
@@ -38,7 +38,7 @@ export default function BottomNav({ activeTab, onTabChange }) {
       <nav
         className="lg:hidden fixed bottom-0 left-0 right-0 z-[1001]"
         style={{
-          height: 'calc(60px + env(safe-area-inset-bottom, 0px))',
+          height: 'calc(52px + env(safe-area-inset-bottom, 0px))',
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           paddingLeft:   'env(safe-area-inset-left, 0px)',
           paddingRight:  'env(safe-area-inset-right, 0px)',
@@ -50,7 +50,7 @@ export default function BottomNav({ activeTab, onTabChange }) {
           overflow: 'visible',
         }}
       >
-        <div className="flex" style={{ height: '60px' }}>
+        <div className="flex" style={{ height: '52px' }}>
           {TABS.map(tab => {
             const Icon    = tab.icon;
             const isActive = activeTab === tab.id;
