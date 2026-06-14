@@ -109,7 +109,7 @@ export default function RiskAreasView({ tambons, onLocationClick }) {
 
   return (
     <div
-      className="absolute right-0 overflow-y-auto"
+      className="absolute right-0 overflow-y-auto overflow-x-hidden"
       style={{ top: 'var(--nav-top)', left: 'var(--nav-x)', bottom: 'var(--nav-bottom)', background: 'linear-gradient(180deg,#fff7ed 0%,#f8faff 100%)' }}
     >
       <div className="max-w-md md:max-w-2xl mx-auto px-4 md:px-8 pt-5 pb-4 space-y-3">

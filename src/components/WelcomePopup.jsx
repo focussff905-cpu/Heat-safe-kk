@@ -104,38 +104,8 @@ export default function WelcomePopup({ tmdData, tambons, forecast }) {
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="h-px mb-3" style={{ background: 'rgba(255,255,255,0.3)' }} />
-
-        {/* Weather report */}
-        <div className="flex items-center justify-between">
-          {/* Temp */}
-          <div className="flex items-end gap-1">
-            <span className="text-5xl font-black text-white leading-none">
-              {temp != null ? temp : '--'}
-            </span>
-            <span className="text-xl font-bold text-white/70 mb-1">°C</span>
-          </div>
-
-          {/* Stats */}
-          <div className="flex flex-col gap-1.5 items-end">
-            <span className="text-sm font-bold text-white">{condition}</span>
-            {humidity != null && (
-              <span className="text-[11px] text-white/70">💧 ความชื้น {humidity}%</span>
-            )}
-            {uv != null && uv > 0 && (
-              <span className="text-[11px] text-white/70">☀️ UV {Math.round(uv)}</span>
-            )}
-            {prob >= 40 && (
-              <span className="text-[11px] text-white/70">🌧️ ฝน {prob}%</span>
-            )}
-          </div>
-        </div>
-
         {/* Contextual message */}
-        <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.25)' }}>
-          <p className="text-white text-[13px] font-medium leading-relaxed text-center">{message}</p>
-        </div>
+        <p className="text-white text-[14px] font-medium leading-relaxed text-center mt-1">{message}</p>
 
         {/* Tap to dismiss */}
         <p className="text-white/40 text-[10px] text-center mt-3 leading-none">แตะเพื่อปิด</p>

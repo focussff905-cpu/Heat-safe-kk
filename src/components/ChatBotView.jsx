@@ -45,7 +45,7 @@ export default function ChatBotView() {
 
   return (
     <div
-      className="absolute right-0 overflow-y-auto"
+      className="absolute right-0 overflow-y-auto overflow-x-hidden"
       style={{ top: 'var(--nav-top)', left: 'var(--nav-x)', bottom: 'var(--nav-bottom)', background: 'linear-gradient(180deg,#eff6ff 0%,#f5f0ff 100%)' }}
     >
       <div className="max-w-sm mx-auto px-4 pt-8 pb-6 flex flex-col items-center">

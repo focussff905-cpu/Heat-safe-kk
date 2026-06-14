@@ -122,7 +122,7 @@ function WeatherIcon({ weatherCode = 0, hour = 12, prob = 0, isActive }) {
   const code    = weatherCode ?? 0;
 
   const isThunder     = code >= 95;
-  const isRain        = code >= 51 || prob >= 50;
+  const isRain        = code >= 51 || prob >= 30;
   const isOvercast    = code >= 3  && code < 51;
   const isPartly      = code >= 1  && code < 3;
 
@@ -142,7 +142,7 @@ function WeatherIcon({ weatherCode = 0, hour = 12, prob = 0, isActive }) {
   const cloudPath = 'M9 19 Q5 19 5 15 Q5 11 9 11 Q10 7 14 7 Q17 4 21 6 Q25 4 28 8 Q32 8 32 12 Q35 12 35 16 Q35 19 31 19 Z';
 
   /* ── Overcast / rainy / thunder ── all have the cloud prominent */
-  if (isThunder || isRain || isOvercast) {
+  if (isThunder || isRain || (isOvercast && prob >= 30)) {
     return (
       <svg width="36" height="32" viewBox="0 0 36 32" fill="none" aria-hidden="true" style={{ overflow: 'visible' }}>
         <path d={cloudPath} fill={cloudCol}
@@ -161,18 +161,26 @@ function WeatherIcon({ weatherCode = 0, hour = 12, prob = 0, isActive }) {
     );
   }
 
-  /* ── Partly cloudy ── sun + small cloud */
-  if (isPartly) {
+  /* ── Partly cloudy ── sun/moon + small cloud */
+  if (isPartly || (isOvercast && prob < 30)) {
     return (
       <svg width="36" height="30" viewBox="0 0 36 30" fill="none" aria-hidden="true">
-        {/* Small sun top-right */}
-        <circle cx="26" cy="10" r="6" fill={sunCol} opacity="0.9" />
-        {[0,60,120,180,240,300].map((deg, i) => {
-          const r = (Math.PI * deg) / 180;
-          return <line key={i} x1={26+Math.cos(r)*8} y1={10+Math.sin(r)*8}
-            x2={26+Math.cos(r)*10} y2={10+Math.sin(r)*10}
-            stroke={sunCol} strokeWidth="1.5" strokeLinecap="round" opacity="0.7" />;
-        })}
+        {isNight ? (
+          /* Moon top-right */
+          <path d="M27 4 Q22 6 22 11 Q22 16 27 18 Q22 18 19 14 Q17 11 19 7 Q22 3 27 4 Z"
+            fill={moonCol} />
+        ) : (
+          /* Sun top-right */
+          <>
+            <circle cx="26" cy="10" r="6" fill={sunCol} opacity="0.9" />
+            {[0,60,120,180,240,300].map((deg, i) => {
+              const r = (Math.PI * deg) / 180;
+              return <line key={i} x1={26+Math.cos(r)*8} y1={10+Math.sin(r)*8}
+                x2={26+Math.cos(r)*10} y2={10+Math.sin(r)*10}
+                stroke={sunCol} strokeWidth="1.5" strokeLinecap="round" opacity="0.7" />;
+            })}
+          </>
+        )}
         {/* Cloud covering lower-left */}
         <path d="M4 22 Q2 22 2 19 Q2 16 5 16 Q6 13 9 13 Q11 11 14 12 Q17 10 19 13 Q22 13 22 16 Q24 16 24 19 Q24 22 21 22 Z"
           fill={isActive ? w : '#dbeafe'} />
@@ -218,7 +226,7 @@ function ForecastStrip({ forecast, tmdData }) {
         boxShadow: '0 8px 32px rgba(59,130,246,0.12), 0 2px 8px rgba(0,0,0,0.05)',
       }}>
         <p className="text-[10px] font-bold uppercase tracking-widest mb-3"
-          style={{ background: 'linear-gradient(90deg,#f97316,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          style={{ color: 'white' }}>
           พยากรณ์รายชั่วโมง
         </p>
         <p className="text-xs text-blue-300 animate-pulse text-center py-3">กำลังโหลด...</p>
@@ -227,7 +235,7 @@ function ForecastStrip({ forecast, tmdData }) {
   }
 
   return (
-    <div className="rounded-3xl" style={{
+    <div className="rounded-3xl overflow-hidden" style={{
       background: 'linear-gradient(135deg,rgba(219,234,254,0.65) 0%,rgba(191,219,254,0.65) 55%,rgba(186,230,253,0.65) 100%)',
       backdropFilter: 'blur(16px)',
       WebkitBackdropFilter: 'blur(16px)',
@@ -236,7 +244,7 @@ function ForecastStrip({ forecast, tmdData }) {
     }}>
       <div className="px-4 pt-3 pb-2 flex items-center justify-between">
         <p className="text-[11px] font-extrabold uppercase tracking-widest"
-          style={{ background: 'linear-gradient(90deg,#f97316,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          style={{ color: 'white' }}>
           พยากรณ์รายชั่วโมง
         </p>
         <div className="flex items-center gap-1.5 text-[9px] text-slate-400">
@@ -248,7 +256,7 @@ function ForecastStrip({ forecast, tmdData }) {
       <div className="overflow-x-auto pb-3 px-3"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
         <div className="flex gap-1.5" style={{ width: 'max-content' }}>
-          {forecast.slice(0, 12).map((h) => {
+          {forecast.slice(0, 20).map((h) => {
             const tc   = getTemperatureColor(h.temperature);
             const rain = h.isCurrent && tmdData?.rainfall != null
               ? tmdData.rainfall
@@ -532,7 +540,7 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
   }[weatherStatus] ?? { cls: 'bg-slate-400', label: '—', col: '#94a3b8' };
 
   return (
-    <div className="absolute right-0 overflow-y-auto"
+    <div className="absolute right-0 overflow-y-auto overflow-x-hidden"
       style={{ top: 'var(--nav-top)', left: 'var(--nav-x)', bottom: 'var(--nav-bottom)', background: skyStyle.gradient, transition: 'background 1.5s ease' }}>
 
       <SkyDecorations type={skyStyle.type} />
@@ -599,7 +607,7 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
         <div className="lg:flex lg:gap-5 lg:items-start">
 
           {/* ── Left column ── */}
-          <div className="lg:flex-1 space-y-3">
+          <div className="lg:flex-1 min-w-0 space-y-3">
 
             {/* Hero temperature card */}
             <div className="rounded-3xl p-5 relative overflow-hidden" style={{
@@ -825,7 +833,7 @@ export default function HomeView({ tambons, forecast, weatherStatus, lastUpdated
                       <span className="text-xs font-black" style={{ color: tc }}>{d.temperature}°</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-slate-700 truncate">ต.{d.name}</p>
+                      <p className="text-sm font-bold text-white truncate">ต.{d.name}</p>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <span className="text-[9px] text-white/70 flex items-center gap-0.5">
                           <FaTint size={7} className="text-cyan-300" />{d.humidity}%
