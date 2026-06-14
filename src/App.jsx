@@ -12,6 +12,7 @@ import { useRealtimeWeather } from './hooks/useRealtimeWeather';
 import { useTMDWeather } from './hooks/useTMDWeather';
 import { useAutoNotify } from './hooks/useAutoNotify';
 import AdminView from './components/AdminView';
+import WelcomePopup from './components/WelcomePopup';
 
 export default function App() {
   const { tambons, forecast, dailyMax: omDailyMax, dailyMin: omDailyMin, status: weatherStatus, lastUpdated, refresh: refreshWeather } = useRealtimeWeather();
@@ -164,6 +165,9 @@ export default function App() {
 
       {/* ── Admin (hidden route via ?admin in URL) ── */}
       {isAdmin && <AdminView />}
+
+      {/* ── Welcome popup ── */}
+      {!isAdmin && <WelcomePopup tmdData={tmdData} tambons={tambons} forecast={forecast} />}
 
       {/* ── Bottom nav (hidden in admin mode) ── */}
       {!isAdmin && <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />}
