@@ -22,7 +22,21 @@ function getWeatherSummary(tmdData, tambons, forecast) {
                   : uv >= 6   ? '🌤️ แดดแรง'
                   : '😊 อากาศดี';
 
-  return { temp, humidity, uv, prob, condition };
+  const message = prob >= 65
+    ? 'วันนี้มีฝนตก อย่าลืมพกร่มออกไปด้วยนะ ☂️'
+    : prob >= 40
+    ? 'อาจมีฝนระหว่างวัน เตรียมร่มไว้ด้วยก็ดีนะ 🌂'
+    : temp != null && temp >= 38
+    ? 'อากาศร้อนมากวันนี้ ดื่มน้ำบ่อยๆ และหลีกเลี่ยงออกแดดช่วงกลางวันนะ 🥵'
+    : temp != null && temp >= 35
+    ? 'อากาศร้อนจัด ถ้าต้องออกไปข้างนอกอย่าลืมครีมกันแดดด้วยนะ ☀️'
+    : uv >= 8
+    ? 'แดดแรงมากวันนี้ ใส่หมวกและครีมกันแดดก่อนออกจากบ้านนะ 🧴'
+    : temp != null && temp <= 24
+    ? 'อากาศเย็นสบาย เหมาะกับการออกไปทำกิจกรรมข้างนอกมากเลย 🌿'
+    : 'วันนี้อากาศดี เหมาะกับการออกไปทำกิจกรรมข้างนอกนะ 😊';
+
+  return { temp, humidity, uv, prob, condition, message };
 }
 
 export default function WelcomePopup({ tmdData, tambons, forecast }) {
@@ -53,12 +67,11 @@ export default function WelcomePopup({ tmdData, tambons, forecast }) {
   if (!visible) return null;
 
   const greeting = getGreeting();
-  const { temp, humidity, uv, prob, condition } = getWeatherSummary(tmdData, tambons, forecast);
+  const { temp, humidity, uv, prob, condition, message } = getWeatherSummary(tmdData, tambons, forecast);
 
   return (
     <div
-      className="fixed inset-0 z-[2000] flex items-end justify-center pb-6 px-4 pointer-events-none"
-      style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))' }}
+      className="fixed inset-0 z-[2000] flex items-center justify-center px-4 pointer-events-none"
     >
       <div
         onClick={close}
@@ -117,6 +130,11 @@ export default function WelcomePopup({ tmdData, tambons, forecast }) {
               <span className="text-[11px] text-white/70">🌧️ ฝน {prob}%</span>
             )}
           </div>
+        </div>
+
+        {/* Contextual message */}
+        <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.25)' }}>
+          <p className="text-white text-[13px] font-medium leading-relaxed text-center">{message}</p>
         </div>
 
         {/* Tap to dismiss */}
