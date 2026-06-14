@@ -13,7 +13,7 @@ export default defineConfig({
       includeAssets: ['favicon.svg', 'pwa-192.png', 'pwa-512.png', 'apple-touch-icon.png'],
       manifest: {
         name: 'ระบบติดตามสภาพแวดล้อม จังหวัดขอนแก่น',
-        short_name: 'KK Map',
+        short_name: 'Heat Safe KhonKaen',
         description: 'ติดตามสภาพอากาศ ฝุ่น PM2.5 และแผนที่ความร้อน อำเภอเมืองขอนแก่น แบบ Real-time',
         lang: 'th',
         theme_color: '#f8faff',
