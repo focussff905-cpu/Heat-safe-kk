@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
+import { KK_CENTER, KK_DEFAULT_ZOOM } from './data/mockData';
 import MapView from './components/MapView';
 import Sidebar from './components/Sidebar';
 import BottomNav from './components/BottomNav';
@@ -58,6 +59,9 @@ export default function App() {
     setInfoLayer(id);
   }, []);
 
+  const [mapPosition, setMapPosition] = useState({ center: KK_CENTER, zoom: KK_DEFAULT_ZOOM });
+  const handleMapMove = useCallback((center, zoom) => setMapPosition({ center, zoom }), []);
+
   const [flyToTarget, setFlyToTarget] = useState(null);
   const handleFlyTo = useCallback(({ lat, lng }) => setFlyToTarget({ lat, lng, ts: Date.now() }), []);
   const handleMapClick = useCallback(() => setSelectedDistrict(null), []);
@@ -93,6 +97,9 @@ export default function App() {
               layerSettings={layerSettings}
               selectedMonth={selectedMonth}
               flyToTarget={flyToTarget}
+              initialCenter={mapPosition.center}
+              initialZoom={mapPosition.zoom}
+              onMapMove={handleMapMove}
             />
           </div>
           <Sidebar

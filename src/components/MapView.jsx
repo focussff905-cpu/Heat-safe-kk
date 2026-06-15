@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { KK_CENTER, KK_BOUNDS, KK_DEFAULT_ZOOM, THAILAND_BOUNDS, hotspots, getTemperatureColor } from '../data/mockData';
 import TemperatureLayer from './layers/TemperatureLayer';
@@ -253,7 +253,17 @@ function FlyToHandler({ target }) {
   return null;
 }
 
-export default function MapView({ activeLayers, tambons, selectedDistrict, onDistrictClick, onMapClick, forecastDatetime, layerSettings, selectedMonth, flyToTarget }) {
+function MapPositionTracker({ onMove }) {
+  useMapEvents({
+    moveend(e) {
+      const c = e.target.getCenter();
+      onMove([c.lat, c.lng], e.target.getZoom());
+    },
+  });
+  return null;
+}
+
+export default function MapView({ activeLayers, tambons, selectedDistrict, onDistrictClick, onMapClick, forecastDatetime, layerSettings, selectedMonth, flyToTarget, initialCenter, initialZoom, onMapMove }) {
   const [basemap, setBasemap] = useState('satellite');
   const [tempPoint, setTempPoint] = useState(null);
   const [himawariband, setHimawariband] = useState('ir');
@@ -300,8 +310,8 @@ export default function MapView({ activeLayers, tambons, selectedDistrict, onDis
   return (
     <div className="relative w-full h-full">
       <MapContainer
-        center={KK_CENTER}
-        zoom={KK_DEFAULT_ZOOM}
+        center={initialCenter ?? KK_CENTER}
+        zoom={initialZoom ?? KK_DEFAULT_ZOOM}
         maxBounds={THAILAND_BOUNDS}
         maxBoundsViscosity={0.7}
         minZoom={4}
@@ -335,6 +345,7 @@ export default function MapView({ activeLayers, tambons, selectedDistrict, onDis
           onPointClick={handlePointClick}
         />
         <FlyToHandler target={flyToTarget} />
+        {onMapMove && <MapPositionTracker onMove={onMapMove} />}
         <TempPointMarker point={tempPoint} onClose={() => setTempPoint(null)} />
 
         {/* Zoom control — bottom right */}
