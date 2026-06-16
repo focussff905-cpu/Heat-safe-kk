@@ -216,6 +216,76 @@ function InfoCard({ selectedDistrict, activeLayer, onClear, tambons }) {
   );
 }
 
+/* ═══════════════════════════════ SHARED SEARCH ═══════════════════════════════ */
+function SearchBox({ searchQuery, onSearchChange, filtered, externalResults, externalLoading, showSuggestions, setShowSuggestions, onSuggestionClick, onExternalClick, searchRef }) {
+  return (
+    <div ref={searchRef} className="relative">
+      <label className="block text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1.5">ค้นหา</label>
+      <div className="relative">
+        <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-300" size={11} />
+        <input
+          type="text" value={searchQuery}
+          onChange={e => { onSearchChange(e.target.value); setShowSuggestions(true); }}
+          onFocus={() => setShowSuggestions(true)}
+          placeholder="ค้นหาตำบล หรือสถานที่ทั่วไทย..."
+          className="w-full pl-9 pr-9 py-2.5 text-sm rounded-2xl text-slate-700 placeholder-blue-200 outline-none"
+          style={{ background: 'white', border: '1.5px solid #e0eaff', fontFamily: 'Noto Sans Thai, sans-serif' }}
+          onKeyDown={e => { if (e.key === 'Escape') { setShowSuggestions(false); onSearchChange(''); } }}
+        />
+        {searchQuery && (
+          <button onClick={() => { onSearchChange(''); setShowSuggestions(false); }}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-blue-300 hover:text-blue-500 transition-colors">
+            <FaTimes size={10} />
+          </button>
+        )}
+      </div>
+      {showSuggestions && (filtered.length > 0 || externalLoading || externalResults.length > 0) && (
+        <div className="absolute left-0 right-0 top-full mt-1.5 rounded-2xl overflow-hidden z-50"
+          style={{ background: 'rgba(255,255,255,0.99)', border: '1px solid #e0eaff', boxShadow: '0 8px 32px rgba(59,130,246,0.12)', maxHeight: '240px', overflowY: 'auto' }}>
+          {filtered.length > 0 && (
+            <>
+              <div className="px-3.5 pt-2.5 pb-1"><span className="text-[10px] font-bold text-blue-300 uppercase tracking-widest">ตำบลในอ.เมืองขอนแก่น</span></div>
+              {filtered.slice(0,5).map(d => (
+                <button key={d.id} onClick={() => onSuggestionClick(d)}
+                  className="w-full flex items-center gap-3 px-3.5 py-2.5 text-left hover:bg-blue-50 transition-colors">
+                  <FaMapMarkerAlt className="text-blue-400 flex-shrink-0" size={10} />
+                  <div className="min-w-0">
+                    <p className="text-sm text-slate-700">ต.{d.name}</p>
+                    <p className="text-xs text-slate-400 truncate">{d.temperature}°C · PM {d.pm25}µg/m³</p>
+                  </div>
+                </button>
+              ))}
+            </>
+          )}
+          {filtered.length > 0 && (externalLoading || externalResults.length > 0) && <div style={{ height: '1px', background: '#e0eaff', margin: '4px 0' }} />}
+          {externalLoading ? (
+            <div className="px-3.5 py-3 flex items-center gap-2 text-xs text-blue-400">
+              <div className="w-3 h-3 border border-blue-200 border-t-blue-500 rounded-full animate-spin" />กำลังค้นหา...
+            </div>
+          ) : externalResults.length > 0 && (
+            <>
+              <div className="px-3.5 pt-2.5 pb-1"><span className="text-[10px] font-bold text-blue-300 uppercase tracking-widest">สถานที่ในประเทศไทย</span></div>
+              {externalResults.map(place => {
+                const parts = place.display_name.split(',');
+                return (
+                  <button key={place.place_id} onClick={() => onExternalClick(place)}
+                    className="w-full flex items-center gap-3 px-3.5 py-2.5 text-left hover:bg-blue-50 transition-colors">
+                    <FaSearch className="text-blue-300 flex-shrink-0" size={9} />
+                    <div className="min-w-0">
+                      <p className="text-sm text-slate-700 truncate">{parts[0].trim()}</p>
+                      <p className="text-xs text-slate-400 truncate">{parts.slice(1,3).join(',').trim()}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ═══════════════════════════════ MAIN SIDEBAR ═══════════════════════════════ */
 export default function Sidebar({
   activeLayers, infoLayer, onLayerToggle,
@@ -229,6 +299,15 @@ export default function Sidebar({
   const [externalResults, setExternalResults] = useState([]);
   const [externalLoading, setExternalLoading] = useState(false);
   const searchRef = useRef(null);
+
+  /* responsive: true = phone/tablet (<lg) */
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const update = () => setIsMobile(!mq.matches);
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
 
   const filtered = searchQuery.trim()
     ? tambons.filter(d => d.name.toLowerCase().includes(searchQuery.toLowerCase()) || `ตำบล${d.name}`.includes(searchQuery))
@@ -268,12 +347,158 @@ export default function Sidebar({
   const avgHumidity = tambons.length > 0 ? Math.round(tambons.reduce((s,d)=>s+(d.humidity??0),0)/tambons.length) : '--';
   const avgWind     = tambons.length > 0 ? (tambons.reduce((s,d)=>s+(d.windSpeed??0),0)/tambons.length).toFixed(1) : '--';
   const avgPM25     = tambons.length > 0 ? (tambons.reduce((s,d)=>s+d.pm25,0)/tambons.length).toFixed(1) : '--';
-
   const dateStr = new Date().toLocaleDateString('th-TH', { weekday: 'short', month: 'short', day: 'numeric' });
 
+  /* ─────────────────────── SHARED SEARCH PROPS ─────────────────────── */
+  const searchProps = {
+    searchQuery, onSearchChange, filtered, externalResults, externalLoading,
+    showSuggestions, setShowSuggestions,
+    onSuggestionClick: handleSuggestionClick,
+    onExternalClick: handleExternalClick,
+    searchRef,
+  };
+
+  /* ══════════════════════════════════════════════════════════════════════
+     MOBILE  –  bottom sheet
+     ══════════════════════════════════════════════════════════════════════ */
+  if (isMobile) {
+    return (
+      <>
+        {/* Floating "layers" button — bottom-left above bottom nav */}
+        <button
+          onClick={onToggle}
+          className="fixed z-[1000] flex items-center gap-1.5 px-3 py-2 rounded-2xl"
+          style={{
+            bottom: 'calc(var(--nav-bottom, 52px) + 10px)',
+            left: '12px',
+            background: isOpen ? '#3b82f6' : 'rgba(255,255,255,0.97)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            border: `1px solid ${isOpen ? '#2563eb' : '#e0eaff'}`,
+            boxShadow: '0 4px 20px rgba(59,130,246,0.2)',
+            color: isOpen ? 'white' : '#3b82f6',
+            transition: 'background 0.2s, border-color 0.2s, color 0.2s',
+          }}
+          aria-label="Toggle layer panel"
+        >
+          <svg width="13" height="11" viewBox="0 0 24 20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <line x1="3" y1="3" x2="21" y2="3"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+            <line x1="3" y1="17" x2="21" y2="17"/>
+          </svg>
+          <span className="text-xs font-bold">เลเยอร์</span>
+        </button>
+
+        {/* Backdrop */}
+        <div
+          className="fixed inset-0 z-[998]"
+          style={{
+            background: 'rgba(0,0,0,0.3)',
+            opacity: isOpen ? 1 : 0,
+            pointerEvents: isOpen ? 'auto' : 'none',
+            transition: 'opacity 0.3s ease',
+          }}
+          onClick={onToggle}
+        />
+
+        {/* Bottom sheet panel */}
+        <aside
+          className="fixed bottom-0 left-0 right-0 z-[999] flex flex-col sidebar-transition"
+          style={{
+            maxHeight: '75dvh',
+            borderRadius: '20px 20px 0 0',
+            paddingBottom: 'var(--nav-bottom, 52px)',
+            transform: isOpen ? 'translateY(0)' : 'translateY(110%)',
+            background: '#f8faff',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            borderTop: '1px solid #e0eaff',
+            boxShadow: '0 -8px 40px rgba(59,130,246,0.12)',
+          }}
+        >
+          {/* Handle bar + header */}
+          <div className="flex-shrink-0 px-4 pt-3 pb-3" style={{ borderBottom: '1px solid #eef2ff' }}>
+            <div className="flex justify-center mb-2.5">
+              <button
+                onClick={onToggle}
+                className="w-10 h-1 rounded-full bg-slate-200 hover:bg-slate-300 transition-colors"
+                aria-label="ปิดแถบเลเยอร์"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-bold text-slate-700">เลเยอร์แผนที่</p>
+                <LiveBadge status={weatherStatus} lastUpdated={lastUpdated} onRefresh={onRefreshWeather} />
+              </div>
+              <button
+                onClick={onToggle}
+                className="p-2 rounded-xl text-slate-400 hover:bg-black/5 transition-colors"
+                aria-label="ปิด"
+              >
+                <FaTimes size={13} />
+              </button>
+            </div>
+          </div>
+
+          {/* Scrollable content */}
+          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+
+            {/* District info (shown first if selected) */}
+            {selectedDistrict && (
+              <div>
+                <label className="block text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1.5">ข้อมูลพื้นที่</label>
+                <div className="rounded-2xl p-3 bg-white" style={{ border: '1px solid #e0eaff' }}>
+                  <InfoCard selectedDistrict={selectedDistrict} activeLayer={infoLayer} onClear={() => onDistrictSelect(null)} tambons={tambons} />
+                </div>
+              </div>
+            )}
+
+            {/* Layer buttons */}
+            <div>
+              <label className="block text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2">เลเยอร์ข้อมูล</label>
+              <div className="grid grid-cols-2 gap-2">
+                {LAYER_BUTTONS.map(btn => {
+                  const Icon = btn.icon;
+                  const isActive = activeLayers?.has(btn.id) ?? false;
+                  return (
+                    <button
+                      key={btn.id}
+                      onClick={() => onLayerToggle(btn.id)}
+                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all text-left"
+                      style={{
+                        background: isActive ? btn.activeBg : 'white',
+                        border: `1.5px solid ${isActive ? btn.activeBorder : '#e0eaff'}`,
+                        boxShadow: isActive ? `0 0 10px ${btn.activeBorder}25` : 'none',
+                      }}
+                    >
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ background: isActive ? `${btn.iconColor}18` : '#f0f7ff' }}>
+                        <Icon size={12} style={{ color: isActive ? btn.iconColor : '#93c5fd' }} />
+                      </div>
+                      <span className="text-xs font-medium leading-tight" style={{ color: isActive ? '#1e293b' : '#94a3b8' }}>
+                        {btn.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Search */}
+            <SearchBox {...searchProps} />
+
+          </div>
+        </aside>
+      </>
+    );
+  }
+
+  /* ══════════════════════════════════════════════════════════════════════
+     DESKTOP  –  left side panel (unchanged from original)
+     ══════════════════════════════════════════════════════════════════════ */
   return (
     <>
-      {/* ── Toggle button ── */}
+      {/* Left-edge toggle button */}
       <button
         onClick={onToggle}
         className="fixed top-1/2 -translate-y-1/2 z-[1000] flex items-center justify-center w-7 h-16 rounded-r-2xl transition-all duration-300"
@@ -293,7 +518,7 @@ export default function Sidebar({
         {isOpen ? <FaChevronLeft className="text-blue-400" size={11} /> : <FaChevronRight className="text-blue-400" size={11} />}
       </button>
 
-      {/* ── Panel ── */}
+      {/* Panel */}
       <aside
         className="fixed top-0 z-[999] flex flex-col sidebar-transition"
         style={{
@@ -309,50 +534,8 @@ export default function Sidebar({
           boxShadow: '4px 0 32px rgba(59,130,246,0.10)',
         }}
       >
-        {/* ── Mobile/Tablet: hero card ── */}
-        <div className="lg:hidden flex-shrink-0 px-3 pt-3 pb-1">
-          <div className="rounded-2xl p-3"
-            style={{
-              background: 'linear-gradient(135deg,#dbeafe 0%,#bfdbfe 55%,#93c5fd 100%)',
-              border: '1px solid rgba(147,197,253,0.5)',
-              boxShadow: '0 4px 16px rgba(59,130,246,0.12)',
-            }}>
-            <div className="flex items-start justify-between mb-1.5">
-              <div>
-                <div className="flex items-center gap-1 mb-0.5">
-                  <FaMapMarkerAlt className="text-blue-500 flex-shrink-0" size={9} />
-                  <span className="text-blue-700 text-[11px] font-semibold">แผนที่ขอนแก่น</span>
-                </div>
-                <p className="text-blue-600/70 text-[10px]">{dateStr}</p>
-              </div>
-              <div className="flex items-end gap-1">
-                <span className="text-3xl font-black text-blue-900 leading-none">{avgTemp}°</span>
-                <span className="text-blue-600 text-xs mb-0.5">C</span>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-1 mb-1.5">
-              {[
-                { icon: FaWind, label: 'ลม', value: avgWind, unit: 'km/h', color: '#3b82f6' },
-                { icon: FaTint, label: 'ความชื้น', value: avgHumidity, unit: '%', color: '#0ea5e9' },
-                { icon: FaLeaf, label: 'PM2.5', value: avgPM25, unit: 'µg', color: '#22c55e' },
-              ].map(s => {
-                const Icon = s.icon;
-                return (
-                  <div key={s.label} className="rounded-xl p-1.5 bg-white/60 flex flex-col items-center gap-0.5"
-                    style={{ border: '1px solid rgba(147,197,253,0.3)' }}>
-                    <Icon size={10} style={{ color: s.color }} />
-                    <span className="text-blue-900 font-bold text-[11px] leading-none">{s.value}</span>
-                    <span className="text-blue-500 text-[9px]">{s.unit}</span>
-                  </div>
-                );
-              })}
-            </div>
-            <LiveBadge status={weatherStatus} lastUpdated={lastUpdated} onRefresh={onRefreshWeather} />
-          </div>
-        </div>
-
-        {/* ── Desktop: full hero card ── */}
-        <div className="hidden lg:block flex-shrink-0 px-4 pt-4 pb-3">
+        {/* Desktop: full hero card */}
+        <div className="flex-shrink-0 px-4 pt-4 pb-3">
           <div className="rounded-3xl p-4"
             style={{
               background: 'linear-gradient(135deg,#dbeafe 0%,#bfdbfe 55%,#93c5fd 100%)',
@@ -379,11 +562,11 @@ export default function Sidebar({
           </div>
         </div>
 
-        {/* ── Scrollable content ── */}
-        <div className="flex-1 overflow-y-auto px-3 md:px-4 pb-6 pt-2.5 md:pt-0 flex flex-col gap-2.5 md:gap-4">
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto px-4 pb-6 flex flex-col gap-4">
 
-          {/* Quick stats — desktop only */}
-          <div className="hidden lg:grid grid-cols-3 gap-2">
+          {/* Quick stats */}
+          <div className="grid grid-cols-3 gap-2">
             {[
               { icon: FaWind, label: 'ลม', value: avgWind, unit: 'km/h', color: '#3b82f6' },
               { icon: FaTint, label: 'ความชื้น', value: avgHumidity, unit: '%', color: '#0ea5e9' },
@@ -402,96 +585,33 @@ export default function Sidebar({
           </div>
 
           {/* Search */}
-          <div ref={searchRef} className="relative order-2 md:order-none">
-            <label className="block text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1.5">ค้นหา</label>
-            <div className="relative">
-              <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-300" size={11} />
-              <input
-                type="text" value={searchQuery}
-                onChange={e => { onSearchChange(e.target.value); setShowSuggestions(true); }}
-                onFocus={() => setShowSuggestions(true)}
-                placeholder="ค้นหาตำบล หรือสถานที่ทั่วไทย..."
-                className="w-full pl-9 pr-9 py-2.5 text-sm rounded-2xl text-slate-700 placeholder-blue-200 outline-none"
-                style={{ background: 'white', border: '1.5px solid #e0eaff', fontFamily: 'Noto Sans Thai, sans-serif' }}
-                onKeyDown={e => { if (e.key === 'Escape') { setShowSuggestions(false); onSearchChange(''); setExternalResults([]); } }}
-              />
-              {searchQuery && (
-                <button onClick={() => { onSearchChange(''); setShowSuggestions(false); setExternalResults([]); }}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-blue-300 hover:text-blue-500 transition-colors">
-                  <FaTimes size={10} />
-                </button>
-              )}
-            </div>
-            {showSuggestions && (filtered.length > 0 || externalLoading || externalResults.length > 0) && (
-              <div className="absolute left-0 right-0 top-full mt-1.5 rounded-2xl overflow-hidden z-50 animate-fade-in"
-                style={{ background: 'rgba(255,255,255,0.99)', border: '1px solid #e0eaff', boxShadow: '0 8px 32px rgba(59,130,246,0.12)', maxHeight: '260px', overflowY: 'auto' }}>
-                {filtered.length > 0 && (
-                  <>
-                    <div className="px-3.5 pt-2.5 pb-1"><span className="text-[10px] font-bold text-blue-300 uppercase tracking-widest">ตำบลในอ.เมืองขอนแก่น</span></div>
-                    {filtered.slice(0,5).map(d => (
-                      <button key={d.id} onClick={() => handleSuggestionClick(d)}
-                        className="w-full flex items-center gap-3 px-3.5 py-2.5 text-left hover:bg-blue-50 transition-colors">
-                        <FaMapMarkerAlt className="text-blue-400 flex-shrink-0" size={10} />
-                        <div className="min-w-0">
-                          <p className="text-sm text-slate-700">ต.{d.name}</p>
-                          <p className="text-xs text-slate-400 truncate">{d.temperature}°C · PM {d.pm25}µg/m³</p>
-                        </div>
-                      </button>
-                    ))}
-                  </>
-                )}
-                {filtered.length > 0 && (externalLoading || externalResults.length > 0) && <div style={{ height: '1px', background: '#e0eaff', margin: '4px 0' }} />}
-                {externalLoading ? (
-                  <div className="px-3.5 py-3 flex items-center gap-2 text-xs text-blue-400">
-                    <div className="w-3 h-3 border border-blue-200 border-t-blue-500 rounded-full animate-spin" />กำลังค้นหา...
-                  </div>
-                ) : externalResults.length > 0 && (
-                  <>
-                    <div className="px-3.5 pt-2.5 pb-1"><span className="text-[10px] font-bold text-blue-300 uppercase tracking-widest">สถานที่ในประเทศไทย</span></div>
-                    {externalResults.map(place => {
-                      const parts = place.display_name.split(',');
-                      return (
-                        <button key={place.place_id} onClick={() => handleExternalClick(place)}
-                          className="w-full flex items-center gap-3 px-3.5 py-2.5 text-left hover:bg-blue-50 transition-colors">
-                          <FaSearch className="text-blue-300 flex-shrink-0" size={9} />
-                          <div className="min-w-0">
-                            <p className="text-sm text-slate-700 truncate">{parts[0].trim()}</p>
-                            <p className="text-xs text-slate-400 truncate">{parts.slice(1,3).join(',').trim()}</p>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </>
-                )}
-              </div>
-            )}
-          </div>
+          <SearchBox {...searchProps} />
 
           {/* Layer controls */}
-          <div className="order-3 lg:order-none">
+          <div>
             <label className="block text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2">เลเยอร์ข้อมูล</label>
-            <div className="grid grid-cols-2 lg:grid-cols-1 gap-1.5 lg:gap-0 lg:space-y-2">
+            <div className="space-y-2">
               {LAYER_BUTTONS.map(btn => {
                 const Icon = btn.icon;
                 const isActive = activeLayers?.has(btn.id) ?? false;
                 const settings = layerSettings?.[btn.id] ?? { visible: true, opacity: 0.75 };
                 return (
-                  <div key={btn.id} className="rounded-xl lg:rounded-2xl overflow-hidden bg-white transition-all duration-200"
+                  <div key={btn.id} className="rounded-2xl overflow-hidden bg-white transition-all duration-200"
                     style={{ border: `1.5px solid ${isActive ? btn.activeBorder : '#e0eaff'}`, boxShadow: isActive ? `0 0 12px ${btn.activeBorder}25` : 'none' }}>
                     <button onClick={() => onLayerToggle(btn.id)}
-                      className="w-full flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-1 lg:gap-2.5 px-2 lg:px-3.5 py-2 lg:py-3 text-center lg:text-left"
+                      className="w-full flex items-center gap-2.5 px-3.5 py-3"
                       style={{ background: isActive ? btn.activeBg : 'transparent' }}>
-                      <div className="w-7 h-7 lg:w-8 lg:h-8 rounded-lg lg:rounded-xl flex items-center justify-center flex-shrink-0"
+                      <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
                         style={{ background: isActive ? `${btn.iconColor}18` : '#f0f7ff' }}>
                         <Icon size={12} style={{ color: isActive ? btn.iconColor : '#93c5fd' }} />
                       </div>
-                      <span className="text-[10px] lg:text-sm font-medium lg:flex-1 leading-tight" style={{ color: isActive ? '#1e293b' : '#94a3b8' }}>{btn.label}</span>
-                      <div className="hidden lg:block w-8 h-4 rounded-full flex-shrink-0 relative transition-all" style={{ background: isActive ? btn.iconColor : '#e0eaff' }}>
+                      <span className="text-sm font-medium flex-1 text-left" style={{ color: isActive ? '#1e293b' : '#94a3b8' }}>{btn.label}</span>
+                      <div className="w-8 h-4 rounded-full flex-shrink-0 relative transition-all" style={{ background: isActive ? btn.iconColor : '#e0eaff' }}>
                         <div className="absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all" style={{ left: isActive ? '17px' : '2px' }} />
                       </div>
                     </button>
 
-                    {/* Mini stats — desktop only */}
+                    {/* Mini stats */}
                     {isActive && (btn.id === 'temperature' || btn.id === 'pm25') && tambons.length > 0 && (() => {
                       const field = btn.id === 'temperature' ? 'temperature' : 'pm25';
                       const unit  = btn.id === 'temperature' ? '°C' : ' µg';
@@ -499,7 +619,7 @@ export default function Sidebar({
                       const vals  = tambons.map(d => d[field]);
                       const avg   = (vals.reduce((s,v)=>s+v,0)/vals.length).toFixed(dec);
                       return (
-                        <div className="hidden lg:grid grid-cols-3 divide-x divide-blue-50 text-center"
+                        <div className="grid grid-cols-3 divide-x divide-blue-50 text-center"
                           style={{ background: `${btn.iconColor}06`, borderTop: `1px solid ${btn.activeBorder}` }}>
                           {[['ต่ำสุด',`${Math.min(...vals).toFixed(dec)}${unit}`,'#3b82f6'],['เฉลี่ย',`${avg}${unit}`,'#f97316'],['สูงสุด',`${Math.max(...vals).toFixed(dec)}${unit}`,'#ef4444']].map(([lbl,val,clr])=>(
                             <div key={lbl} className="py-1.5">
@@ -511,9 +631,9 @@ export default function Sidebar({
                       );
                     })()}
 
-                    {/* Opacity controls — desktop only */}
+                    {/* Opacity controls */}
                     {isActive && (
-                      <div className="hidden lg:flex items-center gap-2.5 px-3.5 py-2"
+                      <div className="flex items-center gap-2.5 px-3.5 py-2"
                         style={{ background: `${btn.iconColor}06`, borderTop: `1px solid ${btn.activeBorder}` }}>
                         <button onClick={() => onLayerSettingChange(btn.id,'visible',!settings.visible)}
                           className="shrink-0 p-1 rounded-lg hover:bg-black/5 transition-colors">
@@ -535,20 +655,18 @@ export default function Sidebar({
             </div>
           </div>
 
-          {/* Info card — แสดงเฉพาะเมื่อเลือกพื้นที่ */}
+          {/* Info card */}
           {selectedDistrict && (
-            <div className="order-1 md:order-none">
-              <label className="block text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1.5">
-                ข้อมูลพื้นที่
-              </label>
-              <div className="rounded-2xl md:rounded-3xl p-3 md:p-4 bg-white" style={{ border: '1px solid #e0eaff' }}>
+            <div>
+              <label className="block text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1.5">ข้อมูลพื้นที่</label>
+              <div className="rounded-3xl p-4 bg-white" style={{ border: '1px solid #e0eaff' }}>
                 <InfoCard selectedDistrict={selectedDistrict} activeLayer={infoLayer} onClear={() => onDistrictSelect(null)} tambons={tambons} />
               </div>
             </div>
           )}
 
-          {/* Province summary — desktop only */}
-          <div className="hidden lg:block">
+          {/* Province summary */}
+          <div>
             <label className="block text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2">ภาพรวม</label>
             <div className="grid grid-cols-2 gap-2">
               {[
@@ -570,7 +688,7 @@ export default function Sidebar({
           </div>
         </div>
 
-        {/* ── Footer ── */}
+        {/* Footer */}
         <div className="flex-shrink-0 px-5 py-3" style={{ borderTop: '1px solid #e0eaff' }}>
           <p className="text-blue-300 text-[10px] text-center">
             {new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}

@@ -172,7 +172,14 @@ export default function RiskAreasView({ tambons, onLocationClick }) {
                 <div key={h.id}
                   className="rounded-2xl p-4 bg-white cursor-pointer active:scale-[0.98] transition-transform hover:shadow-md"
                   style={{ border: `1.5px solid ${isExtreme ? '#fca5a5' : '#fed7aa'}` }}
-                  onClick={() => onLocationClick?.({ lat: h.lat, lng: h.lng })}>
+                  onClick={() => onLocationClick?.({
+                    lat:         h.lat,
+                    lng:         h.lng,
+                    name:        place?.name ?? h.description,
+                    temperature: displayTemp ?? h.temperature,
+                    humidity:    wx?.humidity ?? null,
+                    wind:        wx?.wind ?? null,
+                  })}>
                   <div className="flex items-start gap-3">
 
                     {/* Pulsing dot */}
@@ -252,7 +259,14 @@ export default function RiskAreasView({ tambons, onLocationClick }) {
                 <div key={d.id}
                   className="rounded-2xl px-4 py-3 bg-white flex items-center gap-3 cursor-pointer active:scale-[0.98] transition-transform hover:shadow-md"
                   style={{ border: '1px solid #ffe4cc' }}
-                  onClick={() => onLocationClick?.({ lat: d.lat, lng: d.lng })}>
+                  onClick={() => onLocationClick?.({
+                    lat:         d.lat,
+                    lng:         d.lng,
+                    name:        `ต.${d.name}`,
+                    temperature: d.temperature,
+                    humidity:    d.humidity,
+                    wind:        d.windSpeed,
+                  })}>
                   <span className="text-sm font-black w-5 text-right flex-shrink-0"
                     style={{ color: i < 3 ? '#ef4444' : '#f97316' }}>
                     {i + 1}

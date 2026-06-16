@@ -263,7 +263,53 @@ function MapPositionTracker({ onMove }) {
   return null;
 }
 
-export default function MapView({ activeLayers, tambons, selectedDistrict, onDistrictClick, onMapClick, forecastDatetime, layerSettings, selectedMonth, flyToTarget, initialCenter, initialZoom, onMapMove }) {
+function TambonPinMarker({ pin }) {
+  const onAdd = useCallback((e) => { e.target.openPopup(); }, []);
+  if (!pin) return null;
+
+  const color = getTemperatureColor(pin.temperature ?? 30);
+  const icon = L.divIcon({
+    className: '',
+    html: `<div style="position:relative;width:30px;height:38px;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.3))">
+      <svg width="30" height="38" viewBox="0 0 30 38" fill="none">
+        <path d="M15 0C6.716 0 0 6.716 0 15C0 25.5 15 38 15 38C15 38 30 25.5 30 15C30 6.716 23.284 0 15 0Z" fill="${color}"/>
+        <circle cx="15" cy="15" r="7" fill="white"/>
+      </svg>
+    </div>`,
+    iconSize:    [30, 38],
+    iconAnchor:  [15, 38],
+    popupAnchor: [0, -42],
+  });
+
+  return (
+    <Marker
+      key={`${pin.lat}-${pin.lng}`}
+      position={[pin.lat, pin.lng]}
+      icon={icon}
+      eventHandlers={{ add: onAdd }}
+    >
+      <Popup autoPan={false} closeButton className="temp-point-popup">
+        <div style={{ fontFamily: 'Noto Sans Thai, Inter, sans-serif', minWidth: '160px', padding: '2px 0' }}>
+          <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '4px' }}>
+            📍 {pin.name}
+          </div>
+          {pin.temperature != null && (
+            <div style={{ fontSize: '30px', fontWeight: 900, color, lineHeight: 1.1 }}>
+              {typeof pin.temperature === 'number' ? Math.round(pin.temperature) : pin.temperature}
+              <span style={{ fontSize: '15px', fontWeight: 700 }}>°C</span>
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: '12px', marginTop: '8px', fontSize: '12px', color: '#475569' }}>
+            {pin.humidity != null && <span>💧 {pin.humidity}%</span>}
+            {pin.wind     != null && <span>🌬️ {pin.wind} km/h</span>}
+          </div>
+        </div>
+      </Popup>
+    </Marker>
+  );
+}
+
+export default function MapView({ activeLayers, tambons, selectedDistrict, onDistrictClick, onMapClick, forecastDatetime, layerSettings, selectedMonth, flyToTarget, initialCenter, initialZoom, onMapMove, mapPin }) {
   const [basemap, setBasemap] = useState('satellite');
   const [tempPoint, setTempPoint] = useState(null);
   const [himawariband, setHimawariband] = useState('ir');
@@ -347,6 +393,7 @@ export default function MapView({ activeLayers, tambons, selectedDistrict, onDis
         <FlyToHandler target={flyToTarget} />
         {onMapMove && <MapPositionTracker onMove={onMapMove} />}
         <TempPointMarker point={tempPoint} onClose={() => setTempPoint(null)} />
+        <TambonPinMarker pin={mapPin} />
 
         {/* Zoom control — bottom right */}
         <div className="leaflet-control-container">

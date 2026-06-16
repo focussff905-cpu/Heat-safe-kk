@@ -62,6 +62,7 @@ export default function App() {
   const [mapPosition, setMapPosition] = useState({ center: KK_CENTER, zoom: KK_DEFAULT_ZOOM });
   const handleMapMove = useCallback((center, zoom) => setMapPosition({ center, zoom }), []);
 
+  const [mapPin, setMapPin] = useState(null);
   const [flyToTarget, setFlyToTarget] = useState(null);
   const handleFlyTo = useCallback(({ lat, lng }) => setFlyToTarget({ lat, lng, ts: Date.now() }), []);
   const handleMapClick = useCallback(() => setSelectedDistrict(null), []);
@@ -100,6 +101,7 @@ export default function App() {
               initialCenter={mapPosition.center}
               initialZoom={mapPosition.zoom}
               onMapMove={handleMapMove}
+              mapPin={mapPin}
             />
           </div>
           <Sidebar
@@ -145,6 +147,7 @@ export default function App() {
           onTambonClick={(tambon) => {
             setFlyToTarget({ lat: tambon.lat, lng: tambon.lng, ts: Date.now() });
             setSelectedDistrict(tambon);
+            setMapPin({ name: `ต.${tambon.name}`, lat: tambon.lat, lng: tambon.lng, temperature: tambon.temperature, humidity: tambon.humidity, wind: tambon.windSpeed });
             setSidebarOpen(true);
             setActiveTab('map');
           }}
@@ -158,8 +161,9 @@ export default function App() {
       {!isAdmin && activeTab === 'risk-areas' && (
         <RiskAreasView
           tambons={tambons}
-          onLocationClick={({ lat, lng }) => {
+          onLocationClick={({ lat, lng, name, temperature, humidity, wind }) => {
             setFlyToTarget({ lat, lng, ts: Date.now() });
+            setMapPin({ name, lat, lng, temperature, humidity, wind });
             setSidebarOpen(true);
             setActiveTab('map');
           }}
