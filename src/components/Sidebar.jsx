@@ -389,18 +389,6 @@ export default function Sidebar({
           <span className="text-xs font-bold">เลเยอร์</span>
         </button>
 
-        {/* Backdrop */}
-        <div
-          className="fixed inset-0 z-[998]"
-          style={{
-            background: 'rgba(0,0,0,0.3)',
-            opacity: isOpen ? 1 : 0,
-            pointerEvents: isOpen ? 'auto' : 'none',
-            transition: 'opacity 0.3s ease',
-          }}
-          onClick={onToggle}
-        />
-
         {/* Bottom sheet panel */}
         <aside
           className="fixed bottom-0 left-0 right-0 z-[999] flex flex-col sidebar-transition"
@@ -409,6 +397,7 @@ export default function Sidebar({
             borderRadius: '20px 20px 0 0',
             paddingBottom: 'var(--nav-bottom, 52px)',
             transform: isOpen ? 'translateY(0)' : 'translateY(110%)',
+            pointerEvents: isOpen ? 'auto' : 'none',
             background: '#f8faff',
             backdropFilter: 'blur(24px)',
             WebkitBackdropFilter: 'blur(24px)',
@@ -441,7 +430,7 @@ export default function Sidebar({
           </div>
 
           {/* Scrollable content */}
-          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+          <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 space-y-4">
 
             {/* District info (shown first if selected) */}
             {selectedDistrict && (
