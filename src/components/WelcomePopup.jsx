@@ -77,11 +77,9 @@ export default function WelcomePopup({ tmdData, tambons, forecast }) {
         onClick={close}
         className="pointer-events-auto w-full max-w-sm rounded-3xl p-5 cursor-pointer"
         style={{
-          background: 'linear-gradient(135deg,rgba(219,234,254,0.75) 0%,rgba(191,219,254,0.75) 55%,rgba(186,230,253,0.75) 100%)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          border: '1px solid rgba(255,255,255,0.6)',
-          boxShadow: '0 16px 48px rgba(59,130,246,0.2), 0 4px 16px rgba(0,0,0,0.08)',
+          background: '#ffffff',
+          border: '1px solid rgba(0,0,0,0.06)',
+          boxShadow: '0 16px 48px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.06)',
           transform: closing ? 'translateY(120%) scale(0.95)' : 'translateY(0) scale(1)',
           opacity: closing ? 0 : 1,
           transition: 'transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease',
@@ -99,16 +97,16 @@ export default function WelcomePopup({ tmdData, tambons, forecast }) {
         <div className="flex items-center gap-2 mb-3">
           <span className="text-2xl leading-none">{greeting.emoji}</span>
           <div>
-            <p className="text-white font-black text-lg leading-none">{greeting.text}</p>
-            <p className="text-white/60 text-[11px] mt-0.5 leading-none">ขอนแก่น · วันนี้</p>
+            <p className="text-slate-800 font-black text-lg leading-none">{greeting.text}</p>
+            <p className="text-slate-400 text-[11px] mt-0.5 leading-none">ขอนแก่น · วันนี้</p>
           </div>
         </div>
 
         {/* Contextual message */}
-        <p className="text-white text-[14px] font-medium leading-relaxed text-center mt-1">{message}</p>
+        <p className="text-slate-700 text-[14px] font-medium leading-relaxed text-center mt-1">{message}</p>
 
         {/* Tap to dismiss */}
-        <p className="text-white/40 text-[10px] text-center mt-3 leading-none">แตะเพื่อปิด</p>
+        <p className="text-slate-300 text-[10px] text-center mt-3 leading-none">แตะเพื่อปิด</p>
       </div>
     </div>
   );
