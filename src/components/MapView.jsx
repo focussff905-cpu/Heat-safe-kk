@@ -433,20 +433,8 @@ export default function MapView({ activeLayers, tambons, selectedDistrict, onDis
         ))}
       </MapContainer>
 
-      {/* Himawari animated panel */}
-      {has('himawari') && (
-        <HimawariPanel
-          band={himawariband}
-          onBandChange={setHimawariband}
-          playing={himawariPlaying}
-          onTogglePlay={() => setHimawariPlaying(v => !v)}
-          frameIdx={himawariFrameIdx}
-          frames={himawariFrames}
-          onScrub={(i) => { setHimawariFrameIdx(i); setHimawariPlaying(false); }}
-        />
-      )}
 
-      {/* Map Box modal */}
+{/* Map Box modal */}
       {showMapBox && (
         <div
           className="absolute inset-0 z-[2000] flex items-center justify-center"

@@ -50,15 +50,6 @@ export default function App() {
     return toApiStr(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), h)));
   });
 
-  const handleLayerToggle = useCallback((id) => {
-    setActiveLayers(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-    setInfoLayer(id);
-  }, []);
-
   const [mapPosition, setMapPosition] = useState({ center: KK_CENTER, zoom: KK_DEFAULT_ZOOM });
   const handleMapMove = useCallback((center, zoom) => setMapPosition({ center, zoom }), []);
 
@@ -67,6 +58,19 @@ export default function App() {
 
   const [mapPin, setMapPin] = useState(null);
   const [flyToTarget, setFlyToTarget] = useState(null);
+
+  const handleLayerToggle = useCallback((id) => {
+    const beingAdded = !activeLayers.has(id);
+    setActiveLayers(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+    setInfoLayer(id);
+    if (id === 'himawari' && beingAdded) {
+      setFlyToTarget({ lat: 15.0, lng: 101.0, zoom: 6, ts: Date.now() });
+    }
+  }, [activeLayers]);
   const handleFlyTo = useCallback(({ lat, lng }) => setFlyToTarget({ lat, lng, ts: Date.now() }), []);
   const handleMapClick = useCallback(() => setSelectedDistrict(null), []);
   const handleDistrictSelect = useCallback((district) => {
