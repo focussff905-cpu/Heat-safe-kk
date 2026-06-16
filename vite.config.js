@@ -10,7 +10,7 @@ export default defineConfig({
       srcDir: 'src',
       filename: 'sw.js',
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'pwa-192.png', 'pwa-512.png', 'apple-touch-icon.png'],
+      includeAssets: ['222.png'],
       manifest: {
         name: 'ระบบติดตามสภาพแวดล้อม จังหวัดขอนแก่น',
         short_name: 'Heat Safe KhonKaen',
@@ -23,9 +23,9 @@ export default defineConfig({
         scope: '/',
         start_url: '/',
         icons: [
-          { src: 'pwa-192.png', sizes: '192x192', type: 'image/png' },
-          { src: 'pwa-512.png', sizes: '512x512', type: 'image/png' },
-          { src: 'pwa-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+          { src: '222.png', sizes: '192x192', type: 'image/png' },
+          { src: '222.png', sizes: '512x512', type: 'image/png' },
+          { src: '222.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
         ],
       },
     }),
