@@ -309,14 +309,13 @@ function TambonPinMarker({ pin }) {
   );
 }
 
-export default function MapView({ activeLayers, tambons, selectedDistrict, onDistrictClick, onMapClick, forecastDatetime, layerSettings, selectedMonth, flyToTarget, initialCenter, initialZoom, onMapMove, mapPin }) {
-  const [basemap, setBasemap] = useState('satellite');
+export default function MapView({ activeLayers, tambons, selectedDistrict, onDistrictClick, onMapClick, forecastDatetime, layerSettings, selectedMonth, flyToTarget, initialCenter, initialZoom, onMapMove, mapPin, basemap = 'satellite', showMapBox, onCloseMapBox }) {
   const [tempPoint, setTempPoint] = useState(null);
   const [himawariband, setHimawariband] = useState('ir');
+  /* basemap + showMapBox are now controlled by parent */
   const [himawariFrames] = useState(() => generateFrames(12));
   const [himawariFrameIdx, setHimawariFrameIdx] = useState(11); // start at latest
   const [himawariPlaying, setHimawariPlaying] = useState(true);
-  const [showMapBox, setShowMapBox] = useState(false);
 
   // Advance frame every 700ms when playing
   useEffect(() => {
@@ -472,7 +471,7 @@ export default function MapView({ activeLayers, tambons, selectedDistrict, onDis
                 <span className="text-slate-500 text-[10px]">landcast-kk.vercel.app</span>
               </div>
               <button
-                onClick={() => setShowMapBox(false)}
+                onClick={onCloseMapBox}
                 className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all"
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -491,55 +490,6 @@ export default function MapView({ activeLayers, tambons, selectedDistrict, onDis
         </div>
       )}
 
-      {/* Basemap toggle */}
-      <div className="absolute bottom-6 right-3 z-[1000] flex flex-col items-end gap-2">
-        {/* Map Box button */}
-        <button
-          onClick={() => setShowMapBox(v => !v)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-bold transition-all duration-200"
-          style={{
-            background: showMapBox ? 'rgba(99,102,241,0.92)' : 'rgba(255,255,255,0.96)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            border: showMapBox ? '1px solid rgba(99,102,241,0.5)' : '1px solid rgba(0,0,0,0.1)',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-            color: showMapBox ? 'white' : '#475569',
-          }}
-        >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-            <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-          </svg>
-          Map Box
-        </button>
-        {/* Basemap row */}
-        <div
-          className="flex rounded-xl overflow-hidden"
-          style={{
-            background: 'rgba(255,255,255,0.96)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            border: '1px solid rgba(0,0,0,0.1)',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-          }}
-        >
-          {Object.entries(BASEMAPS).map(([key, meta], i, arr) => (
-            <button
-              key={key}
-              onClick={() => setBasemap(key)}
-              className="flex flex-col items-center gap-1 px-3.5 py-2.5 text-[11px] font-medium transition-all duration-200"
-              style={{
-                background: basemap === key ? 'rgba(99,102,241,0.1)' : 'transparent',
-                color: basemap === key ? '#4f46e5' : '#94a3b8',
-                borderRight: i < arr.length - 1 ? '1px solid rgba(0,0,0,0.07)' : 'none',
-              }}
-            >
-              <span style={{ color: basemap === key ? '#4f46e5' : '#94a3b8' }}>{meta.icon}</span>
-              {meta.label}
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

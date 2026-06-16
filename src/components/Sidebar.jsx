@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   FaThermometerHalf, FaWind, FaFireAlt, FaSun, FaSearch, FaChevronLeft,
-  FaChevronRight, FaTimes, FaMapMarkerAlt, FaTint, FaLeaf, FaEye,
+  FaChevronRight, FaChevronUp, FaChevronDown, FaTimes, FaMapMarkerAlt, FaTint, FaLeaf, FaEye,
   FaEyeSlash, FaWater, FaSatelliteDish, FaSatellite,
 } from 'react-icons/fa';
 import {
@@ -216,6 +216,58 @@ function InfoCard({ selectedDistrict, activeLayer, onClear, tambons }) {
   );
 }
 
+/* ═══════════════════════════════ MAP CONTROLS ═══════════════════════════════ */
+function MapControls({ basemap, onBasemapChange, showMapBox, onToggleMapBox }) {
+  return (
+    <div>
+      <label className="block text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2">แผนที่</label>
+      <div className="space-y-2">
+        {/* Basemap selector */}
+        <div className="flex rounded-xl overflow-hidden bg-white" style={{ border: '1px solid #e0eaff' }}>
+          {BASEMAP_OPTIONS.map((opt, i) => (
+            <button
+              key={opt.id}
+              onClick={() => onBasemapChange(opt.id)}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[12px] font-medium transition-all duration-200"
+              style={{
+                background: basemap === opt.id ? 'rgba(99,102,241,0.08)' : 'transparent',
+                color: basemap === opt.id ? '#4f46e5' : '#94a3b8',
+                borderRight: i === 0 ? '1px solid #e0eaff' : 'none',
+              }}
+            >
+              <span style={{ color: basemap === opt.id ? '#4f46e5' : '#94a3b8' }}>{opt.icon}</span>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        {/* Map Box */}
+        <button
+          onClick={onToggleMapBox}
+          className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
+          style={{
+            background: showMapBox ? 'rgba(99,102,241,0.1)' : 'white',
+            border: `1.5px solid ${showMapBox ? 'rgba(99,102,241,0.4)' : '#e0eaff'}`,
+            color: showMapBox ? '#4f46e5' : '#94a3b8',
+          }}
+        >
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: showMapBox ? 'rgba(99,102,241,0.12)' : '#f0f7ff' }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={showMapBox ? '#4f46e5' : '#93c5fd'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+            </svg>
+          </div>
+          Map Box
+          {showMapBox && (
+            <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full"
+              style={{ background: 'rgba(99,102,241,0.1)', color: '#4f46e5' }}>เปิดอยู่</span>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ═══════════════════════════════ SHARED SEARCH ═══════════════════════════════ */
 function SearchBox({ searchQuery, onSearchChange, filtered, externalResults, externalLoading, showSuggestions, setShowSuggestions, onSuggestionClick, onExternalClick, searchRef }) {
   return (
@@ -287,6 +339,22 @@ function SearchBox({ searchQuery, onSearchChange, filtered, externalResults, ext
 }
 
 /* ═══════════════════════════════ MAIN SIDEBAR ═══════════════════════════════ */
+const BASEMAP_OPTIONS = [
+  { id: 'satellite', label: 'ดาวเทียม', icon: (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/>
+      <line x1="4.93" y1="4.93" x2="9.17" y2="9.17"/><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"/>
+      <line x1="14.83" y1="9.17" x2="19.07" y2="4.93"/><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"/>
+    </svg>
+  )},
+  { id: 'street', label: 'แผนที่', icon: (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/>
+      <line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/>
+    </svg>
+  )},
+];
+
 export default function Sidebar({
   activeLayers, infoLayer, onLayerToggle,
   tambons, weatherStatus, lastUpdated, onRefreshWeather,
@@ -294,6 +362,8 @@ export default function Sidebar({
   searchQuery, onSearchChange,
   isOpen, onToggle,
   layerSettings, onLayerSettingChange,
+  basemap, onBasemapChange,
+  showMapBox, onToggleMapBox,
 }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [externalResults, setExternalResults] = useState([]);
@@ -349,7 +419,8 @@ export default function Sidebar({
   const avgPM25     = tambons.length > 0 ? (tambons.reduce((s,d)=>s+d.pm25,0)/tambons.length).toFixed(1) : '--';
   const dateStr = new Date().toLocaleDateString('th-TH', { weekday: 'short', month: 'short', day: 'numeric' });
 
-  /* ─────────────────────── SHARED SEARCH PROPS ─────────────────────── */
+  /* ─────────────────────── SHARED PROPS ─────────────────────── */
+  const mapControlProps = { basemap, onBasemapChange, showMapBox, onToggleMapBox };
   const searchProps = {
     searchQuery, onSearchChange, filtered, externalResults, externalLoading,
     showSuggestions, setShowSuggestions,
@@ -364,69 +435,58 @@ export default function Sidebar({
   if (isMobile) {
     return (
       <>
-        {/* Floating "layers" button — bottom-left above bottom nav */}
-        <button
-          onClick={onToggle}
-          className="fixed z-[1000] flex items-center gap-1.5 px-3 py-2 rounded-2xl"
-          style={{
-            bottom: 'calc(var(--nav-bottom, 52px) + 10px)',
-            left: '12px',
-            background: isOpen ? '#3b82f6' : 'rgba(255,255,255,0.97)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            border: `1px solid ${isOpen ? '#2563eb' : '#e0eaff'}`,
-            boxShadow: '0 4px 20px rgba(59,130,246,0.2)',
-            color: isOpen ? 'white' : '#3b82f6',
-            transition: 'background 0.2s, border-color 0.2s, color 0.2s',
-          }}
-          aria-label="Toggle layer panel"
-        >
-          <svg width="13" height="11" viewBox="0 0 24 20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <line x1="3" y1="3" x2="21" y2="3"/>
-            <line x1="3" y1="10" x2="21" y2="10"/>
-            <line x1="3" y1="17" x2="21" y2="17"/>
-          </svg>
-          <span className="text-xs font-bold">เลเยอร์</span>
-        </button>
-
         {/* Bottom sheet panel */}
         <aside
-          className="fixed bottom-0 left-0 right-0 z-[999] flex flex-col sidebar-transition"
+          className="fixed left-0 right-0 z-[999] flex flex-col sidebar-transition"
           style={{
-            maxHeight: '75dvh',
+            bottom: 'var(--nav-bottom, 52px)',
+            height: 'calc(100dvh / 3)',
             borderRadius: '20px 20px 0 0',
-            paddingBottom: 'var(--nav-bottom, 52px)',
-            transform: isOpen ? 'translateY(0)' : 'translateY(110%)',
-            pointerEvents: isOpen ? 'auto' : 'none',
+            transform: isOpen ? 'translateY(0)' : 'translateY(100%)',
+            pointerEvents: 'auto',
             background: '#f8faff',
             backdropFilter: 'blur(24px)',
             WebkitBackdropFilter: 'blur(24px)',
             borderTop: '1px solid #e0eaff',
             boxShadow: '0 -8px 40px rgba(59,130,246,0.12)',
+            overflow: 'visible',
           }}
         >
-          {/* Handle bar + header */}
+          {/* Toggle tab — sticks out above the sheet, always visible */}
+          <button
+            onClick={onToggle}
+            aria-label="Toggle layer panel"
+            style={{
+              position: 'absolute',
+              top: '-28px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '64px',
+              height: '28px',
+              borderRadius: '14px 14px 0 0',
+              background: 'rgba(255,255,255,0.97)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              border: '1px solid #e0eaff',
+              borderBottom: 'none',
+              boxShadow: '0 -2px 12px rgba(59,130,246,0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {isOpen
+              ? <FaChevronDown className="text-blue-400" size={11} />
+              : <FaChevronUp   className="text-blue-400" size={11} />}
+          </button>
+
+          {/* Inner wrapper clips content to rounded corners */}
+          <div className="flex flex-col flex-1 min-h-0" style={{ borderRadius: '20px 20px 0 0', overflow: 'hidden', background: '#f8faff' }}>
+
+          {/* Header */}
           <div className="flex-shrink-0 px-4 pt-3 pb-3" style={{ borderBottom: '1px solid #eef2ff' }}>
-            <div className="flex justify-center mb-2.5">
-              <button
-                onClick={onToggle}
-                className="w-10 h-1 rounded-full bg-slate-200 hover:bg-slate-300 transition-colors"
-                aria-label="ปิดแถบเลเยอร์"
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-bold text-slate-700">เลเยอร์แผนที่</p>
-                <LiveBadge status={weatherStatus} lastUpdated={lastUpdated} onRefresh={onRefreshWeather} />
-              </div>
-              <button
-                onClick={onToggle}
-                className="p-2 rounded-xl text-slate-400 hover:bg-black/5 transition-colors"
-                aria-label="ปิด"
-              >
-                <FaTimes size={13} />
-              </button>
-            </div>
+            <p className="text-sm font-bold text-slate-700">เลเยอร์แผนที่</p>
+            <LiveBadge status={weatherStatus} lastUpdated={lastUpdated} onRefresh={onRefreshWeather} />
           </div>
 
           {/* Scrollable content */}
@@ -441,6 +501,9 @@ export default function Sidebar({
                 </div>
               </div>
             )}
+
+            {/* Map controls */}
+            <MapControls {...mapControlProps} />
 
             {/* Layer buttons */}
             <div>
@@ -477,6 +540,7 @@ export default function Sidebar({
             <SearchBox {...searchProps} />
 
           </div>
+          </div>{/* end inner wrapper */}
         </aside>
       </>
     );
@@ -575,6 +639,9 @@ export default function Sidebar({
 
           {/* Search */}
           <SearchBox {...searchProps} />
+
+          {/* Map controls */}
+          <MapControls {...mapControlProps} />
 
           {/* Layer controls */}
           <div>

@@ -62,6 +62,9 @@ export default function App() {
   const [mapPosition, setMapPosition] = useState({ center: KK_CENTER, zoom: KK_DEFAULT_ZOOM });
   const handleMapMove = useCallback((center, zoom) => setMapPosition({ center, zoom }), []);
 
+  const [basemap, setBasemap] = useState('satellite');
+  const [showMapBox, setShowMapBox] = useState(false);
+
   const [mapPin, setMapPin] = useState(null);
   const [flyToTarget, setFlyToTarget] = useState(null);
   const handleFlyTo = useCallback(({ lat, lng }) => setFlyToTarget({ lat, lng, ts: Date.now() }), []);
@@ -102,6 +105,9 @@ export default function App() {
               initialZoom={mapPosition.zoom}
               onMapMove={handleMapMove}
               mapPin={mapPin}
+              basemap={basemap}
+              showMapBox={showMapBox}
+              onCloseMapBox={() => setShowMapBox(false)}
             />
           </div>
           <Sidebar
@@ -121,6 +127,10 @@ export default function App() {
             onToggle={() => setSidebarOpen(v => !v)}
             layerSettings={layerSettings}
             onLayerSettingChange={updateLayerSetting}
+            basemap={basemap}
+            onBasemapChange={setBasemap}
+            showMapBox={showMapBox}
+            onToggleMapBox={() => setShowMapBox(v => !v)}
           />
           {activeLayers.has('temperature') && (
             <ForecastTimePicker datetime={forecastDatetime} onChange={setForecastDatetime} sidebarOpen={sidebarOpen} />
