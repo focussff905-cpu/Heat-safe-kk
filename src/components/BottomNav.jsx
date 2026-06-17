@@ -1,3 +1,4 @@
+import { useState, useRef } from 'react';
 import { FaHome, FaMap, FaFireAlt, FaExclamationTriangle, FaCommentDots } from 'react-icons/fa';
 
 const TABS = [
@@ -28,6 +29,20 @@ const styles = `
 `;
 
 export default function BottomNav({ activeTab, onTabChange }) {
+  const tapCount = useRef(0);
+  const tapTimer = useRef(null);
+
+  function handleLogoTap() {
+    tapCount.current += 1;
+    clearTimeout(tapTimer.current);
+    if (tapCount.current >= 5) {
+      tapCount.current = 0;
+      window.location.href = '/?admin';
+      return;
+    }
+    tapTimer.current = setTimeout(() => { tapCount.current = 0; }, 2000);
+  }
+
   return (
     <>
       <style>{styles}</style>
@@ -107,14 +122,17 @@ export default function BottomNav({ activeTab, onTabChange }) {
           boxShadow: '2px 0 20px rgba(59,130,246,0.07)',
         }}
       >
-        {/* Logo */}
-        <div className="flex items-center justify-center flex-shrink-0"
-          style={{ height: '64px', borderBottom: '1px solid #e0eaff' }}>
+        {/* Logo — tap 5× to enter admin */}
+        <button
+          onClick={handleLogoTap}
+          className="flex items-center justify-center flex-shrink-0 w-full"
+          style={{ height: '64px', borderBottom: '1px solid #e0eaff' }}
+        >
           <div className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-sm"
             style={{ background: 'linear-gradient(135deg,#60a5fa,#3b82f6)' }}>
             <span className="text-white font-black text-sm select-none">KK</span>
           </div>
-        </div>
+        </button>
 
         {/* Tab items */}
         <div className="flex-1 flex flex-col items-center justify-evenly py-3">
