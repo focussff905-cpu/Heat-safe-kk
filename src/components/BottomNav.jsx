@@ -3,7 +3,7 @@ import { FaHome, FaMap, FaFireAlt, FaExclamationTriangle, FaCommentDots } from '
 
 const TABS = [
   { id: 'map',         label: 'แผนที่',     icon: FaMap },
-  { id: 'simulation',  label: 'แบบจำลอง',  icon: FaFireAlt },
+  { id: 'simulation',  label: 'Heat Safe',  icon: FaFireAlt },
   { id: 'home',        label: 'หน้าหลัก',  icon: FaHome },
   { id: 'risk-areas',  label: 'เสี่ยงภัย', icon: FaExclamationTriangle },
   { id: 'chatbot',     label: 'แชทบอท',    icon: FaCommentDots },
