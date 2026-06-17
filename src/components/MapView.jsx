@@ -309,7 +309,7 @@ function TambonPinMarker({ pin }) {
   );
 }
 
-export default function MapView({ activeLayers, tambons, selectedDistrict, onDistrictClick, onMapClick, forecastDatetime, layerSettings, selectedMonth, flyToTarget, initialCenter, initialZoom, onMapMove, mapPin, basemap = 'satellite', showMapBox, onCloseMapBox }) {
+export default function MapView({ activeLayers, tambons, selectedDistrict, onDistrictClick, onMapClick, forecastDatetime, layerSettings, selectedMonth, flyToTarget, initialCenter, initialZoom, onMapMove, mapPin, basemap = 'satellite' }) {
   const [tempPoint, setTempPoint] = useState(null);
   const [himawariband, setHimawariband] = useState('ir');
   /* basemap + showMapBox are now controlled by parent */
@@ -432,52 +432,6 @@ export default function MapView({ activeLayers, tambons, selectedDistrict, onDis
           />
         ))}
       </MapContainer>
-
-
-{/* Map Box modal */}
-      {showMapBox && (
-        <div
-          className="absolute inset-0 z-[2000] flex items-center justify-center"
-          style={{ background: '#0f172a' }}
-        >
-          <div
-            className="relative flex flex-col w-full h-full overflow-hidden"
-            style={{
-              background: '#0f172a',
-              border: 'none',
-            }}
-          >
-            {/* Title bar */}
-            <div className="flex items-center justify-between px-4 py-2.5 flex-shrink-0"
-              style={{ background: 'rgba(15,23,42,0.95)', borderBottom: '1px solid rgba(99,102,241,0.25)' }}>
-              <div className="flex items-center gap-2">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#818cf8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                  <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-                </svg>
-                <span className="text-indigo-300 text-sm font-bold tracking-wide">Map Box</span>
-                <span className="text-slate-500 text-[10px]">landcast-kk.vercel.app</span>
-              </div>
-              <button
-                onClick={onCloseMapBox}
-                className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all"
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-              </button>
-            </div>
-            {/* iframe */}
-            <iframe
-              src="https://landcast-kk.vercel.app/"
-              title="Map Box"
-              className="flex-1 w-full border-none"
-              allow="geolocation"
-            />
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }

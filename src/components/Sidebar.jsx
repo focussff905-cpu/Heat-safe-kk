@@ -217,52 +217,26 @@ function InfoCard({ selectedDistrict, activeLayer, onClear, tambons }) {
 }
 
 /* ═══════════════════════════════ MAP CONTROLS ═══════════════════════════════ */
-function MapControls({ basemap, onBasemapChange, showMapBox, onToggleMapBox }) {
+function MapControls({ basemap, onBasemapChange }) {
   return (
     <div>
       <label className="block text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2">แผนที่</label>
-      <div className="space-y-2">
-        {/* Basemap selector */}
-        <div className="flex rounded-xl overflow-hidden bg-white" style={{ border: '1px solid #e0eaff' }}>
-          {BASEMAP_OPTIONS.map((opt, i) => (
-            <button
-              key={opt.id}
-              onClick={() => onBasemapChange(opt.id)}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[12px] font-medium transition-all duration-200"
-              style={{
-                background: basemap === opt.id ? 'rgba(99,102,241,0.08)' : 'transparent',
-                color: basemap === opt.id ? '#4f46e5' : '#94a3b8',
-                borderRight: i === 0 ? '1px solid #e0eaff' : 'none',
-              }}
-            >
-              <span style={{ color: basemap === opt.id ? '#4f46e5' : '#94a3b8' }}>{opt.icon}</span>
-              {opt.label}
-            </button>
-          ))}
-        </div>
-        {/* Map Box */}
-        <button
-          onClick={onToggleMapBox}
-          className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
-          style={{
-            background: showMapBox ? 'rgba(99,102,241,0.1)' : 'white',
-            border: `1.5px solid ${showMapBox ? 'rgba(99,102,241,0.4)' : '#e0eaff'}`,
-            color: showMapBox ? '#4f46e5' : '#94a3b8',
-          }}
-        >
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: showMapBox ? 'rgba(99,102,241,0.12)' : '#f0f7ff' }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={showMapBox ? '#4f46e5' : '#93c5fd'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-              <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-            </svg>
-          </div>
-          Map Box
-          {showMapBox && (
-            <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full"
-              style={{ background: 'rgba(99,102,241,0.1)', color: '#4f46e5' }}>เปิดอยู่</span>
-          )}
-        </button>
+      <div className="flex rounded-xl overflow-hidden bg-white" style={{ border: '1px solid #e0eaff' }}>
+        {BASEMAP_OPTIONS.map((opt, i) => (
+          <button
+            key={opt.id}
+            onClick={() => onBasemapChange(opt.id)}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[12px] font-medium transition-all duration-200"
+            style={{
+              background: basemap === opt.id ? 'rgba(99,102,241,0.08)' : 'transparent',
+              color: basemap === opt.id ? '#4f46e5' : '#94a3b8',
+              borderRight: i === 0 ? '1px solid #e0eaff' : 'none',
+            }}
+          >
+            <span style={{ color: basemap === opt.id ? '#4f46e5' : '#94a3b8' }}>{opt.icon}</span>
+            {opt.label}
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -363,7 +337,6 @@ export default function Sidebar({
   isOpen, onToggle,
   layerSettings, onLayerSettingChange,
   basemap, onBasemapChange,
-  showMapBox, onToggleMapBox,
 }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [externalResults, setExternalResults] = useState([]);
@@ -420,7 +393,7 @@ export default function Sidebar({
   const dateStr = new Date().toLocaleDateString('th-TH', { weekday: 'short', month: 'short', day: 'numeric' });
 
   /* ─────────────────────── SHARED PROPS ─────────────────────── */
-  const mapControlProps = { basemap, onBasemapChange, showMapBox, onToggleMapBox };
+  const mapControlProps = { basemap, onBasemapChange };
   const searchProps = {
     searchQuery, onSearchChange, filtered, externalResults, externalLoading,
     showSuggestions, setShowSuggestions,
