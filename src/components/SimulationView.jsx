@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FaFireAlt, FaExternalLinkAlt, FaRedo } from 'react-icons/fa';
 
-const SIM_URL = 'https://air-sim.vercel.app/';
+const SIM_URL = 'https://web-page-rose-six.vercel.app/';
 
 export default function SimulationView() {
   const [key, setKey] = useState(0);
@@ -27,9 +27,9 @@ export default function SimulationView() {
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-bold text-slate-800 text-sm leading-tight truncate">
-            แบบจำลองการเกิดเกาะความร้อน
+            Heat Safe
           </p>
-          <p className="text-[10px] text-slate-400 leading-none">Heat Island Simulation · Khon Kaen</p>
+          <p className="text-[10px] text-slate-400 leading-none">Heat Safe · Khon Kaen</p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
@@ -55,7 +55,7 @@ export default function SimulationView() {
       <iframe
         key={key}
         src={SIM_URL}
-        title="Heat Island Simulation"
+        title="Heat Safe"
         className="flex-1 w-full"
         style={{ border: 'none' }}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
