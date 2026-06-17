@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+<name>Khon Kaen Commercial Building Representative Points</name>
+
+    <Placemark>
+      <name>COM-01 เซ็นทรัลขอนแก่น / แยกมิตรภาพ–ศรีจันทร์</name>
+      <description>
+    ประเภท: ศูนย์การค้า / อาคารพาณิชย์ขนาดใหญ่&lt;br/&gt;
+    ระดับความหนาแน่นเชิงพาณิชย์: สูงมาก&lt;br/&gt;
+    Buffer แนะนำ: 500 เมตร&lt;br/&gt;
+    เหตุผล: จุดศูนย์กลางการค้าและพื้นที่ผิวทึบสูง เหมาะวิเคราะห์เกาะความร้อนและน้ำท่วมขังเมือง&lt;br/&gt;
+    หมายเหตุพิกัด: จุดตัวแทนโดยประมาณจากตำแหน่งศูนย์การค้า&lt;br/&gt;
+    แหล่งอ้างอิง: https://shoppingcenter.centralpattana.co.th/branch/central-khonkaen/branch-information
+    </description>
+      <Point><coordinates>102.82355,16.43216,0</coordinates></Point>
+    </Placemark>
+
+    <Placemark>
+      <name>COM-02 ฮักส์ มอลล์ / ถนนศรีจันทร์</name>
+      <description>
+    ประเภท: คอมมูนิตี้มอลล์ / อาคารพาณิชย์&lt;br/&gt;
+    ระดับความหนาแน่นเชิงพาณิชย์: สูงมาก&lt;br/&gt;
+    Buffer แนะนำ: 400 เมตร&lt;br/&gt;
+    เหตุผล: ย่านถนนศรีจันทร์เป็นแกนเศรษฐกิจเมือง มีอาคารพาณิชย์ ร้านค้า โรงแรม และกิจกรรมหนาแน่น&lt;br/&gt;
+    หมายเหตุพิกัด: จุดตัวแทนโดยประมาณจากตำแหน่ง Hugz Mall&lt;br/&gt;
+    แหล่งอ้างอิง: https://www.hugzmallkhonkaen.com/how-to-get-here.php
+    </description>
+      <Point><coordinates>102.8322,16.4339,0</coordinates></Point>
+    </Placemark>
+
+    <Placemark>
+      <name>COM-03 ขอนแก่นอินโนเวชั่นเซ็นเตอร์ / Ad Lib / ถนนศรีจันทร์</name>
+      <description>
+    ประเภท: อาคารสูงเชิงพาณิชย์ / โรงแรม / สำนักงาน&lt;br/&gt;
+    ระดับความหนาแน่นเชิงพาณิชย์: สูงมาก&lt;br/&gt;
+    Buffer แนะนำ: 400 เมตร&lt;br/&gt;
+    เหตุผล: กลุ่มอาคารพาณิชย์แนวตั้งในแกนศรีจันทร์ เพิ่มความร้อนจากอาคารสูงและพื้นผิวเมือง&lt;br/&gt;
+    หมายเหตุพิกัด: จุดตัวแทนโดยประมาณจากตำแหน่งอาคาร KIC/Ad Lib&lt;br/&gt;
+    แหล่งอ้างอิง: https://www.adlibhotels.co/thing-to-do/ton-tann-market/
+    </description>
+      <Point><coordinates>102.8361,16.4362,0</coordinates></Point>
+    </Placemark>
+
+    <Placemark>
+      <name>COM-04 แฟรี่พลาซ่า / ถนนกลางเมือง</name>
+      <description>
+    ประเภท: ศูนย์การค้า / อาคารพาณิชย์กลางเมือง&lt;br/&gt;
+    ระดับความหนาแน่นเชิงพาณิชย์: สูง&lt;br/&gt;
+    Buffer แนะนำ: 400 เมตร&lt;br/&gt;
+    เหตุผล: จุดการค้ากลางเมือง มีอาคารพาณิชย์ต่อเนื่องและกิจกรรมผู้คนหนาแน่น&lt;br/&gt;
+    หมายเหตุพิกัด: จุดตัวแทนโดยประมาณจากตำแหน่ง Fairy Plaza&lt;br/&gt;
+    แหล่งอ้างอิง: https://fairyplaza.co.th/
+    </description>
+      <Point><coordinates>102.8357,16.4257,0</coordinates></Point>
+    </Placemark>
+
+    <Placemark>
+      <name>COM-05 ตลาดบางลำภู / ถนนหน้าเมือง</name>
+      <description>
+    ประเภท: ตลาดสด / อาคารพาณิชย์รายย่อย&lt;br/&gt;
+    ระดับความหนาแน่นเชิงพาณิชย์: สูง&lt;br/&gt;
+    Buffer แนะนำ: 400 เมตร&lt;br/&gt;
+    เหตุผล: ย่านตลาดและร้านค้าเก่าแก่กลางเมือง เหมาะสำรวจความร้อนสะสม ฝุ่น และการจราจร&lt;br/&gt;
+    หมายเหตุพิกัด: จุดตัวแทนโดยประมาณจากตำแหน่งตลาดบางลำภู&lt;br/&gt;
+    แหล่งอ้างอิง: https://www.google.com/maps/search/%E0%B8%95%E0%B8%A5%E0%B8%B2%E0%B8%94%E0%B8%9A%E0%B8%B2%E0%B8%87%E0%B8%A5%E0%B8%B3%E0%B8%A0%E0%B8%B9+%E0%B8%82%E0%B8%AD%E0%B8%99%E0%B9%81%E0%B8%81%E0%B9%88%E0%B8%99
+    </description>
+      <Point><coordinates>102.8373,16.4247,0</coordinates></Point>
+    </Placemark>
+
+    <Placemark>
+      <name>COM-06 ตลาดต้นตาล / ถนนมิตรภาพ</name>
+      <description>
+    ประเภท: ตลาดกลางคืน / ร้านค้า / อาคารพาณิชย์&lt;br/&gt;
+    ระดับความหนาแน่นเชิงพาณิชย์: สูง&lt;br/&gt;
+    Buffer แนะนำ: 500 เมตร&lt;br/&gt;
+    เหตุผล: พื้นที่ค้าขาย ร้านอาหาร และลานกิจกรรมจำนวนมาก เหมาะเทียบความร้อนช่วงเย็น–กลางคืน&lt;br/&gt;
+    หมายเหตุพิกัด: จุดตัวแทนโดยประมาณของย่านตลาดต้นตาล&lt;br/&gt;
+    แหล่งอ้างอิง: https://khonkaen.com/listing/khon-kaen/ton-tann-market/
+    </description>
+      <Point><coordinates>102.8179,16.4161,0</coordinates></Point>
+    </Placemark>
+
+    <Placemark>
+      <name>COM-07 ประตูน้ำขอนแก่น / ตลาดค้าส่งเมืองเก่า</name>
+      <description>
+    ประเภท: ตลาดค้าส่ง / อาคารพาณิชย์&lt;br/&gt;
+    ระดับความหนาแน่นเชิงพาณิชย์: สูง&lt;br/&gt;
+    Buffer แนะนำ: 500 เมตร&lt;br/&gt;
+    เหตุผล: แหล่งค้าส่งและอาคารพาณิชย์ขนาดใหญ่ด้านเมืองเก่า เหมาะวิเคราะห์พื้นที่ผิวทึบและการจราจร&lt;br/&gt;
+    หมายเหตุพิกัด: จุดตัวแทนโดยประมาณจาก Plus Code ของพื้นที่ประตูน้ำ&lt;br/&gt;
+    แหล่งอ้างอิง: https://www.google.com/maps/search/Pratunam+Wholesale+Market+Khon+Kaen
+    </description>
+      <Point><coordinates>102.81045,16.40556,0</coordinates></Point>
+    </Placemark>
+
+    <Placemark>
+      <name>COM-08 ย่านถนนเหล่านาดี / ร้านค้า–ร้านอาหาร</name>
+      <description>
+    ประเภท: อาคารพาณิชย์ริมถนน / ร้านอาหาร / บริการ&lt;br/&gt;
+    ระดับความหนาแน่นเชิงพาณิชย์: ปานกลาง-สูง&lt;br/&gt;
+    Buffer แนะนำ: 300 เมตร&lt;br/&gt;
+    เหตุผล: แนวอาคารพาณิชย์และร้านอาหารต่อเนื่อง เหมาะเก็บข้อมูลความร้อนริมถนน&lt;br/&gt;
+    หมายเหตุพิกัด: จุดตัวแทนโดยประมาณของแนวถนนเหล่านาดี&lt;br/&gt;
+    แหล่งอ้างอิง: https://www.google.com/maps/search/Lao+Nadi+Road+Khon+Kaen+commercial
+    </description>
+      <Point><coordinates>102.8188,16.4118,0</coordinates></Point>
+    </Placemark>
+
+    <Placemark>
+      <name>COM-09 กังสดาล / ตลาดกังไนท์ / หลัง มข.</name>
+      <description>
+    ประเภท: อาคารพาณิชย์ หอพัก ร้านอาหาร ร้านค้า&lt;br/&gt;
+    ระดับความหนาแน่นเชิงพาณิชย์: สูง&lt;br/&gt;
+    Buffer แนะนำ: 500 เมตร&lt;br/&gt;
+    เหตุผล: ย่านหอพักและร้านค้ารองรับนักศึกษา มีอาคารพาณิชย์หนาแน่นและกิจกรรมกลางคืน&lt;br/&gt;
+    หมายเหตุพิกัด: จุดตัวแทนโดยประมาณจาก Plus Code ตลาดกังไนท์&lt;br/&gt;
+    แหล่งอ้างอิง: https://www.google.com/maps/search/%E0%B8%95%E0%B8%A5%E0%B8%B2%E0%B8%94%E0%B8%81%E0%B8%B1%E0%B8%87%E0%B9%84%E0%B8%99%E0%B8%97%E0%B9%8C+%E0%B8%82%E0%B8%AD%E0%B8%99%E0%B9%81%E0%B8%81%E0%B9%88%E0%B8%99
+    </description>
+      <Point><coordinates>102.82155,16.45756,0</coordinates></Point>
+    </Placemark>
+
+    <Placemark>
+      <name>COM-10 ถนนหน้าเมือง–ศาลเจ้าพ่อหลักเมือง</name>
+      <description>
+    ประเภท: อาคารพาณิชย์กลางเมือง / ร้านค้า / บริการ&lt;br/&gt;
+    ระดับความหนาแน่นเชิงพาณิชย์: สูง&lt;br/&gt;
+    Buffer แนะนำ: 400 เมตร&lt;br/&gt;
+    เหตุผล: แนวร้านค้าและอาคารพาณิชย์กลางเมือง เหมาะใช้เป็นตัวแทนพื้นที่เมืองเก่าเชิงพาณิชย์&lt;br/&gt;
+    หมายเหตุพิกัด: จุดตัวแทนโดยประมาณบริเวณศาลหลักเมืองและถนนหน้าเมือง&lt;br/&gt;
+    แหล่งอ้างอิง: https://www.google.com/maps/search/Na+Mueang+Road+Khon+Kaen+shops
+    </description>
+      <Point><coordinates>102.8354,16.4314,0</coordinates></Point>
+    </Placemark>
+
+    <Placemark>
+      <name>COM-11 ย่านหน้าโรงพยาบาลศูนย์ขอนแก่น / ถนนศรีจันทร์ตะวันออก</name>
+      <description>
+    ประเภท: อาคารพาณิชย์บริการสุขภาพ / ร้านค้า / ที่พัก&lt;br/&gt;
+    ระดับความหนาแน่นเชิงพาณิชย์: สูง&lt;br/&gt;
+    Buffer แนะนำ: 400 เมตร&lt;br/&gt;
+    เหตุผล: ย่านบริการสุขภาพและร้านค้ารองรับโรงพยาบาล มีการจราจรและกิจกรรมหนาแน่น&lt;br/&gt;
+    หมายเหตุพิกัด: จุดตัวแทนโดยประมาณจากย่านหน้าโรงพยาบาล&lt;br/&gt;
+    แหล่งอ้างอิง: https://www.google.com/maps/search/Khon+Kaen+Hospital+Sri+Chan+Road+shops
+    </description>
+      <Point><coordinates>102.8468,16.436,0</coordinates></Point>
+    </Placemark>
+
+    <Placemark>
+      <name>COM-12 โนนทัน / ตลาดโนนทัน</name>
+      <description>
+    ประเภท: ตลาดชุมชน / อาคารพาณิชย์รายย่อย&lt;br/&gt;
+    ระดับความหนาแน่นเชิงพาณิชย์: ปานกลาง-สูง&lt;br/&gt;
+    Buffer แนะนำ: 300 เมตร&lt;br/&gt;
+    เหตุผล: ตลาดและร้านค้าระดับชุมชน เหมาะเป็นตัวแทนพื้นที่พาณิชย์ในชุมชนตะวันออกของเมือง&lt;br/&gt;
+    หมายเหตุพิกัด: จุดตัวแทนโดยประมาณของตลาด/ย่านโนนทัน&lt;br/&gt;
+    แหล่งอ้างอิง: https://www.google.com/maps/search/Ban+Non+Than+Market+Khon+Kaen
+    </description>
+      <Point><coordinates>102.849,16.4205,0</coordinates></Point>
+    </Placemark>
+
+    <Placemark>
+      <name>COM-13 วัดกลาง–บึงแก่นนคร / ถนนรอบบึง</name>
+      <description>
+    ประเภท: ร้านค้า / อาคารพาณิชย์ริมแหล่งท่องเที่ยวชุมชน&lt;br/&gt;
+    ระดับความหนาแน่นเชิงพาณิชย์: ปานกลาง&lt;br/&gt;
+    Buffer แนะนำ: 300 เมตร&lt;br/&gt;
+    เหตุผล: ย่านชุมชนและกิจกรรมรอบบึง เหมาะเปรียบเทียบกับพื้นที่น้ำและพื้นที่สีเขียว&lt;br/&gt;
+    หมายเหตุพิกัด: จุดตัวแทนโดยประมาณของย่านวัดกลาง–บึงแก่นนคร&lt;br/&gt;
+    แหล่งอ้างอิง: https://www.google.com/maps/search/Wat+Klang+Bueng+Kaen+Nakhon+Khon+Kaen
+    </description>
+      <Point><coordinates>102.8349,16.414,0</coordinates></Point>
+    </Placemark>
+
+    <Placemark>
+      <name>COM-14 สถานีขนส่ง/ถนนประชาสโมสร–กลางเมือง</name>
+      <description>
+    ประเภท: อาคารพาณิชย์บริการเดินทาง / ร้านค้า / โรงแรม&lt;br/&gt;
+    ระดับความหนาแน่นเชิงพาณิชย์: สูง&lt;br/&gt;
+    Buffer แนะนำ: 400 เมตร&lt;br/&gt;
+    เหตุผล: ย่านเชื่อมต่อการเดินทาง มีร้านค้า โรงแรม และอาคารพาณิชย์ต่อเนื่อง&lt;br/&gt;
+    หมายเหตุพิกัด: จุดตัวแทนโดยประมาณของย่านสถานีขนส่งเก่า/กลางเมือง&lt;br/&gt;
+    แหล่งอ้างอิง: https://www.google.com/maps/search/Khon+Kaen+Bus+Terminal+Pracha+Samoson+Road
+    </description>
+      <Point><coordinates>102.8379,16.4337,0</coordinates></Point>
+    </Placemark>
+</Document>
+</kml>

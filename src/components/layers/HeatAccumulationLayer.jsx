@@ -1,5 +1,6 @@
 import { CircleMarker, Tooltip } from 'react-leaflet';
 import { getHeatColor, getHeatLevel } from '../../data/mockData';
+import { COMMERCIAL_POINTS, getCommercialColor } from '../../data/commercialData';
 
 export default function HeatAccumulationLayer({ districts, onDistrictClick, selectedId, opacity = 1 }) {
   return (
@@ -70,6 +71,31 @@ export default function HeatAccumulationLayer({ districts, onDistrictClick, sele
               </Tooltip>
             </CircleMarker>
           </g>
+        );
+      })}
+
+      {/* Commercial building heat points from KML */}
+      {COMMERCIAL_POINTS.map(pt => {
+        const color = getCommercialColor(pt.density);
+        return (
+          <CircleMarker
+            key={pt.id}
+            center={[pt.lat, pt.lng]}
+            radius={7}
+            pathOptions={{
+              fillColor: color,
+              fillOpacity: 0.85 * opacity,
+              color: '#fff',
+              weight: 1.5,
+              opacity,
+            }}
+          >
+            <Tooltip direction="top" offset={[0, -6]} className="custom-tooltip">
+              <div className="font-medium">{pt.name}</div>
+              <div style={{ color }}>ความหนาแน่นเชิงพาณิชย์: <strong>{pt.density}</strong></div>
+              <div style={{ color: '#94a3b8', fontSize: '11px' }}>{pt.type}</div>
+            </Tooltip>
+          </CircleMarker>
         );
       })}
     </>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FaExclamationTriangle, FaThermometerHalf, FaTint, FaMapMarkerAlt, FaSync } from 'react-icons/fa';
+import { FaExclamationTriangle, FaThermometerHalf, FaTint, FaMapMarkerAlt, FaSync, FaBuilding } from 'react-icons/fa';
 import { getHeatColor, getHeatLevel, hotspots as HOTSPOT_DEFS } from '../data/mockData';
+import { COMMERCIAL_POINTS, getCommercialColor } from '../data/commercialData';
 
 const REFRESH_MS = 10 * 60 * 1000; // 10 min
 
@@ -240,6 +241,37 @@ export default function RiskAreasView({ tambons, onLocationClick }) {
                       )}
                     </div>
                   </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Commercial building heat points from KML */}
+        <div>
+          <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-2">
+            อาคารพาณิชย์หนาแน่น (เสี่ยงความร้อนสะสม)
+          </p>
+          <div className="space-y-2">
+            {COMMERCIAL_POINTS.map(pt => {
+              const color = getCommercialColor(pt.density);
+              return (
+                <div key={pt.id}
+                  className="rounded-2xl px-4 py-3 bg-white flex items-start gap-3 cursor-pointer active:scale-[0.98] transition-transform hover:shadow-md"
+                  style={{ border: `1.5px solid ${color}30` }}
+                  onClick={() => onLocationClick?.({ lat: pt.lat, lng: pt.lng, name: pt.name })}>
+                  <div className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+                    style={{ background: `${color}15` }}>
+                    <FaBuilding size={11} style={{ color }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-slate-700 leading-tight">{pt.name}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5 leading-tight truncate">{pt.type}</p>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 mt-0.5"
+                    style={{ background: `${color}15`, color }}>
+                    {pt.density}
+                  </span>
                 </div>
               );
             })}
