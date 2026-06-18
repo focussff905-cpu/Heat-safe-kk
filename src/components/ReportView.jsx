@@ -125,8 +125,8 @@ export default function ReportView() {
   /* ── Success screen ── */
   if (submitted) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12"
-        style={{ background: 'linear-gradient(160deg,#f0fdf4 0%,#ecfdf5 60%,#f8faff 100%)' }}>
+      <div style={{ height: '100dvh', overflowY: 'auto', background: 'linear-gradient(160deg,#f0fdf4 0%,#ecfdf5 60%,#f8faff 100%)' }}
+        className="flex flex-col items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm text-center space-y-5">
           <div className="mx-auto w-20 h-20 rounded-full flex items-center justify-center text-4xl"
             style={{ background: 'rgba(16,185,129,0.12)', border: '2px solid rgba(16,185,129,0.3)' }}>✓</div>
@@ -157,8 +157,7 @@ export default function ReportView() {
 
   /* ── Form ── */
   return (
-    <div className="min-h-screen overflow-y-auto"
-      style={{ background: 'linear-gradient(160deg,#fff7ed 0%,#fef3c7 30%,#f8faff 100%)' }}>
+    <div style={{ height: '100dvh', overflowY: 'auto', background: 'linear-gradient(160deg,#fff7ed 0%,#fef3c7 30%,#f8faff 100%)' }}>
       <div className="max-w-md mx-auto px-4 pt-8 pb-12 space-y-5">
 
         {/* Header */}
