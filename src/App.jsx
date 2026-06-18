@@ -13,6 +13,7 @@ import { useRealtimeWeather } from './hooks/useRealtimeWeather';
 import { useTMDWeather } from './hooks/useTMDWeather';
 import { useAutoNotify } from './hooks/useAutoNotify';
 import AdminView from './components/AdminView';
+import ReportView from './components/ReportView';
 import WelcomePopup from './components/WelcomePopup';
 
 export default function App() {
@@ -20,8 +21,9 @@ export default function App() {
   const { data: tmdData } = useTMDWeather();
   const { needsBanner, requestNow } = useAutoNotify();
 
-  // Admin mode: accessible via ?admin in URL (hidden from regular nav)
-  const [isAdmin] = useState(() => new URLSearchParams(window.location.search).has('admin'));
+  // Special routes via URL query params
+  const [isAdmin]  = useState(() => new URLSearchParams(window.location.search).has('admin'));
+  const [isReport] = useState(() => new URLSearchParams(window.location.search).has('report'));
   const [activeTab, setActiveTab] = useState('home');
   const [activeLayers, setActiveLayers] = useState(new Set());
   const [infoLayer, setInfoLayer] = useState('temperature');
@@ -82,7 +84,11 @@ export default function App() {
     if (tab === 'map') setSidebarOpen(true);
   }, []);
 
-  const onMap = !isAdmin && activeTab === 'map';
+  const onMap = !isAdmin && !isReport && activeTab === 'map';
+
+  if (isReport) {
+    return <ReportView />;
+  }
 
   return (
     <div className="relative w-full overflow-hidden bg-[#f8faff]"
