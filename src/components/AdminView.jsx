@@ -234,26 +234,39 @@ function ReportsInbox() {
             style={{ border: `1.5px solid ${r.status === 'new' ? 'rgba(239,68,68,0.25)' : '#e0eaff'}` }}>
             {/* Top row */}
             <div className="flex items-start gap-2.5">
-              <span className="text-xl leading-none flex-shrink-0 mt-0.5">{r.typeEmoji}</span>
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-sm text-slate-800 leading-tight">{r.typeLabel}</p>
+                <p className="font-bold text-sm text-slate-800 leading-tight truncate">{r.address ?? r.location}</p>
+                {r.lat && r.lng && (
+                  <a
+                    href={`https://www.google.com/maps?q=${r.lat},${r.lng}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="text-[10px] font-mono text-blue-500 hover:underline">
+                    {r.lat.toFixed(5)}, {r.lng.toFixed(5)} ↗
+                  </a>
+                )}
                 <p className="text-[10px] text-slate-400 mt-0.5">{fmtDate(r.createdAt)}</p>
               </div>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
                 style={{ background: st.bg, color: st.color }}>{st.label}</span>
             </div>
 
-            {/* Location + detail */}
-            <div className="space-y-1 pl-8">
-              <p className="text-xs text-slate-600"><span className="text-slate-400">📍</span> {r.location}</p>
+            {/* Detail */}
+            <div className="space-y-2">
               <p className="text-xs text-slate-600 leading-relaxed">{r.detail}</p>
+              {r.image && (
+                <img src={r.image} alt="รูปประกอบ"
+                  className="w-full rounded-xl object-cover cursor-pointer"
+                  style={{ maxHeight: '180px', border: '1px solid #e0eaff' }}
+                  onClick={() => window.open(r.image, '_blank')}
+                />
+              )}
               {r.name !== 'ไม่ระบุ' && (
                 <p className="text-[11px] text-slate-400">👤 {r.name}{r.phone !== 'ไม่ระบุ' ? ` · 📞 ${r.phone}` : ''}</p>
               )}
             </div>
 
             {/* Actions */}
-            <div className="flex gap-2 pl-8 pt-1">
+            <div className="flex gap-2 pt-1">
               {r.status !== 'read' && r.status !== 'resolved' && (
                 <button onClick={() => setStatus(r.id, 'read')}
                   className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all"

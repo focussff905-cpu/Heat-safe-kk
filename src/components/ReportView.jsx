@@ -1,12 +1,4 @@
-import { useState } from 'react';
-
-const REPORT_TYPES = [
-  { id: 'heat',    label: 'ความร้อนผิดปกติ', emoji: '🌡️' },
-  { id: 'dust',    label: 'ฝุ่นควันหนาแน่น',  emoji: '💨' },
-  { id: 'fire',    label: 'ไฟป่า/เผาไร่',     emoji: '🔥' },
-  { id: 'flood',   label: 'น้ำท่วมขัง',        emoji: '🌊' },
-  { id: 'other',   label: 'อื่นๆ',             emoji: '📋' },
-];
+import { useState, useRef } from 'react';
 
 const LS_KEY = 'kkmap_reports';
 
@@ -16,17 +8,88 @@ function saveReport(report) {
   localStorage.setItem(LS_KEY, JSON.stringify(existing));
 }
 
-export default function ReportView() {
-  const [type,     setType]     = useState('');
-  const [location, setLocation] = useState('');
-  const [detail,   setDetail]   = useState('');
-  const [name,     setName]     = useState('');
-  const [phone,    setPhone]    = useState('');
-  const [submitted, setSubmitted] = useState(false);
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState('');
+/* ย่อรูปก่อนเก็บ — จำกัด 800px และ quality 0.75 */
+function resizeImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 800;
+        let { width, height } = img;
+        if (width > MAX || height > MAX) {
+          if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
+          else                { width  = Math.round(width  * MAX / height); height = MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.75));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
 
-  const canSubmit = type && location.trim() && detail.trim();
+export default function ReportView() {
+  const [location,  setLocation]  = useState(null);
+  const [geoStatus, setGeoStatus] = useState('idle');
+  const [geoError,  setGeoError]  = useState('');
+  const [detail,    setDetail]    = useState('');
+  const [image,     setImage]     = useState(null); // base64
+  const [imgLoading, setImgLoading] = useState(false);
+  const [name,      setName]      = useState('');
+  const [phone,     setPhone]     = useState('');
+  const [submitted, setSubmitted] = useState(false);
+  const [loading,   setLoading]   = useState(false);
+  const [error,     setError]     = useState('');
+  const fileRef = useRef(null);
+
+  const canSubmit = location && detail.trim() && image;
+
+  const getLocation = () => {
+    if (!navigator.geolocation) { setGeoError('อุปกรณ์นี้ไม่รองรับ GPS'); setGeoStatus('error'); return; }
+    setGeoStatus('loading'); setGeoError('');
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude, lng = pos.coords.longitude;
+        let address = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=th`,
+            { headers: { 'User-Agent': 'KKMapHeat/1.0' } }
+          );
+          const data = await res.json();
+          if (data.display_name) address = data.display_name.split(',').slice(0, 3).join(',').trim();
+        } catch {}
+        setLocation({ lat, lng, address }); setGeoStatus('ok');
+      },
+      (err) => {
+        const msg = err.code === 1 ? 'กรุณาอนุญาตให้เข้าถึงตำแหน่ง'
+                  : err.code === 2 ? 'ไม่พบสัญญาณ GPS' : 'หมดเวลา กรุณาลองใหม่';
+        setGeoError(msg); setGeoStatus('error');
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImgLoading(true);
+    try {
+      const b64 = await resizeImage(file);
+      setImage(b64);
+    } catch {
+      setError('โหลดรูปภาพไม่สำเร็จ');
+    } finally {
+      setImgLoading(false);
+      e.target.value = '';
+    }
+  };
 
   const handleSubmit = () => {
     if (!canSubmit || loading) return;
@@ -34,16 +97,16 @@ export default function ReportView() {
     setLoading(true);
     try {
       saveReport({
-        id:          Date.now(),
-        type,
-        typeLabel:   REPORT_TYPES.find(t => t.id === type)?.label ?? type,
-        typeEmoji:   REPORT_TYPES.find(t => t.id === type)?.emoji ?? '📋',
-        location:    location.trim(),
-        detail:      detail.trim(),
-        name:        name.trim() || 'ไม่ระบุ',
-        phone:       phone.trim() || 'ไม่ระบุ',
-        createdAt:   new Date().toISOString(),
-        status:      'new',
+        id:        Date.now(),
+        lat:       location.lat,
+        lng:       location.lng,
+        address:   location.address,
+        detail:    detail.trim(),
+        image:     image ?? null,
+        name:      name.trim() || 'ไม่ระบุ',
+        phone:     phone.trim() || 'ไม่ระบุ',
+        createdAt: new Date().toISOString(),
+        status:    'new',
       });
       setSubmitted(true);
     } catch {
@@ -54,7 +117,8 @@ export default function ReportView() {
   };
 
   const handleAgain = () => {
-    setType(''); setLocation(''); setDetail(''); setName(''); setPhone('');
+    setLocation(null); setGeoStatus('idle'); setGeoError('');
+    setDetail(''); setImage(null); setName(''); setPhone('');
     setSubmitted(false); setError('');
   };
 
@@ -65,29 +129,23 @@ export default function ReportView() {
         style={{ background: 'linear-gradient(160deg,#f0fdf4 0%,#ecfdf5 60%,#f8faff 100%)' }}>
         <div className="w-full max-w-sm text-center space-y-5">
           <div className="mx-auto w-20 h-20 rounded-full flex items-center justify-center text-4xl"
-            style={{ background: 'rgba(16,185,129,0.12)', border: '2px solid rgba(16,185,129,0.3)' }}>
-            ✓
-          </div>
+            style={{ background: 'rgba(16,185,129,0.12)', border: '2px solid rgba(16,185,129,0.3)' }}>✓</div>
           <div>
             <p className="text-xl font-black text-slate-800">แจ้งเหตุสำเร็จ</p>
             <p className="text-sm text-slate-500 mt-1">ข้อมูลของคุณถูกส่งไปยังเจ้าหน้าที่แล้ว ขอบคุณที่ช่วยดูแลชุมชน</p>
           </div>
           <div className="rounded-2xl p-4 text-left space-y-1"
             style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.25)' }}>
-            <p className="text-xs text-emerald-700 font-semibold">
-              {REPORT_TYPES.find(t => t.id === type)?.emoji} {REPORT_TYPES.find(t => t.id === type)?.label}
-            </p>
-            <p className="text-sm text-slate-700 font-medium">📍 {location}</p>
+            <p className="text-xs text-slate-500 font-mono">📍 {location?.lat?.toFixed(5)}, {location?.lng?.toFixed(5)}</p>
+            <p className="text-sm text-slate-700">{location?.address}</p>
           </div>
           <div className="flex flex-col gap-2 pt-2">
-            <button
-              onClick={handleAgain}
+            <button onClick={handleAgain}
               className="w-full py-3.5 rounded-2xl text-sm font-bold transition-all active:scale-95"
               style={{ background: 'linear-gradient(135deg,#10b981,#059669)', color: 'white', boxShadow: '0 6px 20px rgba(16,185,129,0.35)' }}>
               แจ้งเหตุอีกครั้ง
             </button>
-            <a href="/"
-              className="w-full py-3.5 rounded-2xl text-sm font-bold text-center transition-all active:scale-95 block"
+            <a href="/" className="w-full py-3.5 rounded-2xl text-sm font-bold text-center block"
               style={{ background: 'white', color: '#475569', border: '1.5px solid #e0eaff' }}>
               กลับหน้าหลัก
             </a>
@@ -105,7 +163,7 @@ export default function ReportView() {
 
         {/* Header */}
         <div className="flex items-center gap-3">
-          <a href="/" className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:bg-white/60"
+          <a href="/" className="w-9 h-9 rounded-xl flex items-center justify-center"
             style={{ background: 'rgba(255,255,255,0.5)', border: '1px solid #e0eaff' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
@@ -117,87 +175,115 @@ export default function ReportView() {
           </div>
         </div>
 
-        {/* Type selector */}
+        {/* GPS Location */}
         <div>
-          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-2">ประเภทเหตุการณ์ <span className="text-red-400">*</span></p>
-          <div className="grid grid-cols-2 gap-2">
-            {REPORT_TYPES.map(t => (
-              <button
-                key={t.id}
-                onClick={() => setType(t.id)}
-                className="flex items-center gap-2.5 px-3.5 py-3 rounded-2xl text-left transition-all active:scale-95"
-                style={{
-                  background: type === t.id ? 'rgba(251,146,60,0.12)' : 'white',
-                  border:     `1.5px solid ${type === t.id ? '#fb923c' : '#e0eaff'}`,
-                  boxShadow:  type === t.id ? '0 0 0 3px rgba(251,146,60,0.12)' : 'none',
-                }}>
-                <span className="text-lg leading-none">{t.emoji}</span>
-                <span className="text-sm font-medium leading-tight" style={{ color: type === t.id ? '#c2410c' : '#475569' }}>
-                  {t.label}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Location */}
-        <div>
-          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">สถานที่เกิดเหตุ <span className="text-red-400">*</span></p>
-          <input
-            type="text"
-            value={location}
-            onChange={e => setLocation(e.target.value)}
-            placeholder="เช่น ถนนมิตรภาพ หน้าเซ็นทรัลขอนแก่น"
-            className="w-full px-4 py-3 rounded-2xl text-sm outline-none"
-            style={{
-              background: 'white',
-              border:     `1.5px solid ${location ? '#fb923c60' : '#e0eaff'}`,
-              fontFamily: 'Noto Sans Thai, sans-serif',
-              color: '#1e293b',
-            }}
-          />
+          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-2">
+            ตำแหน่งที่เกิดเหตุ <span className="text-red-400">*</span>
+          </p>
+          {geoStatus !== 'ok' ? (
+            <button onClick={getLocation} disabled={geoStatus === 'loading'}
+              className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-bold text-sm transition-all active:scale-95"
+              style={{
+                background: geoStatus === 'loading' ? 'rgba(59,130,246,0.08)' : 'white',
+                border: `1.5px solid ${geoStatus === 'error' ? '#fca5a5' : '#bfdbfe'}`,
+                color: geoStatus === 'error' ? '#ef4444' : '#3b82f6',
+              }}>
+              {geoStatus === 'loading' ? (
+                <><div className="w-4 h-4 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin" />กำลังระบุตำแหน่ง...</>
+              ) : (
+                <>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+                  </svg>
+                  {geoStatus === 'error' ? 'ลองอีกครั้ง' : 'รับพิกัดปัจจุบัน'}
+                </>
+              )}
+            </button>
+          ) : (
+            <div className="rounded-2xl p-4 space-y-2"
+              style={{ background: 'rgba(59,130,246,0.06)', border: '1.5px solid rgba(59,130,246,0.3)' }}>
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-mono text-blue-500">{location.lat.toFixed(5)}, {location.lng.toFixed(5)}</p>
+                  <p className="text-sm text-slate-700 mt-0.5 leading-tight">{location.address}</p>
+                </div>
+                <button onClick={() => { setLocation(null); setGeoStatus('idle'); }}
+                  className="flex-shrink-0 text-[10px] font-semibold px-2 py-1 rounded-lg"
+                  style={{ background: 'rgba(59,130,246,0.1)', color: '#3b82f6' }}>เปลี่ยน</button>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                <p className="text-[10px] text-emerald-600 font-medium">ระบุตำแหน่งสำเร็จ</p>
+              </div>
+            </div>
+          )}
+          {geoStatus === 'error' && <p className="text-xs text-red-500 mt-1.5 text-center">{geoError}</p>}
         </div>
 
         {/* Detail */}
         <div>
           <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">รายละเอียด <span className="text-red-400">*</span></p>
           <textarea
-            value={detail}
-            onChange={e => setDetail(e.target.value)}
+            value={detail} onChange={e => setDetail(e.target.value)}
             placeholder="อธิบายสิ่งที่พบ เช่น อุณหภูมิสูงมาก ผู้คนหน้ามืด มีควันสีดำ..."
-            rows={4}
-            maxLength={300}
+            rows={4} maxLength={300}
             className="w-full px-4 py-3 rounded-2xl text-sm outline-none resize-none"
             style={{
               background: 'white',
-              border:     `1.5px solid ${detail ? '#fb923c60' : '#e0eaff'}`,
+              border: `1.5px solid ${detail ? '#fb923c60' : '#e0eaff'}`,
               fontFamily: 'Noto Sans Thai, sans-serif',
-              color: '#1e293b',
-              lineHeight: 1.6,
+              color: '#1e293b', lineHeight: 1.6,
             }}
           />
           <p className="text-[10px] text-slate-400 text-right mt-0.5">{detail.length}/300</p>
         </div>
 
+        {/* Image */}
+        <div>
+          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-2">รูปภาพประกอบ <span className="text-red-400">*</span></p>
+          <input ref={fileRef} type="file" accept="image/*" capture="environment"
+            onChange={handleImageChange} className="hidden" />
+          {!image ? (
+            <button onClick={() => fileRef.current?.click()} disabled={imgLoading}
+              className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl border-2 border-dashed text-sm font-medium transition-all"
+              style={{ borderColor: '#cbd5e1', color: '#94a3b8', background: 'rgba(255,255,255,0.5)' }}>
+              {imgLoading ? (
+                <><div className="w-4 h-4 border-2 border-slate-200 border-t-slate-400 rounded-full animate-spin" />กำลังโหลด...</>
+              ) : (
+                <>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                  </svg>
+                  ถ่ายภาพ / เลือกรูปจากคลัง
+                </>
+              )}
+            </button>
+          ) : (
+            <div className="relative rounded-2xl overflow-hidden"
+              style={{ border: '1.5px solid #e0eaff' }}>
+              <img src={image} alt="preview" className="w-full object-cover" style={{ maxHeight: '220px' }} />
+              <button onClick={() => setImage(null)}
+                className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center"
+                style={{ background: 'rgba(0,0,0,0.55)', color: 'white' }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Optional fields */}
         <div className="rounded-2xl p-4 space-y-3" style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid #e0eaff' }}>
           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">ข้อมูลผู้แจ้ง (ไม่บังคับ)</p>
-          <input
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            placeholder="ชื่อ-นามสกุล"
-            className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
-            style={{ background: 'white', border: '1.5px solid #e0eaff', fontFamily: 'Noto Sans Thai, sans-serif', color: '#1e293b' }}
-          />
-          <input
-            type="tel"
-            value={phone}
-            onChange={e => setPhone(e.target.value)}
-            placeholder="เบอร์โทรติดต่อกลับ"
-            className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
-            style={{ background: 'white', border: '1.5px solid #e0eaff', color: '#1e293b' }}
-          />
+          <input type="text" value={name} onChange={e => setName(e.target.value)}
+            placeholder="ชื่อ-นามสกุล" className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+            style={{ background: 'white', border: '1.5px solid #e0eaff', fontFamily: 'Noto Sans Thai, sans-serif', color: '#1e293b' }} />
+          <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
+            placeholder="เบอร์โทรติดต่อกลับ" className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+            style={{ background: 'white', border: '1.5px solid #e0eaff', color: '#1e293b' }} />
         </div>
 
         {error && (
@@ -207,24 +293,17 @@ export default function ReportView() {
           </div>
         )}
 
-        {/* Submit */}
-        <button
-          onClick={handleSubmit}
-          disabled={!canSubmit || loading}
+        <button onClick={handleSubmit} disabled={!canSubmit || loading}
           className="w-full py-4 rounded-2xl text-white font-black text-sm transition-all active:scale-95"
           style={{
-            background: canSubmit && !loading
-              ? 'linear-gradient(135deg,#f97316,#ef4444)'
-              : 'rgba(148,163,184,0.4)',
+            background: canSubmit && !loading ? 'linear-gradient(135deg,#f97316,#ef4444)' : 'rgba(148,163,184,0.4)',
             boxShadow: canSubmit && !loading ? '0 8px 24px rgba(249,115,22,0.35)' : 'none',
             cursor: canSubmit && !loading ? 'pointer' : 'not-allowed',
           }}>
           {loading ? '⏳ กำลังส่ง...' : '📢 ส่งการแจ้งเหตุ'}
         </button>
 
-        <p className="text-[10px] text-slate-400 text-center">
-          ข้อมูลที่ส่งจะถูกส่งตรงถึงเจ้าหน้าที่ผู้รับผิดชอบ
-        </p>
+        <p className="text-[10px] text-slate-400 text-center">ข้อมูลที่ส่งจะถูกส่งตรงถึงเจ้าหน้าที่ผู้รับผิดชอบ</p>
       </div>
     </div>
   );
