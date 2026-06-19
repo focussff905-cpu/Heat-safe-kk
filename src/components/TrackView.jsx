@@ -200,6 +200,21 @@ export default function TrackView() {
               )}
             </div>
 
+            {/* Admin reply */}
+            {report.adminReply?.text && (
+              <div className="rounded-2xl p-4 space-y-1.5"
+                style={{ background: 'linear-gradient(135deg,rgba(99,102,241,0.07),rgba(139,92,246,0.05))', border: '1.5px solid rgba(99,102,241,0.25)' }}>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <span className="text-base">📩</span>
+                  <p className="text-[11px] font-black text-indigo-600 uppercase tracking-wide">ข้อความจากเจ้าหน้าที่</p>
+                </div>
+                <p className="text-sm text-slate-700 leading-relaxed">{report.adminReply.text}</p>
+                {report.adminReply.sentAt && (
+                  <p className="text-[10px] text-slate-400">{fmtDate(report.adminReply.sentAt)}</p>
+                )}
+              </div>
+            )}
+
             {/* Tracking code */}
             <div className="rounded-xl px-4 py-3 flex items-center gap-2"
               style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.2)' }}>

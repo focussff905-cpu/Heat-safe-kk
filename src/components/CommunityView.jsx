@@ -286,6 +286,21 @@ function StatusCard({ r }) {
               onClick={() => window.open(r.image, '_blank')}
             />
           )}
+
+          {/* Admin reply */}
+          {r.adminReply?.text && (
+            <div className="mt-3 rounded-xl p-3 space-y-1"
+              style={{ background: 'linear-gradient(135deg,rgba(99,102,241,0.07),rgba(139,92,246,0.05))', border: '1px solid rgba(99,102,241,0.25)' }}>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm">📩</span>
+                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-wide">ข้อความจากเจ้าหน้าที่</p>
+              </div>
+              <p className="text-xs text-slate-700 leading-relaxed">{r.adminReply.text}</p>
+              {r.adminReply.sentAt && (
+                <p className="text-[9px] text-slate-400">{fmtDate(r.adminReply.sentAt)}</p>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

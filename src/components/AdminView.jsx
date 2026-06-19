@@ -192,6 +192,141 @@ const STATUS_STYLES = {
   resolved: { label: 'แก้ไขแล้ว', bg: 'rgba(16,185,129,0.1)',  color: '#059669' },
 };
 
+function ReportCard({ r, onSetStatus, onDelete }) {
+  const st = STATUS_STYLES[r.status] ?? STATUS_STYLES.new;
+  const [replyOpen,  setReplyOpen]  = useState(false);
+  const [replyText,  setReplyText]  = useState('');
+  const [replySending, setReplySending] = useState(false);
+  const [replySent,  setReplySent]  = useState(false);
+
+  const sendReply = async () => {
+    if (!replyText.trim() || replySending) return;
+    setReplySending(true);
+    try {
+      await updateDoc(doc(db, 'reports', r.id), {
+        adminReply: { text: replyText.trim(), sentAt: serverTimestamp() },
+      });
+      setReplyText('');
+      setReplySent(true);
+      setTimeout(() => { setReplySent(false); setReplyOpen(false); }, 1500);
+    } finally {
+      setReplySending(false);
+    }
+  };
+
+  return (
+    <div className="rounded-2xl p-4 bg-white space-y-2.5"
+      style={{ border: `1.5px solid ${r.status === 'new' ? 'rgba(239,68,68,0.25)' : '#e0eaff'}` }}>
+
+      {/* Top row */}
+      <div className="flex items-start gap-2.5">
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-sm text-slate-800 leading-tight truncate">{r.address ?? r.location}</p>
+          {r.lat && r.lng && (
+            <a href={`https://www.google.com/maps?q=${r.lat},${r.lng}`}
+              target="_blank" rel="noopener noreferrer"
+              className="text-[10px] font-mono text-blue-500 hover:underline">
+              {r.lat.toFixed(5)}, {r.lng.toFixed(5)} ↗
+            </a>
+          )}
+          <p className="text-[10px] text-slate-400 mt-0.5">{fmtDate(r.createdAt)}</p>
+        </div>
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
+          style={{ background: st.bg, color: st.color }}>{st.label}</span>
+      </div>
+
+      {/* Detail */}
+      <div className="space-y-2">
+        <p className="text-xs text-slate-600 leading-relaxed">{r.detail}</p>
+        {r.image && (
+          <img src={r.image} alt="รูปประกอบ"
+            className="w-full rounded-xl object-cover cursor-pointer"
+            style={{ maxHeight: '180px', border: '1px solid #e0eaff' }}
+            onClick={() => window.open(r.image, '_blank')}
+          />
+        )}
+        {(r.name !== 'ไม่ระบุ' || r.phone !== 'ไม่ระบุ') && (
+          <p className="text-[11px] text-slate-400">
+            {r.name !== 'ไม่ระบุ' ? `👤 ${r.name}` : ''}
+            {r.phone !== 'ไม่ระบุ' ? `  📞 ${r.phone}` : ''}
+          </p>
+        )}
+      </div>
+
+      {/* Existing admin reply */}
+      {r.adminReply?.text && (
+        <div className="rounded-xl px-3 py-2.5 flex gap-2"
+          style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.2)' }}>
+          <span className="text-sm flex-shrink-0">📩</span>
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold text-indigo-500 mb-0.5">ข้อความที่ส่งไปแล้ว</p>
+            <p className="text-xs text-slate-600 leading-relaxed">{r.adminReply.text}</p>
+            <p className="text-[9px] text-slate-400 mt-0.5">{fmtDate(r.adminReply.sentAt)}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Reply composer */}
+      {replyOpen && (
+        <div className="rounded-xl p-3 space-y-2"
+          style={{ background: 'rgba(99,102,241,0.04)', border: '1.5px solid rgba(99,102,241,0.2)' }}>
+          <p className="text-[10px] font-bold text-indigo-500">ข้อความถึงผู้แจ้ง</p>
+          <textarea
+            value={replyText} onChange={e => setReplyText(e.target.value)}
+            placeholder="พิมพ์ข้อความที่ต้องการแจ้งกลับ..."
+            rows={3} maxLength={300}
+            className="w-full px-3 py-2 rounded-lg text-xs outline-none resize-none"
+            style={{ background: 'white', border: '1px solid rgba(99,102,241,0.25)', color: '#1e293b', lineHeight: 1.6 }}
+          />
+          <div className="flex gap-2">
+            <button onClick={() => { setReplyOpen(false); setReplyText(''); }}
+              className="text-[11px] font-semibold px-3 py-1.5 rounded-lg flex-1"
+              style={{ background: 'rgba(148,163,184,0.15)', color: '#64748b' }}>
+              ยกเลิก
+            </button>
+            <button onClick={sendReply} disabled={!replyText.trim() || replySending}
+              className="text-[11px] font-bold px-3 py-1.5 rounded-lg flex-1 transition-all"
+              style={{
+                background: replyText.trim() ? 'linear-gradient(135deg,#6366f1,#4f46e5)' : 'rgba(148,163,184,0.3)',
+                color: replyText.trim() ? 'white' : '#94a3b8',
+              }}>
+              {replySent ? '✓ ส่งแล้ว' : replySending ? '...' : '📩 ส่ง'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex gap-2 pt-1 flex-wrap">
+        {r.status !== 'read' && r.status !== 'resolved' && (
+          <button onClick={() => onSetStatus(r.id, 'read')}
+            className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all"
+            style={{ background: 'rgba(251,146,60,0.1)', color: '#f97316', border: '1px solid rgba(251,146,60,0.3)' }}>
+            รับทราบ
+          </button>
+        )}
+        {r.status !== 'resolved' && (
+          <button onClick={() => onSetStatus(r.id, 'resolved')}
+            className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all"
+            style={{ background: 'rgba(16,185,129,0.1)', color: '#059669', border: '1px solid rgba(16,185,129,0.3)' }}>
+            แก้ไขแล้ว
+          </button>
+        )}
+        <button onClick={() => setReplyOpen(v => !v)}
+          className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all"
+          style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.25)' }}>
+          📩 {r.adminReply?.text ? 'แก้ข้อความ' : 'ส่งข้อความ'}
+        </button>
+        <button onClick={() => onDelete(r.id)}
+          className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all ml-auto"
+          style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}>
+          ลบ
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ReportsInbox({ onNewCount }) {
   const [reports, setReports] = useState([]);
 
@@ -211,7 +346,6 @@ function ReportsInbox({ onNewCount }) {
     updateDoc(doc(db, 'reports', id), { status, ...extra });
   };
   const deleteReport = (id) => deleteDoc(doc(db, 'reports', id));
-
   const newCount = reports.filter(r => r.status === 'new').length;
 
   if (reports.length === 0) {
@@ -233,69 +367,9 @@ function ReportsInbox({ onNewCount }) {
           <p className="text-xs font-semibold text-red-600">มีรายงานใหม่ {newCount} รายการ</p>
         </div>
       )}
-      {reports.map(r => {
-        const st = STATUS_STYLES[r.status] ?? STATUS_STYLES.new;
-        return (
-          <div key={r.id} className="rounded-2xl p-4 bg-white space-y-2.5"
-            style={{ border: `1.5px solid ${r.status === 'new' ? 'rgba(239,68,68,0.25)' : '#e0eaff'}` }}>
-            {/* Top row */}
-            <div className="flex items-start gap-2.5">
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-sm text-slate-800 leading-tight truncate">{r.address ?? r.location}</p>
-                {r.lat && r.lng && (
-                  <a
-                    href={`https://www.google.com/maps?q=${r.lat},${r.lng}`}
-                    target="_blank" rel="noopener noreferrer"
-                    className="text-[10px] font-mono text-blue-500 hover:underline">
-                    {r.lat.toFixed(5)}, {r.lng.toFixed(5)} ↗
-                  </a>
-                )}
-                <p className="text-[10px] text-slate-400 mt-0.5">{fmtDate(r.createdAt)}</p>
-              </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
-                style={{ background: st.bg, color: st.color }}>{st.label}</span>
-            </div>
-
-            {/* Detail */}
-            <div className="space-y-2">
-              <p className="text-xs text-slate-600 leading-relaxed">{r.detail}</p>
-              {r.image && (
-                <img src={r.image} alt="รูปประกอบ"
-                  className="w-full rounded-xl object-cover cursor-pointer"
-                  style={{ maxHeight: '180px', border: '1px solid #e0eaff' }}
-                  onClick={() => window.open(r.image, '_blank')}
-                />
-              )}
-              {r.name !== 'ไม่ระบุ' && (
-                <p className="text-[11px] text-slate-400">👤 {r.name}{r.phone !== 'ไม่ระบุ' ? ` · 📞 ${r.phone}` : ''}</p>
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-2 pt-1">
-              {r.status !== 'read' && r.status !== 'resolved' && (
-                <button onClick={() => setStatus(r.id, 'read')}
-                  className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all"
-                  style={{ background: 'rgba(251,146,60,0.1)', color: '#f97316', border: '1px solid rgba(251,146,60,0.3)' }}>
-                  รับทราบ
-                </button>
-              )}
-              {r.status !== 'resolved' && (
-                <button onClick={() => setStatus(r.id, 'resolved')}
-                  className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all"
-                  style={{ background: 'rgba(16,185,129,0.1)', color: '#059669', border: '1px solid rgba(16,185,129,0.3)' }}>
-                  แก้ไขแล้ว
-                </button>
-              )}
-              <button onClick={() => deleteReport(r.id)}
-                className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all ml-auto"
-                style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}>
-                ลบ
-              </button>
-            </div>
-          </div>
-        );
-      })}
+      {reports.map(r => (
+        <ReportCard key={r.id} r={r} onSetStatus={setStatus} onDelete={deleteReport} />
+      ))}
     </div>
   );
 }
