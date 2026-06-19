@@ -386,18 +386,62 @@ function PhoneStatusCheck() {
   );
 }
 
+/* ── Announcement card ─────────────────────────────────────────────────────── */
+function AnnouncementCard({ item }) {
+  return (
+    <div className="rounded-2xl overflow-hidden"
+      style={{ background: 'linear-gradient(135deg,#fff7ed,#fef3c7)', border: '1.5px solid rgba(251,146,60,0.35)', boxShadow: '0 2px 12px rgba(249,115,22,0.08)' }}>
+      <div className="px-4 py-4 flex gap-3">
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-lg"
+          style={{ background: 'rgba(239,68,68,0.12)' }}>📢</div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <span className="text-[10px] font-black px-2 py-0.5 rounded-full"
+              style={{ background: 'rgba(239,68,68,0.12)', color: '#dc2626' }}>ประกาศจากเจ้าหน้าที่</span>
+            <span className="text-[10px] text-slate-400 flex-shrink-0">{timeAgo(item.createdAt)}</span>
+          </div>
+          <p className="text-sm font-black text-slate-800 leading-tight">{item.title}</p>
+          <p className="text-xs text-slate-600 mt-1 leading-relaxed">{item.body}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Main CommunityView ────────────────────────────────────────────────────── */
 export default function CommunityView() {
   const [tab,     setTab]     = useState('feed');
-  const [posts,   setPosts]   = useState([]);
+  const [feed,    setFeed]    = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const q = query(collection(db, 'reports'), orderBy('createdAt', 'desc'));
-    return onSnapshot(q, snap => {
-      setPosts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      setLoading(false);
-    });
+    let reports = [];
+    let announcements = [];
+    let loadedCount = 0;
+
+    const merge = () => {
+      const merged = [
+        ...reports.map(r => ({ ...r, _type: 'report' })),
+        ...announcements.map(a => ({ ...a, _type: 'announcement' })),
+      ].sort((a, b) => {
+        const ta = a.createdAt?.toDate?.() ?? new Date(a.createdAt ?? 0);
+        const tb = b.createdAt?.toDate?.() ?? new Date(b.createdAt ?? 0);
+        return tb - ta;
+      });
+      setFeed(merged);
+      if (loadedCount < 2) { loadedCount++; if (loadedCount === 2) setLoading(false); }
+    };
+
+    const unsubReports = onSnapshot(
+      query(collection(db, 'reports'), orderBy('createdAt', 'desc')),
+      snap => { reports = snap.docs.map(d => ({ id: d.id, ...d.data() })); merge(); }
+    );
+    const unsubAnnounce = onSnapshot(
+      query(collection(db, 'announcements'), orderBy('createdAt', 'desc')),
+      snap => { announcements = snap.docs.map(d => ({ id: d.id, ...d.data() })); merge(); }
+    );
+
+    return () => { unsubReports(); unsubAnnounce(); };
   }, []);
 
   return (
@@ -453,7 +497,7 @@ export default function CommunityView() {
               </div>
             )}
 
-            {!loading && posts.length === 0 && (
+            {!loading && feed.length === 0 && (
               <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
                 <div className="text-4xl opacity-30">📭</div>
                 <p className="text-sm font-bold text-slate-500">ยังไม่มีรายงาน</p>
@@ -462,7 +506,11 @@ export default function CommunityView() {
             )}
 
             <div className="space-y-3">
-              {posts.map(post => <PostCard key={post.id} post={post} />)}
+              {feed.map(item =>
+                item._type === 'announcement'
+                  ? <AnnouncementCard key={`ann-${item.id}`} item={item} />
+                  : <PostCard key={`rpt-${item.id}`} post={item} />
+              )}
             </div>
           </>
         )}

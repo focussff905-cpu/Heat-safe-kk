@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { collection, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const ALERT_COLOR = '#ef4444';
@@ -94,19 +94,32 @@ function AlertComposer() {
     setLoading(true);
     setResult(null);
     try {
-      const res = await fetch('/api/admin-alert', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin: '2569', title, body }),
+      // บันทึกลง Firestore ก่อนเสมอ เพื่อแสดงในหน้าชุมชน
+      await addDoc(collection(db, 'announcements'), {
+        title:     title.trim(),
+        body:      body.trim(),
+        createdAt: serverTimestamp(),
       });
-      const data = await res.json();
-      setResult(data.ok
-        ? { ok: true,  msg: `ส่งสำเร็จ ${data.sent} คน${data.failed ? ` (ล้มเหลว ${data.failed})` : ''}` }
-        : { ok: false, msg: data.error ?? 'เกิดข้อผิดพลาด' }
-      );
-      if (data.ok) { setTitle(''); setBody(''); }
+
+      // ส่ง push notification (ถ้ามี server)
+      try {
+        const res = await fetch('/api/admin-alert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin: '2569', title, body }),
+        });
+        const data = await res.json();
+        setResult(data.ok
+          ? { ok: true,  msg: `โพสต์แล้ว · ส่ง push ${data.sent} คน` }
+          : { ok: true,  msg: 'โพสต์ลงชุมชนแล้ว (push ไม่สำเร็จ)' }
+        );
+      } catch {
+        setResult({ ok: true, msg: 'โพสต์ลงชุมชนแล้ว' });
+      }
+
+      setTitle(''); setBody('');
     } catch {
-      setResult({ ok: false, msg: 'ไม่สามารถเชื่อมต่อ server' });
+      setResult({ ok: false, msg: 'เกิดข้อผิดพลาด กรุณาลองใหม่' });
     } finally {
       setLoading(false);
     }
