@@ -1,9 +1,10 @@
 import { useState, useRef } from 'react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../firebase';
 
-/* ย่อรูปก่อนเก็บ — จำกัด 800px และ quality 0.75 */
-function resizeImage(file) {
+/* ย่อรูปเป็น Blob ก่อนอัปโหลด — จำกัด 800px quality 0.75 */
+function resizeToBlob(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -18,7 +19,7 @@ function resizeImage(file) {
         const canvas = document.createElement('canvas');
         canvas.width = width; canvas.height = height;
         canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.75));
+        canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('blob failed')), 'image/jpeg', 0.75);
       };
       img.onerror = reject;
       img.src = e.target.result;
@@ -33,7 +34,7 @@ export default function ReportView() {
   const [geoStatus, setGeoStatus] = useState('idle');
   const [geoError,  setGeoError]  = useState('');
   const [detail,    setDetail]    = useState('');
-  const [image,     setImage]     = useState(null); // base64
+  const [image,     setImage]     = useState(null); // { blob, preview }
   const [imgLoading, setImgLoading] = useState(false);
   const [name,      setName]      = useState('');
   const [phone,     setPhone]     = useState('');
@@ -75,8 +76,9 @@ export default function ReportView() {
     if (!file) return;
     setImgLoading(true);
     try {
-      const b64 = await resizeImage(file);
-      setImage(b64);
+      const blob = await resizeToBlob(file);
+      const preview = URL.createObjectURL(blob);
+      setImage({ blob, preview });
     } catch {
       setError('โหลดรูปภาพไม่สำเร็จ');
     } finally {
@@ -90,12 +92,17 @@ export default function ReportView() {
     setError('');
     setLoading(true);
     try {
+      // อัปโหลดรูปไป Storage ก่อน แล้วเก็บแค่ URL
+      const imgRef = ref(storage, `reports/${Date.now()}.jpg`);
+      await uploadBytes(imgRef, image.blob, { contentType: 'image/jpeg' });
+      const imageUrl = await getDownloadURL(imgRef);
+
       await addDoc(collection(db, 'reports'), {
         lat:       location.lat,
         lng:       location.lng,
         address:   location.address,
         detail:    detail.trim(),
-        image:     image ?? null,
+        image:     imageUrl,
         name:      name.trim() || 'ไม่ระบุ',
         phone:     phone.trim() || 'ไม่ระบุ',
         status:    'new',
@@ -110,6 +117,7 @@ export default function ReportView() {
   };
 
   const handleAgain = () => {
+    if (image?.preview) URL.revokeObjectURL(image.preview);
     setLocation(null); setGeoStatus('idle'); setGeoError('');
     setDetail(''); setImage(null); setName(''); setPhone('');
     setSubmitted(false); setError('');
@@ -236,7 +244,7 @@ export default function ReportView() {
           <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-2">รูปภาพประกอบ <span className="text-red-400">*</span></p>
           <input ref={fileRef} type="file" accept="image/*" capture="environment"
             onChange={handleImageChange} className="hidden" />
-          {!image ? (
+          {!image?.preview ? (
             <button onClick={() => fileRef.current?.click()} disabled={imgLoading}
               className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl border-2 border-dashed text-sm font-medium transition-all"
               style={{ borderColor: '#cbd5e1', color: '#94a3b8', background: 'rgba(255,255,255,0.5)' }}>
@@ -255,8 +263,8 @@ export default function ReportView() {
           ) : (
             <div className="relative rounded-2xl overflow-hidden"
               style={{ border: '1.5px solid #e0eaff' }}>
-              <img src={image} alt="preview" className="w-full object-cover" style={{ maxHeight: '220px' }} />
-              <button onClick={() => setImage(null)}
+              <img src={image.preview} alt="preview" className="w-full object-cover" style={{ maxHeight: '220px' }} />
+              <button onClick={() => { URL.revokeObjectURL(image.preview); setImage(null); }}
                 className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center"
                 style={{ background: 'rgba(0,0,0,0.55)', color: 'white' }}>
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
