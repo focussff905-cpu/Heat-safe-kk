@@ -1,12 +1,6 @@
 import { useState, useRef } from 'react';
-
-const LS_KEY = 'kkmap_reports';
-
-function saveReport(report) {
-  const existing = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
-  existing.unshift(report);
-  localStorage.setItem(LS_KEY, JSON.stringify(existing));
-}
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../firebase';
 
 /* ย่อรูปก่อนเก็บ — จำกัด 800px และ quality 0.75 */
 function resizeImage(file) {
@@ -91,13 +85,12 @@ export default function ReportView() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!canSubmit || loading) return;
     setError('');
     setLoading(true);
     try {
-      saveReport({
-        id:        Date.now(),
+      await addDoc(collection(db, 'reports'), {
         lat:       location.lat,
         lng:       location.lng,
         address:   location.address,
@@ -105,12 +98,12 @@ export default function ReportView() {
         image:     image ?? null,
         name:      name.trim() || 'ไม่ระบุ',
         phone:     phone.trim() || 'ไม่ระบุ',
-        createdAt: new Date().toISOString(),
         status:    'new',
+        createdAt: serverTimestamp(),
       });
       setSubmitted(true);
-    } catch {
-      setError('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+    } catch (e) {
+      setError('ส่งไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่');
     } finally {
       setLoading(false);
     }

@@ -1,19 +1,13 @@
 import { useState, useCallback, useEffect } from 'react';
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
+import { db } from '../firebase';
 
 const ALERT_COLOR = '#ef4444';
 const ALERT_BG    = 'rgba(239,68,68,0.12)';
 const ALERT_EMOJI = '🚨';
-const LS_KEY      = 'kkmap_reports';
-
-/* ── Helpers ─────────────────────────────────────────────────────────────── */
-function loadReports() {
-  try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch { return []; }
-}
-function saveReports(reports) {
-  localStorage.setItem(LS_KEY, JSON.stringify(reports));
-}
-function fmtDate(iso) {
-  return new Date(iso).toLocaleString('th-TH', {
+function fmtDate(ts) {
+  const d = ts?.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleString('th-TH', {
     day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
     timeZone: 'Asia/Bangkok',
   });
@@ -185,26 +179,21 @@ const STATUS_STYLES = {
   resolved: { label: 'แก้ไขแล้ว', bg: 'rgba(16,185,129,0.1)',  color: '#059669' },
 };
 
-function ReportsInbox() {
-  const [reports, setReports] = useState(loadReports);
+function ReportsInbox({ onNewCount }) {
+  const [reports, setReports] = useState([]);
 
   useEffect(() => {
-    const onStorage = () => setReports(loadReports());
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, []);
+    const q = query(collection(db, 'reports'), orderBy('createdAt', 'desc'));
+    const unsub = onSnapshot(q, (snap) => {
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setReports(data);
+      onNewCount?.(data.filter(r => r.status === 'new').length);
+    });
+    return unsub;
+  }, [onNewCount]);
 
-  const setStatus = (id, status) => {
-    const updated = reports.map(r => r.id === id ? { ...r, status } : r);
-    setReports(updated);
-    saveReports(updated);
-  };
-
-  const deleteReport = (id) => {
-    const updated = reports.filter(r => r.id !== id);
-    setReports(updated);
-    saveReports(updated);
-  };
+  const setStatus = (id, status) => updateDoc(doc(db, 'reports', id), { status });
+  const deleteReport = (id) => deleteDoc(doc(db, 'reports', id));
 
   const newCount = reports.filter(r => r.status === 'new').length;
 
@@ -297,7 +286,7 @@ function ReportsInbox() {
 /* ── Dashboard (post-login) ──────────────────────────────────────────────── */
 function Dashboard({ onLogout }) {
   const [tab, setTab] = useState('reports');
-  const newCount = loadReports().filter(r => r.status === 'new').length;
+  const [newCount, setNewCount] = useState(0);
 
   return (
     <div className="flex flex-col gap-4 px-4 py-5 max-w-md mx-auto w-full">
@@ -360,7 +349,7 @@ function Dashboard({ onLogout }) {
       )}
 
       {/* Tab content */}
-      {tab === 'reports' ? <ReportsInbox /> : <AlertComposer />}
+      {tab === 'reports' ? <ReportsInbox onNewCount={setNewCount} /> : <AlertComposer />}
     </div>
   );
 }
