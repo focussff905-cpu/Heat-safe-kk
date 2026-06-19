@@ -14,6 +14,7 @@ import { useTMDWeather } from './hooks/useTMDWeather';
 import { useAutoNotify } from './hooks/useAutoNotify';
 import AdminView from './components/AdminView';
 import ReportView from './components/ReportView';
+import TrackView from './components/TrackView';
 import WelcomePopup from './components/WelcomePopup';
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
   // Special routes via URL query params
   const [isAdmin]  = useState(() => new URLSearchParams(window.location.search).has('admin'));
   const [isReport] = useState(() => new URLSearchParams(window.location.search).has('report'));
+  const [isTrack]  = useState(() => new URLSearchParams(window.location.search).has('track'));
   const [activeTab, setActiveTab] = useState('home');
   const [activeLayers, setActiveLayers] = useState(new Set());
   const [infoLayer, setInfoLayer] = useState('temperature');
@@ -86,9 +88,8 @@ export default function App() {
 
   const onMap = !isAdmin && !isReport && activeTab === 'map';
 
-  if (isReport) {
-    return <ReportView />;
-  }
+  if (isReport) return <ReportView />;
+  if (isTrack)  return <TrackView />;
 
   return (
     <div className="relative w-full overflow-hidden bg-[#f8faff]"

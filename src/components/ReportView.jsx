@@ -51,7 +51,8 @@ export default function ReportView() {
   const [imgLoading, setImgLoading] = useState(false);
   const [name,      setName]      = useState('');
   const [phone,     setPhone]     = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [submitted,   setSubmitted]   = useState(false);
+  const [trackingId,  setTrackingId]  = useState('');
   const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState('');
   const fileRef = useRef(null);
@@ -107,7 +108,7 @@ export default function ReportView() {
     try {
       const imageUrl = await uploadToImgBB(image.blob);
 
-      await addDoc(collection(db, 'reports'), {
+      const docRef = await addDoc(collection(db, 'reports'), {
         lat:       location.lat,
         lng:       location.lng,
         address:   location.address,
@@ -118,6 +119,7 @@ export default function ReportView() {
         status:    'new',
         createdAt: serverTimestamp(),
       });
+      setTrackingId(docRef.id);
       setSubmitted(true);
     } catch (e) {
       setError('ส่งไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่');
@@ -135,6 +137,7 @@ export default function ReportView() {
 
   /* ── Success screen ── */
   if (submitted) {
+    const trackUrl = `${window.location.origin}/?track&id=${trackingId}`;
     return (
       <div style={{ height: '100dvh', overflowY: 'auto', background: 'linear-gradient(160deg,#f0fdf4 0%,#ecfdf5 60%,#f8faff 100%)' }}
         className="flex flex-col items-center justify-center px-6 py-12">
@@ -145,15 +148,38 @@ export default function ReportView() {
             <p className="text-xl font-black text-slate-800">แจ้งเหตุสำเร็จ</p>
             <p className="text-sm text-slate-500 mt-1">ข้อมูลของคุณถูกส่งไปยังเจ้าหน้าที่แล้ว ขอบคุณที่ช่วยดูแลชุมชน</p>
           </div>
+
+          {/* Tracking code */}
+          <div className="rounded-2xl p-4 text-left space-y-2"
+            style={{ background: 'rgba(59,130,246,0.06)', border: '1.5px solid rgba(59,130,246,0.25)' }}>
+            <p className="text-[11px] font-bold text-blue-500 uppercase tracking-wide">รหัสติดตามสถานะ</p>
+            <div className="flex items-center gap-2">
+              <p className="flex-1 font-mono text-sm text-slate-700 break-all">{trackingId}</p>
+              <button
+                onClick={() => navigator.clipboard?.writeText(trackingId)}
+                className="flex-shrink-0 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-all active:scale-95"
+                style={{ background: 'rgba(59,130,246,0.1)', color: '#3b82f6' }}>
+                คัดลอก
+              </button>
+            </div>
+            <p className="text-[10px] text-slate-400">เก็บรหัสนี้ไว้เพื่อตรวจสอบสถานะในภายหลัง</p>
+          </div>
+
           <div className="rounded-2xl p-4 text-left space-y-1"
             style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.25)' }}>
             <p className="text-xs text-slate-500 font-mono">📍 {location?.lat?.toFixed(5)}, {location?.lng?.toFixed(5)}</p>
             <p className="text-sm text-slate-700">{location?.address}</p>
           </div>
+
           <div className="flex flex-col gap-2 pt-2">
+            <a href={trackUrl}
+              className="w-full py-3.5 rounded-2xl text-sm font-bold text-center block transition-all active:scale-95"
+              style={{ background: 'linear-gradient(135deg,#3b82f6,#2563eb)', color: 'white', boxShadow: '0 6px 20px rgba(59,130,246,0.35)' }}>
+              ติดตามสถานะ
+            </a>
             <button onClick={handleAgain}
               className="w-full py-3.5 rounded-2xl text-sm font-bold transition-all active:scale-95"
-              style={{ background: 'linear-gradient(135deg,#10b981,#059669)', color: 'white', boxShadow: '0 6px 20px rgba(16,185,129,0.35)' }}>
+              style={{ background: 'white', color: '#059669', border: '1.5px solid rgba(16,185,129,0.4)' }}>
               แจ้งเหตุอีกครั้ง
             </button>
             <a href="/" className="w-full py-3.5 rounded-2xl text-sm font-bold text-center block"

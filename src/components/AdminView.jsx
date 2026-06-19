@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { collection, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const ALERT_COLOR = '#ef4444';
@@ -192,7 +192,11 @@ function ReportsInbox({ onNewCount }) {
     return unsub;
   }, [onNewCount]);
 
-  const setStatus = (id, status) => updateDoc(doc(db, 'reports', id), { status });
+  const setStatus = (id, status) => {
+    const extra = status === 'read' ? { readAt: serverTimestamp() }
+                : status === 'resolved' ? { resolvedAt: serverTimestamp() } : {};
+    updateDoc(doc(db, 'reports', id), { status, ...extra });
+  };
   const deleteReport = (id) => deleteDoc(doc(db, 'reports', id));
 
   const newCount = reports.filter(r => r.status === 'new').length;
