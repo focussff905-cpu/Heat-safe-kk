@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   collection, query, orderBy, onSnapshot,
-  addDoc, serverTimestamp, doc,
+  addDoc, serverTimestamp, doc, where, getDocs,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -186,9 +186,210 @@ function PostCard({ post }) {
   );
 }
 
+/* ── Phone status check ────────────────────────────────────────────────────── */
+const TIMELINE_STEPS = [
+  { key: 'new',      label: 'ส่งการแจ้งเหตุ' },
+  { key: 'read',     label: 'รับทราบแล้ว' },
+  { key: 'resolved', label: 'ดำเนินการแล้ว' },
+];
+const ORDER_MAP = { new: 0, read: 1, resolved: 2 };
+
+function fmtDate(ts) {
+  if (!ts) return '—';
+  const d = ts?.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleString('th-TH', {
+    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+    timeZone: 'Asia/Bangkok',
+  });
+}
+
+function StatusCard({ r }) {
+  const [open, setOpen] = useState(false);
+  const st = POST_STATUS[r.status] ?? POST_STATUS.new;
+  const currentStep = ORDER_MAP[r.status] ?? 0;
+
+  return (
+    <div className="rounded-2xl bg-white overflow-hidden"
+      style={{ border: `1.5px solid ${r.status === 'new' ? 'rgba(239,68,68,0.2)' : '#e8f0fe'}`, boxShadow: '0 2px 10px rgba(59,130,246,0.05)' }}>
+
+      {/* Card header */}
+      <button className="w-full px-4 py-3.5 flex items-start gap-3 text-left" onClick={() => setOpen(v => !v)}>
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-base"
+          style={{ background: st.bg }}>
+          {currentStep === 2 ? '✅' : currentStep === 1 ? '👁️' : '⏳'}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2 mb-0.5">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+              style={{ background: st.bg, color: st.color }}>{st.label}</span>
+            <span className="text-[10px] text-slate-400 flex-shrink-0">{timeAgo(r.createdAt)}</span>
+          </div>
+          <p className="text-sm text-slate-700 font-medium line-clamp-1">{r.detail}</p>
+          <p className="text-[11px] text-slate-400 truncate mt-0.5">
+            📍 {r.address?.split(',')[0] ?? 'ไม่ระบุ'}
+          </p>
+        </div>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="3" strokeLinecap="round"
+          className="flex-shrink-0 mt-1 transition-transform duration-200"
+          style={{ transform: open ? 'rotate(180deg)' : 'none' }}>
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+
+      {/* Expanded timeline */}
+      {open && (
+        <div className="px-4 pb-4 border-t" style={{ borderColor: '#f1f5f9' }}>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mt-3 mb-2.5">ความคืบหน้า</p>
+          <div className="space-y-0">
+            {TIMELINE_STEPS.map((step, i) => {
+              const done = currentStep >= ORDER_MAP[step.key];
+              const isLast = i === TIMELINE_STEPS.length - 1;
+              return (
+                <div key={step.key} className="flex items-start gap-3">
+                  <div className="flex flex-col items-center">
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{
+                        background: done ? (step.key === 'resolved' ? '#059669' : '#3b82f6') : 'rgba(148,163,184,0.15)',
+                        border: done ? 'none' : '1.5px dashed #cbd5e1',
+                      }}>
+                      {done && (
+                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                      )}
+                    </div>
+                    {!isLast && (
+                      <div className="w-px mt-0.5" style={{ height: 18, background: done ? '#bfdbfe' : '#e2e8f0' }} />
+                    )}
+                  </div>
+                  <div className="pb-1 pt-0.5">
+                    <p className="text-xs font-semibold leading-tight" style={{ color: done ? '#1e293b' : '#94a3b8' }}>{step.label}</p>
+                    {done && step.key === 'new' && r.createdAt && (
+                      <p className="text-[10px] text-slate-400">{fmtDate(r.createdAt)}</p>
+                    )}
+                    {done && step.key === 'read' && r.readAt && (
+                      <p className="text-[10px] text-slate-400">{fmtDate(r.readAt)}</p>
+                    )}
+                    {done && step.key === 'resolved' && r.resolvedAt && (
+                      <p className="text-[10px] text-slate-400">{fmtDate(r.resolvedAt)}</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {r.image && (
+            <img src={r.image} alt="รูป"
+              className="w-full rounded-xl object-cover mt-3 cursor-pointer"
+              style={{ maxHeight: '140px', border: '1px solid #e0eaff' }}
+              onClick={() => window.open(r.image, '_blank')}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PhoneStatusCheck() {
+  const [phone,   setPhone]   = useState('');
+  const [results, setResults] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState('');
+
+  const search = async () => {
+    const p = phone.trim();
+    if (!p) return;
+    setLoading(true); setError(''); setResults(null);
+    try {
+      const snap = await getDocs(
+        query(collection(db, 'reports'), where('phone', '==', p))
+      );
+      const data = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => {
+          const ta = a.createdAt?.toDate?.() ?? new Date(a.createdAt ?? 0);
+          const tb = b.createdAt?.toDate?.() ?? new Date(b.createdAt ?? 0);
+          return tb - ta;
+        });
+      setResults(data);
+    } catch {
+      setError('เกิดข้อผิดพลาด กรุณาลองใหม่');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Search box */}
+      <div className="rounded-2xl p-4 bg-white space-y-3" style={{ border: '1.5px solid #e8f0fe' }}>
+        <div>
+          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">เบอร์โทรที่ใช้แจ้งเหตุ</p>
+          <div className="flex gap-2">
+            <input
+              type="tel"
+              value={phone}
+              onChange={e => setPhone(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && search()}
+              placeholder="เช่น 0812345678"
+              className="flex-1 px-4 py-2.5 rounded-xl text-sm outline-none"
+              style={{ background: '#f8faff', border: `1.5px solid ${phone ? '#bfdbfe' : '#e0eaff'}`, color: '#1e293b' }}
+            />
+            <button
+              onClick={search}
+              disabled={!phone.trim() || loading}
+              className="px-4 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 flex-shrink-0"
+              style={{
+                background: phone.trim() ? 'linear-gradient(135deg,#3b82f6,#2563eb)' : 'rgba(148,163,184,0.25)',
+                color: phone.trim() ? 'white' : '#94a3b8',
+                boxShadow: phone.trim() ? '0 4px 12px rgba(59,130,246,0.3)' : 'none',
+              }}>
+              {loading
+                ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                : 'ค้นหา'}
+            </button>
+          </div>
+        </div>
+        <p className="text-[10px] text-slate-400">ใส่เบอร์โทรที่กรอกไว้ตอนแจ้งเหตุ ถ้าไม่ได้กรอกให้ใช้รหัสติดตามแทน</p>
+      </div>
+
+      {error && (
+        <p className="text-xs text-red-500 text-center">{error}</p>
+      )}
+
+      {/* No results */}
+      {results !== null && results.length === 0 && (
+        <div className="flex flex-col items-center py-10 gap-2 text-center">
+          <div className="text-3xl opacity-30">🔍</div>
+          <p className="text-sm font-bold text-slate-500">ไม่พบรายการแจ้งเหตุ</p>
+          <p className="text-xs text-slate-400">กรุณาตรวจสอบเบอร์โทรให้ถูกต้อง</p>
+        </div>
+      )}
+
+      {/* Results */}
+      {results !== null && results.length > 0 && (
+        <div className="space-y-3">
+          <p className="text-xs font-bold text-slate-500 px-1">พบ {results.length} รายการ</p>
+          {results.map(r => <StatusCard key={r.id} r={r} />)}
+        </div>
+      )}
+
+      {/* Link to track by code */}
+      <div className="text-center pt-1">
+        <a href="/?track" className="text-xs text-blue-400 hover:underline">
+          ติดตามด้วยรหัสแทน →
+        </a>
+      </div>
+    </div>
+  );
+}
+
 /* ── Main CommunityView ────────────────────────────────────────────────────── */
 export default function CommunityView() {
-  const [posts, setPosts] = useState([]);
+  const [tab,     setTab]     = useState('feed');
+  const [posts,   setPosts]   = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -211,38 +412,63 @@ export default function CommunityView() {
           <p className="text-xs text-slate-400">รายงานสภาพแวดล้อมจากชาวขอนแก่น</p>
         </div>
 
-        {/* Report button */}
-        <a href="/?report"
-          className="flex items-center gap-3 px-4 py-3 rounded-2xl mb-4 transition-all active:scale-95"
-          style={{ background: 'white', border: '1.5px dashed #bfdbfe', boxShadow: '0 2px 8px rgba(59,130,246,0.06)' }}>
-          <div className="w-8 h-8 rounded-full flex items-center justify-center"
-            style={{ background: 'rgba(59,130,246,0.1)' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-          </div>
-          <p className="text-sm text-slate-500">พบเหตุผิดปกติ? แจ้งเหตุให้ชุมชนทราบ...</p>
-        </a>
-
-        {/* Feed */}
-        {loading && (
-          <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <div className="w-8 h-8 border-3 border-blue-100 border-t-blue-400 rounded-full animate-spin" style={{ borderWidth: 3 }} />
-            <p className="text-xs text-slate-400">กำลังโหลด...</p>
-          </div>
-        )}
-
-        {!loading && posts.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
-            <div className="text-4xl opacity-30">📭</div>
-            <p className="text-sm font-bold text-slate-500">ยังไม่มีรายงาน</p>
-            <p className="text-xs text-slate-400">เป็นคนแรกที่แจ้งเหตุในชุมชนได้เลย</p>
-          </div>
-        )}
-
-        <div className="space-y-3">
-          {posts.map(post => <PostCard key={post.id} post={post} />)}
+        {/* Tabs */}
+        <div className="flex rounded-2xl overflow-hidden p-1 gap-1 mb-4"
+          style={{ background: 'rgba(255,255,255,0.8)', border: '1px solid #e0eaff' }}>
+          {[
+            { id: 'feed',   label: 'ฟีดข่าว' },
+            { id: 'status', label: 'เช็คสถานะ' },
+          ].map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all"
+              style={{
+                background: tab === t.id ? 'white' : 'transparent',
+                color:      tab === t.id ? '#1e293b' : '#94a3b8',
+                boxShadow:  tab === t.id ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
+              }}>
+              {t.label}
+            </button>
+          ))}
         </div>
+
+        {/* Feed tab */}
+        {tab === 'feed' && (
+          <>
+            <a href="/?report"
+              className="flex items-center gap-3 px-4 py-3 rounded-2xl mb-4 transition-all active:scale-95"
+              style={{ background: 'white', border: '1.5px dashed #bfdbfe', boxShadow: '0 2px 8px rgba(59,130,246,0.06)' }}>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center"
+                style={{ background: 'rgba(59,130,246,0.1)' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+              </div>
+              <p className="text-sm text-slate-500">พบเหตุผิดปกติ? แจ้งเหตุให้ชุมชนทราบ...</p>
+            </a>
+
+            {loading && (
+              <div className="flex flex-col items-center justify-center py-16 gap-3">
+                <div className="w-8 h-8 rounded-full animate-spin" style={{ borderWidth: 3, borderStyle: 'solid', borderColor: '#bfdbfe', borderTopColor: '#3b82f6' }} />
+                <p className="text-xs text-slate-400">กำลังโหลด...</p>
+              </div>
+            )}
+
+            {!loading && posts.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
+                <div className="text-4xl opacity-30">📭</div>
+                <p className="text-sm font-bold text-slate-500">ยังไม่มีรายงาน</p>
+                <p className="text-xs text-slate-400">เป็นคนแรกที่แจ้งเหตุในชุมชนได้เลย</p>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              {posts.map(post => <PostCard key={post.id} post={post} />)}
+            </div>
+          </>
+        )}
+
+        {/* Status tab */}
+        {tab === 'status' && <PhoneStatusCheck />}
       </div>
     </div>
   );
