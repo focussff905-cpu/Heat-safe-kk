@@ -27,6 +27,11 @@
   box-sizing: border-box;
 }
 
+/* Prevent iOS/Android auto-zoom on input focus (triggered when font-size < 16px) */
+input, textarea, select {
+  font-size: 16px !important;
+}
+
 html, body, #root {
   width: 100%;
   height: 100%;
