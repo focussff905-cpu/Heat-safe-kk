@@ -1,7 +1,20 @@
 import { useState, useRef } from 'react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../firebase';
+import { db } from '../firebase';
+
+const IMGBB_KEY = 'b48174b520f12cf5eb763cff034282cd';
+
+async function uploadToImgBB(blob) {
+  const form = new FormData();
+  form.append('image', blob, 'report.jpg');
+  const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
+    method: 'POST',
+    body: form,
+  });
+  const json = await res.json();
+  if (!json.success) throw new Error('upload failed');
+  return json.data.url;
+}
 
 /* ย่อรูปเป็น Blob ก่อนอัปโหลด — จำกัด 800px quality 0.75 */
 function resizeToBlob(file) {
@@ -92,10 +105,7 @@ export default function ReportView() {
     setError('');
     setLoading(true);
     try {
-      // อัปโหลดรูปไป Storage ก่อน แล้วเก็บแค่ URL
-      const imgRef = ref(storage, `reports/${Date.now()}.jpg`);
-      await uploadBytes(imgRef, image.blob, { contentType: 'image/jpeg' });
-      const imageUrl = await getDownloadURL(imgRef);
+      const imageUrl = await uploadToImgBB(image.blob);
 
       await addDoc(collection(db, 'reports'), {
         lat:       location.lat,
