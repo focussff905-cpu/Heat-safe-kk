@@ -119,6 +119,20 @@ export default function ReportView() {
         status:    'new',
         createdAt: serverTimestamp(),
       });
+
+      // แจ้ง LINE OA ทันที (ไม่รอ — ไม่ให้ error กระทบผู้ใช้)
+      const locationLine = `📍 ${location.address}\n🗺️ https://www.google.com/maps?q=${location.lat},${location.lng}`;
+      fetch('/api/line-broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pin:      '2569',
+          title:    `🆕 แจ้งเหตุใหม่ · ${location.address?.split(',')[0] ?? 'ขอนแก่น'}`,
+          body:     `${detail.trim()}\n\n${locationLine}`,
+          imageUrl: imageUrl,
+        }),
+      }).catch(() => {});
+
       setTrackingId(docRef.id);
       setSubmitted(true);
     } catch (e) {
