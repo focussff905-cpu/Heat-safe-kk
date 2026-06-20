@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { collection, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -83,18 +83,48 @@ function PinPad({ onSuccess }) {
 }
 
 /* ── Alert composer ──────────────────────────────────────────────────────── */
+const IMGBB_KEY = 'b48174b520f12cf5eb763cff034282cd';
+
+async function uploadImageToImgBB(file) {
+  const form = new FormData();
+  form.append('image', file);
+  const res  = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: 'POST', body: form });
+  const json = await res.json();
+  if (!json.success) throw new Error('upload failed');
+  return json.data.url;
+}
+
 function AlertComposer() {
-  const [title,   setTitle]  = useState('');
-  const [body,    setBody]   = useState('');
-  const [loading, setLoading] = useState(false);
-  const [result,  setResult]  = useState(null);
+  const [title,      setTitle]     = useState('');
+  const [body,       setBody]      = useState('');
+  const [image,      setImage]     = useState(null); // { url, preview }
+  const [imgLoading, setImgLoading] = useState(false);
+  const [loading,    setLoading]   = useState(false);
+  const [result,     setResult]    = useState(null);
+  const fileRef = useRef(null);
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImgLoading(true);
+    try {
+      const url     = await uploadImageToImgBB(file);
+      const preview = URL.createObjectURL(file);
+      setImage({ url, preview });
+    } catch {
+      setResult({ ok: false, msg: 'อัปโหลดรูปไม่สำเร็จ' });
+    } finally {
+      setImgLoading(false);
+      e.target.value = '';
+    }
+  };
 
   const send = async () => {
     if (!title.trim() || !body.trim() || loading) return;
     setLoading(true);
     setResult(null);
     try {
-      // บันทึกลง Firestore ก่อนเสมอ เพื่อแสดงในหน้าชุมชน
+      // บันทึกลง Firestore เพื่อแสดงในหน้าชุมชน
       await addDoc(collection(db, 'announcements'), {
         title:     title.trim(),
         body:      body.trim(),
@@ -106,7 +136,7 @@ function AlertComposer() {
         fetch('/api/line-broadcast', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pin: '2569', title, body }),
+          body: JSON.stringify({ pin: '2569', title, body, imageUrl: image?.url ?? undefined }),
         }).then(r => r.json()),
         fetch('/api/admin-alert', {
           method: 'POST',
@@ -124,6 +154,8 @@ function AlertComposer() {
 
       setResult({ ok: true, msg: `โพสต์แล้ว · ${parts.join(' · ')}` });
       setTitle(''); setBody('');
+      if (image?.preview) URL.revokeObjectURL(image.preview);
+      setImage(null);
     } catch {
       setResult({ ok: false, msg: 'เกิดข้อผิดพลาด กรุณาลองใหม่' });
     } finally {
@@ -166,6 +198,34 @@ function AlertComposer() {
           </div>
         </div>
       )}
+
+      {/* Image for LINE (optional) */}
+      <div>
+        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+          รูปภาพสำหรับ LINE <span className="text-slate-300 font-normal normal-case">(ไม่บังคับ)</span>
+        </p>
+        <input ref={fileRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+        {!image ? (
+          <button onClick={() => fileRef.current?.click()} disabled={imgLoading}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed text-sm transition-all"
+            style={{ borderColor: '#e0eaff', color: '#94a3b8', background: 'rgba(255,255,255,0.5)' }}>
+            {imgLoading
+              ? <><div className="w-4 h-4 border-2 border-slate-200 border-t-slate-400 rounded-full animate-spin" />กำลังอัปโหลด...</>
+              : <>📎 แนบรูปภาพ</>}
+          </button>
+        ) : (
+          <div className="relative rounded-xl overflow-hidden" style={{ border: '1.5px solid #e0eaff' }}>
+            <img src={image.preview} alt="preview" className="w-full object-cover" style={{ maxHeight: '160px' }} />
+            <button onClick={() => { URL.revokeObjectURL(image.preview); setImage(null); }}
+              className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center text-white"
+              style={{ background: 'rgba(0,0,0,0.55)' }}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        )}
+      </div>
 
       {result && (
         <div className="rounded-xl px-4 py-3 text-sm font-semibold text-center"
