@@ -212,7 +212,10 @@ function ReportCard({ r, onSetStatus, onDelete }) {
     setBroadcasting(true);
     try {
       const title = `รายงานจากพื้นที่ ${r.address?.split(',')[0] ?? 'ขอนแก่น'}`;
-      const body  = r.detail;
+      const locationLine = r.lat && r.lng
+        ? `📍 ${r.address ?? 'ไม่ระบุ'}\n🗺️ https://www.google.com/maps?q=${r.lat},${r.lng}`
+        : `📍 ${r.address ?? 'ไม่ระบุตำแหน่ง'}`;
+      const body = `${r.detail}\n\n${locationLine}`;
 
       // โพสต์ลง Firestore (ฟีดชุมชน)
       await addDoc(collection(db, 'announcements'), {
