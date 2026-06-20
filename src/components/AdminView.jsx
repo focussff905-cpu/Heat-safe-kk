@@ -204,11 +204,15 @@ function ReportCard({ r, onSetStatus, onDelete }) {
   const [replyText,    setReplyText]    = useState('');
   const [replySending, setReplySending] = useState(false);
   const [replySent,    setReplySent]    = useState(false);
-  const [broadcasting, setBroadcasting] = useState(false);
+  const [broadcastOpen, setBroadcastOpen] = useState(false);
+  const [channels, setChannels] = useState({ community: true, line: true, push: false });
+  const [broadcasting,  setBroadcasting]  = useState(false);
   const [broadcastDone, setBroadcastDone] = useState(false);
 
+  const toggleChannel = (key) => setChannels(p => ({ ...p, [key]: !p[key] }));
+
   const broadcastReport = async () => {
-    if (broadcasting) return;
+    if (broadcasting || (!channels.community && !channels.line && !channels.push)) return;
     setBroadcasting(true);
     try {
       const title = `รายงานจากพื้นที่ ${r.address?.split(',')[0] ?? 'ขอนแก่น'}`;
@@ -217,20 +221,25 @@ function ReportCard({ r, onSetStatus, onDelete }) {
         : `📍 ${r.address ?? 'ไม่ระบุตำแหน่ง'}`;
       const body = `${r.detail}\n\n${locationLine}`;
 
-      // โพสต์ลง Firestore (ฟีดชุมชน)
-      await addDoc(collection(db, 'announcements'), {
-        title, body, createdAt: serverTimestamp(),
-      });
-
-      // Broadcast ไป LINE OA (พร้อมรูปถ้ามี)
-      await fetch('/api/line-broadcast', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin: '2569', title, body, imageUrl: r.image ?? undefined }),
-      });
+      await Promise.allSettled([
+        channels.community && addDoc(collection(db, 'announcements'), {
+          title, body, createdAt: serverTimestamp(),
+        }),
+        channels.line && fetch('/api/line-broadcast', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin: '2569', title, body, imageUrl: r.image ?? undefined }),
+        }),
+        channels.push && fetch('/api/admin-alert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin: '2569', title, body }),
+        }),
+      ]);
 
       setBroadcastDone(true);
-      setTimeout(() => setBroadcastDone(false), 2000);
+      setBroadcastOpen(false);
+      setTimeout(() => setBroadcastDone(false), 2500);
     } finally {
       setBroadcasting(false);
     }
@@ -333,6 +342,59 @@ function ReportCard({ r, onSetStatus, onDelete }) {
         </div>
       )}
 
+      {/* Broadcast channel selector */}
+      {broadcastOpen && (
+        <div className="rounded-xl p-3 space-y-2.5"
+          style={{ background: 'rgba(239,68,68,0.04)', border: '1.5px solid rgba(239,68,68,0.2)' }}>
+          <p className="text-[10px] font-black text-red-500 uppercase tracking-wide">เลือกช่องทางแจ้งเตือน</p>
+          {[
+            { key: 'community', label: 'ฟีดชุมชน',         icon: '🏘️', desc: 'โพสต์ขึ้นหน้าชุมชนในแอป' },
+            { key: 'line',      label: 'LINE OA',           icon: '💬', desc: 'Broadcast ไปทุกคนที่ Follow' },
+            { key: 'push',      label: 'Push Notification', icon: '🔔', desc: 'แจ้งเตือนในแอปผู้ใช้' },
+          ].map(ch => (
+            <button key={ch.key} onClick={() => toggleChannel(ch.key)}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all"
+              style={{
+                background: channels[ch.key] ? 'rgba(239,68,68,0.08)' : 'white',
+                border: `1.5px solid ${channels[ch.key] ? 'rgba(239,68,68,0.3)' : '#e0eaff'}`,
+              }}>
+              <div className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0"
+                style={{ background: channels[ch.key] ? '#ef4444' : 'rgba(148,163,184,0.2)' }}>
+                {channels[ch.key] && (
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                )}
+              </div>
+              <span className="text-base leading-none">{ch.icon}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold" style={{ color: channels[ch.key] ? '#dc2626' : '#475569' }}>{ch.label}</p>
+                <p className="text-[10px] text-slate-400">{ch.desc}</p>
+              </div>
+            </button>
+          ))}
+          <div className="flex gap-2 pt-1">
+            <button onClick={() => setBroadcastOpen(false)}
+              className="text-[11px] font-semibold px-3 py-2 rounded-lg flex-1"
+              style={{ background: 'rgba(148,163,184,0.15)', color: '#64748b' }}>
+              ยกเลิก
+            </button>
+            <button onClick={broadcastReport}
+              disabled={broadcasting || (!channels.community && !channels.line && !channels.push)}
+              className="text-[11px] font-black px-3 py-2 rounded-lg flex-1 transition-all"
+              style={{
+                background: (!channels.community && !channels.line && !channels.push)
+                  ? 'rgba(148,163,184,0.3)'
+                  : 'linear-gradient(135deg,#ef4444,#dc2626)',
+                color: (!channels.community && !channels.line && !channels.push) ? '#94a3b8' : 'white',
+                boxShadow: (!channels.community && !channels.line && !channels.push) ? 'none' : '0 4px 12px rgba(239,68,68,0.35)',
+              }}>
+              {broadcasting ? '⏳ กำลังส่ง...' : '📢 ส่งเลย'}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Actions */}
       <div className="flex gap-2 pt-1 flex-wrap">
         {r.status !== 'read' && r.status !== 'resolved' && (
@@ -354,10 +416,10 @@ function ReportCard({ r, onSetStatus, onDelete }) {
           style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.25)' }}>
           📩 {r.adminReply?.text ? 'แก้ข้อความ' : 'ส่งข้อความ'}
         </button>
-        <button onClick={broadcastReport} disabled={broadcasting}
+        <button onClick={() => setBroadcastOpen(v => !v)}
           className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all"
           style={{ background: broadcastDone ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.08)', color: broadcastDone ? '#059669' : '#ef4444', border: `1px solid ${broadcastDone ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.2)'}` }}>
-          {broadcastDone ? '✓ แจ้งเตือนแล้ว' : broadcasting ? '...' : '📢 แจ้งเตือนชุมชน'}
+          {broadcastDone ? '✓ แจ้งเตือนแล้ว' : '📢 แจ้งเตือนชุมชน'}
         </button>
         <button onClick={() => onDelete(r.id)}
           className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all ml-auto"
