@@ -200,10 +200,38 @@ const STATUS_STYLES = {
 
 function ReportCard({ r, onSetStatus, onDelete }) {
   const st = STATUS_STYLES[r.status] ?? STATUS_STYLES.new;
-  const [replyOpen,  setReplyOpen]  = useState(false);
-  const [replyText,  setReplyText]  = useState('');
+  const [replyOpen,    setReplyOpen]    = useState(false);
+  const [replyText,    setReplyText]    = useState('');
   const [replySending, setReplySending] = useState(false);
-  const [replySent,  setReplySent]  = useState(false);
+  const [replySent,    setReplySent]    = useState(false);
+  const [broadcasting, setBroadcasting] = useState(false);
+  const [broadcastDone, setBroadcastDone] = useState(false);
+
+  const broadcastReport = async () => {
+    if (broadcasting) return;
+    setBroadcasting(true);
+    try {
+      const title = `รายงานจากพื้นที่ ${r.address?.split(',')[0] ?? 'ขอนแก่น'}`;
+      const body  = r.detail;
+
+      // โพสต์ลง Firestore (ฟีดชุมชน)
+      await addDoc(collection(db, 'announcements'), {
+        title, body, createdAt: serverTimestamp(),
+      });
+
+      // Broadcast ไป LINE OA
+      await fetch('/api/line-broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: '2569', title, body }),
+      });
+
+      setBroadcastDone(true);
+      setTimeout(() => setBroadcastDone(false), 2000);
+    } finally {
+      setBroadcasting(false);
+    }
+  };
 
   const sendReply = async () => {
     if (!replyText.trim() || replySending) return;
@@ -322,6 +350,11 @@ function ReportCard({ r, onSetStatus, onDelete }) {
           className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all"
           style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.25)' }}>
           📩 {r.adminReply?.text ? 'แก้ข้อความ' : 'ส่งข้อความ'}
+        </button>
+        <button onClick={broadcastReport} disabled={broadcasting}
+          className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all"
+          style={{ background: broadcastDone ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.08)', color: broadcastDone ? '#059669' : '#ef4444', border: `1px solid ${broadcastDone ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.2)'}` }}>
+          {broadcastDone ? '✓ แจ้งเตือนแล้ว' : broadcasting ? '...' : '📢 แจ้งเตือนชุมชน'}
         </button>
         <button onClick={() => onDelete(r.id)}
           className="text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all ml-auto"
