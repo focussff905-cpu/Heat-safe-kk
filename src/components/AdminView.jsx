@@ -219,11 +219,11 @@ function ReportCard({ r, onSetStatus, onDelete }) {
         title, body, createdAt: serverTimestamp(),
       });
 
-      // Broadcast ไป LINE OA
+      // Broadcast ไป LINE OA (พร้อมรูปถ้ามี)
       await fetch('/api/line-broadcast', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin: '2569', title, body }),
+        body: JSON.stringify({ pin: '2569', title, body, imageUrl: r.image ?? undefined }),
       });
 
       setBroadcastDone(true);

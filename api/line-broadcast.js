@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
   if (req.method !== 'POST')    { res.status(405).json({ error: 'Method not allowed' }); return; }
 
-  const { pin, title, body } = req.body ?? {};
+  const { pin, title, body, imageUrl } = req.body ?? {};
 
   if (!pin || String(pin) !== String(ADMIN_PIN)) {
     res.status(401).json({ error: 'รหัสไม่ถูกต้อง' });
@@ -23,7 +23,16 @@ export default async function handler(req, res) {
     return;
   }
 
-  const message = `🚨 ${title.trim()}\n\n${body.trim()}\n\n— ระบบติดตามสภาพแวดล้อม จ.ขอนแก่น`;
+  const text = `🚨 ${title.trim()}\n\n${body.trim()}\n\n— ระบบติดตามสภาพแวดล้อม จ.ขอนแก่น`;
+
+  const messages = [{ type: 'text', text }];
+  if (imageUrl) {
+    messages.push({
+      type: 'image',
+      originalContentUrl: imageUrl,
+      previewImageUrl:    imageUrl,
+    });
+  }
 
   const lineRes = await fetch('https://api.line.me/v2/bot/message/broadcast', {
     method: 'POST',
@@ -31,9 +40,7 @@ export default async function handler(req, res) {
       'Authorization': `Bearer ${LINE_TOKEN}`,
       'Content-Type':  'application/json',
     },
-    body: JSON.stringify({
-      messages: [{ type: 'text', text: message }],
-    }),
+    body: JSON.stringify({ messages }),
   });
 
   if (!lineRes.ok) {
