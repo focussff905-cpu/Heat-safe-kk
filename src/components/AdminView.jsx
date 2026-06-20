@@ -101,22 +101,28 @@ function AlertComposer() {
         createdAt: serverTimestamp(),
       });
 
-      // ส่ง push notification (ถ้ามี server)
-      try {
-        const res = await fetch('/api/admin-alert', {
+      // ส่ง LINE broadcast + push notification พร้อมกัน
+      const [lineRes, pushRes] = await Promise.allSettled([
+        fetch('/api/line-broadcast', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ pin: '2569', title, body }),
-        });
-        const data = await res.json();
-        setResult(data.ok
-          ? { ok: true,  msg: `โพสต์แล้ว · ส่ง push ${data.sent} คน` }
-          : { ok: true,  msg: 'โพสต์ลงชุมชนแล้ว (push ไม่สำเร็จ)' }
-        );
-      } catch {
-        setResult({ ok: true, msg: 'โพสต์ลงชุมชนแล้ว' });
-      }
+        }).then(r => r.json()),
+        fetch('/api/admin-alert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin: '2569', title, body }),
+        }).then(r => r.json()),
+      ]);
 
+      const lineOk = lineRes.status === 'fulfilled' && lineRes.value?.ok;
+      const pushOk = pushRes.status === 'fulfilled' && pushRes.value?.ok;
+      const parts  = [
+        lineOk ? '✓ LINE OA' : '✗ LINE',
+        pushOk ? `✓ Push ${pushRes.value?.sent ?? 0} คน` : null,
+      ].filter(Boolean);
+
+      setResult({ ok: true, msg: `โพสต์แล้ว · ${parts.join(' · ')}` });
       setTitle(''); setBody('');
     } catch {
       setResult({ ok: false, msg: 'เกิดข้อผิดพลาด กรุณาลองใหม่' });
