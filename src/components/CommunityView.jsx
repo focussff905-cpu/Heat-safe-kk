@@ -419,6 +419,17 @@ function AnnouncementCard({ item }) {
           <p className="text-xs text-slate-600 mt-1 leading-relaxed">{item.body}</p>
         </div>
       </div>
+      {item.imageUrl && (
+        <div className="px-4 pb-4">
+          <img
+            src={item.imageUrl}
+            alt="ภาพประกอบประกาศ"
+            className="w-full rounded-xl object-cover cursor-pointer"
+            style={{ maxHeight: '220px', border: '1px solid rgba(251,146,60,0.25)' }}
+            onClick={() => window.open(item.imageUrl, '_blank')}
+          />
+        </div>
+      )}
     </div>
   );
 }

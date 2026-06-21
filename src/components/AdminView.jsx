@@ -128,6 +128,7 @@ function AlertComposer() {
       await addDoc(collection(db, 'announcements'), {
         title:     title.trim(),
         body:      body.trim(),
+        imageUrl:  image?.url ?? null,
         createdAt: serverTimestamp(),
       });
 
