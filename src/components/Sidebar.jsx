@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   FaThermometerHalf, FaWind, FaFireAlt, FaSun, FaSearch, FaChevronLeft,
   FaChevronRight, FaChevronUp, FaChevronDown, FaTimes, FaMapMarkerAlt, FaTint, FaLeaf, FaEye,
-  FaEyeSlash, FaWater, FaSatelliteDish, FaSatellite,
+  FaEyeSlash, FaWater, FaSatelliteDish, FaSatellite, FaVideo,
 } from 'react-icons/fa';
 import {
   layerInfo, getTemperatureColor, getPM25Color, getPM25Level,
@@ -16,6 +16,7 @@ const LAYER_BUTTONS = [
   { id: 'stream',      label: 'ร่องน้ำ',                 icon: FaWater,           activeBg: 'rgba(14,165,233,0.10)',  activeBorder: 'rgba(14,165,233,0.4)',  iconColor: '#0EA5E9' },
   { id: 'monthly_temp',label: 'อุณหภูมิ MODIS รายเดือน', icon: FaSatelliteDish,   activeBg: 'rgba(139,92,246,0.10)', activeBorder: 'rgba(139,92,246,0.4)', iconColor: '#8B5CF6' },
   { id: 'himawari',   label: 'ติดตามสภาวะอากาศ',         icon: FaSatellite,       activeBg: 'rgba(8,145,178,0.10)',  activeBorder: 'rgba(8,145,178,0.4)', iconColor: '#0891b2' },
+  { id: 'cctv',       label: 'กล้อง CCTV จราจร',         icon: FaVideo,           activeBg: 'rgba(15,23,42,0.08)',   activeBorder: 'rgba(56,189,248,0.5)', iconColor: '#38bdf8' },
 ];
 
 /* ── Weather illustration SVG ── */

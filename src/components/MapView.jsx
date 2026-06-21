@@ -10,6 +10,7 @@ import StreamLayer from './layers/StreamLayer';
 import NASATempMonthlyLayer from './layers/NASATempMonthlyLayer';
 
 import HimawariLayer, { HIMAWARI_BANDS, generateFrames } from './layers/HimawariLayer';
+import CCTVLayer from './layers/CCTVLayer';
 import 'leaflet/dist/leaflet.css';
 
 const BASEMAPS = {
@@ -431,6 +432,8 @@ export default function MapView({ activeLayers, tambons, selectedDistrict, onDis
             time={t}
           />
         ))}
+
+        {has('cctv') && <CCTVLayer />}
       </MapContainer>
     </div>
   );
