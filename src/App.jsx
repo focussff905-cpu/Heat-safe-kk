@@ -58,6 +58,7 @@ export default function App() {
   const handleMapMove = useCallback((center, zoom) => setMapPosition({ center, zoom }), []);
 
   const [basemap, setBasemap] = useState('satellite');
+  const [heatRiskFilter, setHeatRiskFilter] = useState('all');
 
   const [mapPin, setMapPin] = useState(null);
   const [flyToTarget, setFlyToTarget] = useState(null);
@@ -67,6 +68,10 @@ export default function App() {
     setActiveLayers(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
+      // heatmap เปิด/ปิดพร้อมกับ heatrisk เสมอ
+      if (id === 'heatrisk') {
+        if (next.has('heatrisk')) next.add('heatmap'); else next.delete('heatmap');
+      }
       return next;
     });
     setInfoLayer(id);
@@ -116,6 +121,7 @@ export default function App() {
               onMapMove={handleMapMove}
               mapPin={mapPin}
               basemap={basemap}
+              heatRiskFilter={heatRiskFilter}
             />
           </div>
           <Sidebar
@@ -137,6 +143,8 @@ export default function App() {
             onLayerSettingChange={updateLayerSetting}
             basemap={basemap}
             onBasemapChange={setBasemap}
+            heatRiskFilter={heatRiskFilter}
+            onHeatRiskFilterChange={setHeatRiskFilter}
           />
           {activeLayers.has('temperature') && (
             <ForecastTimePicker datetime={forecastDatetime} onChange={setForecastDatetime} sidebarOpen={sidebarOpen} />

@@ -11,6 +11,8 @@ import NASATempMonthlyLayer from './layers/NASATempMonthlyLayer';
 
 import HimawariLayer, { HIMAWARI_BANDS, generateFrames } from './layers/HimawariLayer';
 import CCTVLayer from './layers/CCTVLayer';
+import HeatRiskLayer from './layers/HeatRiskLayer';
+import HeatmapLayer from './layers/HeatmapLayer';
 import 'leaflet/dist/leaflet.css';
 
 const BASEMAPS = {
@@ -310,7 +312,7 @@ function TambonPinMarker({ pin }) {
   );
 }
 
-export default function MapView({ activeLayers, tambons, selectedDistrict, onDistrictClick, onMapClick, forecastDatetime, layerSettings, selectedMonth, flyToTarget, initialCenter, initialZoom, onMapMove, mapPin, basemap = 'satellite' }) {
+export default function MapView({ activeLayers, tambons, selectedDistrict, onDistrictClick, onMapClick, forecastDatetime, layerSettings, selectedMonth, flyToTarget, initialCenter, initialZoom, onMapMove, mapPin, basemap = 'satellite', heatRiskFilter = 'all' }) {
   const [tempPoint, setTempPoint] = useState(null);
   const [himawariband, setHimawariband] = useState('ir');
   /* basemap + showMapBox are now controlled by parent */
@@ -434,6 +436,8 @@ export default function MapView({ activeLayers, tambons, selectedDistrict, onDis
         ))}
 
         {has('cctv') && <CCTVLayer />}
+        {has('heatrisk') && <HeatRiskLayer filter={heatRiskFilter} showFlood />}
+        {has('heatmap') && <HeatmapLayer opacity={s('heatmap').opacity} />}
       </MapContainer>
     </div>
   );

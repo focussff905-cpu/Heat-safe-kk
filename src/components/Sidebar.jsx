@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   FaThermometerHalf, FaWind, FaFireAlt, FaSun, FaSearch, FaChevronLeft,
   FaChevronRight, FaChevronUp, FaChevronDown, FaTimes, FaMapMarkerAlt, FaTint, FaLeaf, FaEye,
-  FaEyeSlash, FaWater, FaSatelliteDish, FaSatellite, FaVideo,
+  FaEyeSlash, FaWater, FaSatelliteDish, FaSatellite, FaVideo, FaShieldAlt,
 } from 'react-icons/fa';
 import {
   layerInfo, getTemperatureColor, getPM25Color, getPM25Level,
@@ -17,6 +17,7 @@ const LAYER_BUTTONS = [
   { id: 'monthly_temp',label: 'อุณหภูมิ MODIS รายเดือน', icon: FaSatelliteDish,   activeBg: 'rgba(139,92,246,0.10)', activeBorder: 'rgba(139,92,246,0.4)', iconColor: '#8B5CF6' },
   { id: 'himawari',   label: 'ติดตามสภาวะอากาศ',         icon: FaSatellite,       activeBg: 'rgba(8,145,178,0.10)',  activeBorder: 'rgba(8,145,178,0.4)', iconColor: '#0891b2' },
   { id: 'cctv',       label: 'กล้อง CCTV จราจร',         icon: FaVideo,           activeBg: 'rgba(15,23,42,0.08)',   activeBorder: 'rgba(56,189,248,0.5)', iconColor: '#38bdf8' },
+  { id: 'heatrisk',  label: 'จุดเฝ้าระวังความร้อน',     icon: FaShieldAlt,       activeBg: 'rgba(215,25,28,0.08)',  activeBorder: 'rgba(215,25,28,0.4)', iconColor: '#d7191c' },
 ];
 
 /* ── Weather illustration SVG ── */
@@ -330,6 +331,13 @@ const BASEMAP_OPTIONS = [
   )},
 ];
 
+const HEAT_RISK_FILTERS = [
+  { id: 'all',  label: 'ทั้งหมด' },
+  { id: 'high', label: '🔴 สูง' },
+  { id: 'mid',  label: '🟠 ปานกลาง' },
+  { id: 'low',  label: '🔵 จุดเย็น' },
+];
+
 export default function Sidebar({
   activeLayers, infoLayer, onLayerToggle,
   tambons, weatherStatus, lastUpdated, onRefreshWeather,
@@ -338,6 +346,7 @@ export default function Sidebar({
   isOpen, onToggle,
   layerSettings, onLayerSettingChange,
   basemap, onBasemapChange,
+  heatRiskFilter, onHeatRiskFilterChange,
 }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [externalResults, setExternalResults] = useState([]);
@@ -661,8 +670,25 @@ export default function Sidebar({
                       );
                     })()}
 
+                    {/* HeatRisk filter chips */}
+                    {isActive && btn.id === 'heatrisk' && (
+                      <div className="px-3.5 py-2 flex gap-1.5 flex-wrap"
+                        style={{ background: `${btn.iconColor}06`, borderTop: `1px solid ${btn.activeBorder}` }}>
+                        {HEAT_RISK_FILTERS.map(f => (
+                          <button key={f.id} onClick={() => onHeatRiskFilterChange?.(f.id)}
+                            className="px-2.5 py-1 rounded-full text-[10px] font-bold transition-all"
+                            style={{
+                              background: heatRiskFilter === f.id ? btn.iconColor : 'rgba(0,0,0,0.05)',
+                              color: heatRiskFilter === f.id ? '#fff' : '#64748b',
+                            }}>
+                            {f.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
                     {/* Opacity controls */}
-                    {isActive && (
+                    {isActive && btn.id !== 'heatrisk' && (
                       <div className="flex items-center gap-2.5 px-3.5 py-2"
                         style={{ background: `${btn.iconColor}06`, borderTop: `1px solid ${btn.activeBorder}` }}>
                         <button onClick={() => onLayerSettingChange(btn.id,'visible',!settings.visible)}
