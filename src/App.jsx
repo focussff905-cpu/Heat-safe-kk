@@ -16,6 +16,7 @@ import AdminView from './components/AdminView';
 import ReportView from './components/ReportView';
 import TrackView from './components/TrackView';
 import WelcomePopup from './components/WelcomePopup';
+import GuideModal from './components/GuideModal';
 
 export default function App() {
   const { tambons, forecast, dailyMax: omDailyMax, dailyMin: omDailyMin, status: weatherStatus, lastUpdated, refresh: refreshWeather } = useRealtimeWeather();
@@ -62,6 +63,7 @@ export default function App() {
 
   const [mapPin, setMapPin] = useState(null);
   const [flyToTarget, setFlyToTarget] = useState(null);
+  const [showGuide, setShowGuide] = useState(false);
 
   const handleLayerToggle = useCallback((id) => {
     const beingAdded = !activeLayers.has(id);
@@ -203,6 +205,28 @@ export default function App() {
 
       {/* ── Welcome popup ── */}
       {!isAdmin && <WelcomePopup tmdData={tmdData} tambons={tambons} forecast={forecast} />}
+
+      {/* ── Guide modal ── */}
+      {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
+
+      {/* ── Help button ── */}
+      {!isAdmin && (
+        <button
+          onClick={() => setShowGuide(true)}
+          className="fixed z-[1000] flex items-center justify-center rounded-full shadow-lg transition-all hover:scale-110 active:scale-95"
+          style={{
+            bottom: 'calc(52px + env(safe-area-inset-bottom, 0px) + 12px)',
+            right: '14px',
+            width: '36px',
+            height: '36px',
+            background: 'linear-gradient(135deg,#6366f1,#3b82f6)',
+            boxShadow: '0 4px 16px rgba(99,102,241,0.45)',
+          }}
+          title="คู่มือการใช้งาน"
+        >
+          <span className="text-white font-black text-base leading-none select-none">?</span>
+        </button>
+      )}
 
       {/* ── Bottom nav (hidden in admin mode) ── */}
       {!isAdmin && <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />}
