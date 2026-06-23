@@ -3,6 +3,7 @@ import {
   FaThermometerHalf, FaWind, FaFireAlt, FaSun, FaSearch, FaChevronLeft,
   FaChevronRight, FaChevronUp, FaChevronDown, FaTimes, FaMapMarkerAlt, FaTint, FaLeaf, FaEye,
   FaEyeSlash, FaWater, FaSatelliteDish, FaSatellite, FaVideo, FaShieldAlt,
+  FaRoad, FaGraduationCap, FaHome,
 } from 'react-icons/fa';
 import {
   layerInfo, getTemperatureColor, getPM25Color, getPM25Level,
@@ -17,7 +18,11 @@ const LAYER_BUTTONS = [
   { id: 'monthly_temp',label: 'อุณหภูมิ MODIS รายเดือน', icon: FaSatelliteDish,   activeBg: 'rgba(139,92,246,0.10)', activeBorder: 'rgba(139,92,246,0.4)', iconColor: '#8B5CF6' },
   { id: 'himawari',   label: 'ติดตามสภาวะอากาศ',         icon: FaSatellite,       activeBg: 'rgba(8,145,178,0.10)',  activeBorder: 'rgba(8,145,178,0.4)', iconColor: '#0891b2' },
   { id: 'cctv',       label: 'กล้อง CCTV จราจร',         icon: FaVideo,           activeBg: 'rgba(15,23,42,0.08)',   activeBorder: 'rgba(56,189,248,0.5)', iconColor: '#38bdf8' },
-  { id: 'heatrisk',  label: 'จุดเฝ้าระวังความร้อน',     icon: FaShieldAlt,       activeBg: 'rgba(215,25,28,0.08)',  activeBorder: 'rgba(215,25,28,0.4)', iconColor: '#d7191c' },
+  { id: 'heatrisk',        label: 'จุดเฝ้าระวังความร้อน',     icon: FaShieldAlt,       activeBg: 'rgba(215,25,28,0.08)',   activeBorder: 'rgba(215,25,28,0.4)',   iconColor: '#d7191c' },
+  { id: 'kmz_road_detail',label: 'ถนนรายละเอียด',             icon: FaRoad,            activeBg: 'rgba(217,119,6,0.10)',   activeBorder: 'rgba(217,119,6,0.4)',   iconColor: '#D97706' },
+  { id: 'kmz_road_main',  label: 'ถนนหลัก',                  icon: FaRoad,            activeBg: 'rgba(220,38,38,0.10)',   activeBorder: 'rgba(220,38,38,0.4)',   iconColor: '#DC2626' },
+  { id: 'kmz_school',     label: 'โรงเรียน',                  icon: FaGraduationCap,   activeBg: 'rgba(37,99,235,0.10)',   activeBorder: 'rgba(37,99,235,0.4)',   iconColor: '#2563EB' },
+  { id: 'kmz_village',    label: 'หมู่บ้าน',                  icon: FaHome,            activeBg: 'rgba(219,39,119,0.10)', activeBorder: 'rgba(219,39,119,0.4)', iconColor: '#DB2777' },
 ];
 
 /* ── Weather illustration SVG ── */

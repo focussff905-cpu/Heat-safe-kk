@@ -39,8 +39,12 @@ export default function App() {
     heat:         { visible: true, opacity: 0.78 },
     stream:       { visible: true, opacity: 0.85 },
     monthly_temp: { visible: true, opacity: 0.80 },
-    hotspot:      { visible: true, opacity: 0.90 },
-    himawari:     { visible: true, opacity: 0.85 },
+    hotspot:         { visible: true, opacity: 0.90 },
+    himawari:        { visible: true, opacity: 0.85 },
+    kmz_road_detail: { visible: true, opacity: 0.80 },
+    kmz_road_main:   { visible: true, opacity: 0.85 },
+    kmz_school:      { visible: true, opacity: 0.90 },
+    kmz_village:     { visible: true, opacity: 0.85 },
   });
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();

@@ -15,6 +15,93 @@ import HeatRiskLayer from './layers/HeatRiskLayer';
 import HeatmapLayer from './layers/HeatmapLayer';
 import 'leaflet/dist/leaflet.css';
 
+const KMZ_LAYER_DEFS = [
+  { id: 'kmz_road_detail', url: '/kmz/road_detail.kmz',  color: '#F59E0B', weight: 2   },
+  { id: 'kmz_road_main',   url: '/kmz/road_main.kmz',    color: '#EF4444', weight: 3   },
+  { id: 'kmz_school',      url: '/kmz/school.kmz',       color: '#3B82F6', weight: 2   },
+  { id: 'kmz_village',     url: '/kmz/village.kmz',      color: '#EC4899', weight: 2   },
+];
+
+function kmlDocToGeoJson(doc) {
+  const features = [];
+  const parseCoords = t => (t || '').trim().split(/\s+/).map(c => {
+    const p = c.split(',');
+    return [parseFloat(p[0]), parseFloat(p[1])];
+  }).filter(([x, y]) => !isNaN(x) && !isNaN(y));
+
+  for (const pm of doc.getElementsByTagName('Placemark')) {
+    const name = pm.querySelector('name')?.textContent || '';
+    const props = { name };
+    const ptc = pm.querySelector('Point coordinates');
+    if (ptc) {
+      const p = ptc.textContent.trim().split(',');
+      features.push({ type: 'Feature', properties: props, geometry: { type: 'Point', coordinates: [+p[0], +p[1]] } });
+      continue;
+    }
+    const lsc = pm.querySelector('LineString coordinates');
+    if (lsc) {
+      features.push({ type: 'Feature', properties: props, geometry: { type: 'LineString', coordinates: parseCoords(lsc.textContent) } });
+      continue;
+    }
+    const polyc = pm.querySelector('outerBoundaryIs coordinates') ||
+                  pm.querySelector('outerBoundaryIs LinearRing coordinates');
+    if (polyc) {
+      features.push({ type: 'Feature', properties: props, geometry: { type: 'Polygon', coordinates: [parseCoords(polyc.textContent)] } });
+    }
+  }
+  return { type: 'FeatureCollection', features };
+}
+
+function KMZLayer({ url, color, weight = 2, opacity = 0.75 }) {
+  const map = useMap();
+  const layerRef = useRef(null);
+  const retryRef = useRef(null);
+
+  useEffect(() => {
+    if (layerRef.current) { map.removeLayer(layerRef.current); layerRef.current = null; }
+    clearTimeout(retryRef.current);
+    let cancelled = false;
+
+    async function attempt() {
+      if (cancelled) return;
+      if (!window.JSZip) { retryRef.current = setTimeout(attempt, 400); return; }
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const buf = await res.arrayBuffer();
+        const zip = await window.JSZip.loadAsync(buf);
+        let kmlText = null;
+        for (const [fn, file] of Object.entries(zip.files)) {
+          if (fn.toLowerCase().endsWith('.kml')) { kmlText = await file.async('text'); break; }
+        }
+        if (!kmlText || cancelled) return;
+        const doc = new DOMParser().parseFromString(kmlText, 'text/xml');
+        const gj = window.toGeoJSON ? window.toGeoJSON.kml(doc) : kmlDocToGeoJson(doc);
+        if (cancelled) return;
+        const lyr = L.geoJSON(gj, {
+          style: { color, weight, opacity, fillOpacity: opacity * 0.35 },
+          pointToLayer: (_, ll) => L.circleMarker(ll, {
+            radius: 6, fillColor: color, color: '#fff', weight: 1.5, opacity: 1, fillOpacity: 0.9,
+          }),
+          onEachFeature: (f, l) => { if (f.properties?.name) l.bindPopup(f.properties.name); },
+        });
+        lyr.addTo(map);
+        layerRef.current = lyr;
+      } catch (e) {
+        if (!cancelled) console.warn('KMZ load error:', url, e);
+      }
+    }
+    attempt();
+    return () => {
+      cancelled = true;
+      clearTimeout(retryRef.current);
+      if (layerRef.current) { map.removeLayer(layerRef.current); layerRef.current = null; }
+    };
+  }, [map, url, color, weight, opacity]);
+
+  return null;
+}
+
 const BASEMAPS = {
   satellite: {
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -438,6 +525,10 @@ export default function MapView({ activeLayers, tambons, selectedDistrict, onDis
         {has('cctv') && <CCTVLayer />}
         {has('heatrisk') && <HeatRiskLayer filter={heatRiskFilter} showFlood />}
         {has('heatmap') && <HeatmapLayer opacity={s('heatmap').opacity} />}
+
+        {KMZ_LAYER_DEFS.filter(def => has(def.id) && s(def.id).visible).map(def => (
+          <KMZLayer key={def.id} url={def.url} color={def.color} weight={def.weight} opacity={s(def.id).opacity} />
+        ))}
       </MapContainer>
     </div>
   );
