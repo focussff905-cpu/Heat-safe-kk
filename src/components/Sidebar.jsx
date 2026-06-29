@@ -3,7 +3,7 @@ import {
   FaThermometerHalf, FaWind, FaFireAlt, FaSun, FaSearch, FaChevronLeft,
   FaChevronRight, FaChevronUp, FaChevronDown, FaTimes, FaMapMarkerAlt, FaTint, FaLeaf, FaEye,
   FaEyeSlash, FaWater, FaSatelliteDish, FaSatellite, FaVideo, FaShieldAlt,
-  FaRoad, FaGraduationCap, FaHome,
+  FaRoad, FaGraduationCap, FaHome, FaBuilding,
 } from 'react-icons/fa';
 import {
   layerInfo, getTemperatureColor, getPM25Color, getPM25Level,
@@ -19,10 +19,12 @@ const LAYER_BUTTONS = [
   { id: 'himawari',   label: 'ติดตามสภาวะอากาศ',         icon: FaSatellite,       activeBg: 'rgba(8,145,178,0.10)',  activeBorder: 'rgba(8,145,178,0.4)', iconColor: '#0891b2' },
   { id: 'cctv',       label: 'กล้อง CCTV จราจร',         icon: FaVideo,           activeBg: 'rgba(15,23,42,0.08)',   activeBorder: 'rgba(56,189,248,0.5)', iconColor: '#38bdf8' },
   { id: 'heatrisk',        label: 'จุดเฝ้าระวังความร้อน',     icon: FaShieldAlt,       activeBg: 'rgba(215,25,28,0.08)',   activeBorder: 'rgba(215,25,28,0.4)',   iconColor: '#d7191c' },
-  { id: 'kmz_road_detail',label: 'ถนนรายละเอียด',             icon: FaRoad,            activeBg: 'rgba(217,119,6,0.10)',   activeBorder: 'rgba(217,119,6,0.4)',   iconColor: '#D97706' },
+  { id: 'kmz_road_detail',label: 'ถนนรายละเอียด',             icon: FaRoad,            activeBg: 'rgba(34,197,94,0.10)',   activeBorder: 'rgba(34,197,94,0.4)',   iconColor: '#22C55E' },
   { id: 'kmz_road_main',  label: 'ถนนหลัก',                  icon: FaRoad,            activeBg: 'rgba(220,38,38,0.10)',   activeBorder: 'rgba(220,38,38,0.4)',   iconColor: '#DC2626' },
   { id: 'kmz_school',     label: 'โรงเรียน',                  icon: FaGraduationCap,   activeBg: 'rgba(37,99,235,0.10)',   activeBorder: 'rgba(37,99,235,0.4)',   iconColor: '#2563EB' },
   { id: 'kmz_village',    label: 'หมู่บ้าน',                  icon: FaHome,            activeBg: 'rgba(219,39,119,0.10)', activeBorder: 'rgba(219,39,119,0.4)', iconColor: '#DB2777' },
+  { id: 'building_density', label: 'ความหนาแน่นอาคาร',        icon: FaBuilding,        activeBg: 'rgba(180,83,9,0.10)',   activeBorder: 'rgba(180,83,9,0.4)',   iconColor: '#B45309' },
+  { id: 'open_buildings',   label: 'ขอบเขตอาคาร (ML)',        icon: FaBuilding,        activeBg: 'rgba(245,158,11,0.10)', activeBorder: 'rgba(245,158,11,0.4)', iconColor: '#F59E0B' },
 ];
 
 /* ── Weather illustration SVG ── */
@@ -125,6 +127,32 @@ function LayerRanking({ tambons, field, unit, colorFn, hiLabel, loLabel, decimal
   );
 }
 
+/* ── Building stats card ── */
+function BuildingStatsCard({ stats }) {
+  return (
+    <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(245,158,11,0.25)', background: 'rgba(254,243,199,0.4)' }}>
+      <div className="px-3 py-2 flex items-center gap-2" style={{ background: 'rgba(245,158,11,0.12)', borderBottom: '1px solid rgba(245,158,11,0.18)' }}>
+        <FaBuilding size={11} style={{ color: '#b45309' }} />
+        <span className="text-[11px] font-bold text-amber-800 uppercase tracking-widest">สถิติสิ่งปลูกสร้าง</span>
+      </div>
+      <div className="p-2 space-y-1">
+        {stats.map(({ label, value, unit }) => (
+          <div key={label} className="flex items-center justify-between px-1 py-1 rounded-xl hover:bg-amber-50 transition-colors">
+            <span className="text-[11px] text-slate-500 flex-1">{label}</span>
+            <div className="text-right">
+              <span className="text-[12px] font-bold text-amber-900">{value}</span>
+              <span className="text-[10px] text-slate-400 ml-1">{unit}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="px-3 py-1.5 text-[9px] text-slate-400" style={{ borderTop: '1px solid rgba(245,158,11,0.12)' }}>
+        ที่มา: Microsoft ML Building Footprints · OpenBuildingMap
+      </div>
+    </div>
+  );
+}
+
 /* ── District info card ── */
 function InfoCard({ selectedDistrict, activeLayer, onClear, tambons }) {
   const info = layerInfo[activeLayer];
@@ -139,20 +167,26 @@ function InfoCard({ selectedDistrict, activeLayer, onClear, tambons }) {
     return (
       <div className="animate-fade-in">
         <p className="text-xs text-slate-500 leading-relaxed mb-3">{info.description}</p>
-        <div className="rounded-2xl p-3" style={{ background: '#f0f7ff', border: '1px solid #e0eaff' }}>
-          <p className="text-xs text-blue-600 mb-2 font-medium">ระดับค่า ({info.unit})</p>
-          <LayerLegend layer={activeLayer} />
-        </div>
-        {activeLayer === 'temperature' && tambons?.length > 0 && (
-          <div className="mt-3"><LayerRanking tambons={tambons} field="temperature" unit="°C" colorFn={getTemperatureColor} hiLabel="ร้อน" loLabel="เย็น" /></div>
-        )}
-        {activeLayer === 'pm25' && tambons?.length > 0 && (
-          <div className="mt-3"><LayerRanking tambons={tambons} field="pm25" unit=" µg" decimals={0} colorFn={getPM25Color} hiLabel="มาก" loLabel="น้อย" /></div>
-        )}
-        {activeLayer !== 'temperature' && activeLayer !== 'pm25' && (
-          <div className="mt-3 rounded-2xl p-3" style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.2)' }}>
-            <p className="text-xs text-indigo-600">คลิกที่วงกลมบนแผนที่เพื่อดูข้อมูลรายละเอียด</p>
-          </div>
+        {info.stats ? (
+          <BuildingStatsCard stats={info.stats} />
+        ) : (
+          <>
+            <div className="rounded-2xl p-3" style={{ background: '#f0f7ff', border: '1px solid #e0eaff' }}>
+              <p className="text-xs text-blue-600 mb-2 font-medium">ระดับค่า ({info.unit})</p>
+              <LayerLegend layer={activeLayer} />
+            </div>
+            {activeLayer === 'temperature' && tambons?.length > 0 && (
+              <div className="mt-3"><LayerRanking tambons={tambons} field="temperature" unit="°C" colorFn={getTemperatureColor} hiLabel="ร้อน" loLabel="เย็น" /></div>
+            )}
+            {activeLayer === 'pm25' && tambons?.length > 0 && (
+              <div className="mt-3"><LayerRanking tambons={tambons} field="pm25" unit=" µg" decimals={0} colorFn={getPM25Color} hiLabel="มาก" loLabel="น้อย" /></div>
+            )}
+            {activeLayer !== 'temperature' && activeLayer !== 'pm25' && (
+              <div className="mt-3 rounded-2xl p-3" style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.2)' }}>
+                <p className="text-xs text-indigo-600">คลิกที่วงกลมบนแผนที่เพื่อดูข้อมูลรายละเอียด</p>
+              </div>
+            )}
+          </>
         )}
       </div>
     );

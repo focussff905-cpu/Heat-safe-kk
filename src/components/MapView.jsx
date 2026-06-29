@@ -13,10 +13,12 @@ import HimawariLayer, { HIMAWARI_BANDS, generateFrames } from './layers/Himawari
 import CCTVLayer from './layers/CCTVLayer';
 import HeatRiskLayer from './layers/HeatRiskLayer';
 import HeatmapLayer from './layers/HeatmapLayer';
+import BuildingDensityLayer from './layers/BuildingDensityLayer';
+import BuildingFootprintLayer from './layers/BuildingFootprintLayer';
 import 'leaflet/dist/leaflet.css';
 
 const KMZ_LAYER_DEFS = [
-  { id: 'kmz_road_detail', url: '/kmz/road_detail.kmz',  color: '#F59E0B', weight: 2   },
+  { id: 'kmz_road_detail', url: '/kmz/road_detail.kmz',  color: '#22C55E', weight: 2   },
   { id: 'kmz_road_main',   url: '/kmz/road_main.kmz',    color: '#EF4444', weight: 3   },
   { id: 'kmz_school',      url: '/kmz/school.kmz',       color: '#3B82F6', weight: 2   },
   { id: 'kmz_village',     url: '/kmz/village.kmz',      color: '#EC4899', weight: 2   },
@@ -525,11 +527,64 @@ export default function MapView({ activeLayers, tambons, selectedDistrict, onDis
         {has('cctv') && <CCTVLayer />}
         {has('heatrisk') && <HeatRiskLayer filter={heatRiskFilter} showFlood />}
         {has('heatmap') && <HeatmapLayer opacity={s('heatmap').opacity} />}
+        {has('building_density') && s('building_density').visible && (
+          <BuildingDensityLayer opacity={s('building_density').opacity} />
+        )}
+        {has('open_buildings') && s('open_buildings').visible && (
+          <BuildingFootprintLayer opacity={s('open_buildings').opacity} />
+        )}
 
         {KMZ_LAYER_DEFS.filter(def => has(def.id) && s(def.id).visible).map(def => (
           <KMZLayer key={def.id} url={def.url} color={def.color} weight={def.weight} opacity={s(def.id).opacity} />
         ))}
       </MapContainer>
+
+      {/* ── Building stats overlay ── */}
+      {has('open_buildings') && s('open_buildings').visible && (
+        <div style={{
+          position: 'absolute', top: 12, right: 12, zIndex: 1000,
+          background: '#ffffff',
+          border: '1px solid #e2e8f0',
+          borderRadius: 14,
+          minWidth: 210,
+          boxShadow: '0 2px 12px rgba(0,0,0,0.10)',
+          overflow: 'hidden',
+          pointerEvents: 'none',
+        }}>
+          <div style={{
+            padding: '7px 12px',
+            borderBottom: '1px solid #f1f5f9',
+            display: 'flex', alignItems: 'center', gap: 7,
+          }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="#f59e0b"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22" fill="none" stroke="#f59e0b" strokeWidth="2"/></svg>
+            <span style={{ fontSize: 10, fontWeight: 700, color: '#92400e', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              สิ่งปลูกสร้าง · ขอนแก่น
+            </span>
+          </div>
+          {[
+            { label: 'Count',                  value: '32,993',         unit: 'อาคาร' },
+            { label: 'พื้นที่ใช้สอย (GFA)',   value: '48,106,471.68',  unit: 'ตร.ม.' },
+            { label: 'Density',                value: '1,065,512.99',   unit: 'ตร.ม./ตร.กม.' },
+            { label: 'ประชากรเฉลี่ย',         value: '3.1',            unit: 'คน/อาคาร' },
+            { label: 'ความสูงเฉลี่ย',         value: '12.76',          unit: 'เมตร' },
+            { label: 'จำนวนชั้นเฉลี่ย',       value: '3.4',            unit: 'ชั้น' },
+            { label: 'ความหนาแน่นประชากร',    value: '0.21',           unit: 'คน/100 ตร.ม.' },
+          ].map(({ label, value, unit }) => (
+            <div key={label} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '5px 12px', borderBottom: '1px solid #f8fafc',
+            }}>
+              <span style={{ fontSize: 10, color: '#64748b' }}>{label}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#1e293b' }}>
+                {value} <span style={{ fontSize: 9, fontWeight: 400, color: '#94a3b8' }}>{unit}</span>
+              </span>
+            </div>
+          ))}
+          <div style={{ padding: '4px 12px', fontSize: 9, color: '#cbd5e1' }}>
+            Microsoft ML Building Footprints · OpenBuildingMap
+          </div>
+        </div>
+      )}
     </div>
   );
 }

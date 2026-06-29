@@ -204,4 +204,24 @@ export const layerInfo = {
       { color: '#4299e1', label: 'ไอน้ำ',         desc: '2 km/px' },
     ],
   },
+  open_buildings: {
+    id: 'open_buildings',
+    name: 'ขอบเขตอาคาร (ML)',
+    description: 'ข้อมูลขอบเขตอาคารจาก Microsoft ML Building Footprints ตรวจจับจากภาพถ่ายดาวเทียมด้วย AI ครอบคลุมพื้นที่อำเภอเมืองขอนแก่น',
+    unit: 'อาคาร',
+    legend: [
+      { color: '#fcd34d', label: 'อาคารทั่วไป',   desc: 'h < 10 ม.' },
+      { color: '#f59e0b', label: 'อาคารสูงปานกลาง', desc: '10–20 ม.' },
+      { color: '#b45309', label: 'อาคารสูง',       desc: '> 20 ม.' },
+    ],
+    stats: [
+      { label: 'สิ่งปลูกสร้าง',          value: '32,993',         unit: 'อาคาร' },
+      { label: 'พื้นที่ใช้สอย (GFA)',    value: '48,106,471.68',  unit: 'ตร.ม.' },
+      { label: 'Density',                 value: '1,065,512.99',   unit: 'ตร.ม./ตร.กม.' },
+      { label: 'ประชากรเฉลี่ย',          value: '3.1',            unit: 'คน/อาคาร' },
+      { label: 'ความสูงเฉลี่ย',          value: '12.76',          unit: 'เมตร' },
+      { label: 'จำนวนชั้นเฉลี่ย',        value: '3.4',            unit: 'ชั้น' },
+      { label: 'ความหนาแน่นประชากร',     value: '0.21',           unit: 'คน/100 ตร.ม.' },
+    ],
+  },
 };
