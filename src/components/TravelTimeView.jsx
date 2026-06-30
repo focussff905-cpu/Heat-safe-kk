@@ -44,7 +44,7 @@ const originIcon = L.divIcon({
 const schoolIcon = L.divIcon({
   className: '',
   html: `<div style="
-    width:28px;height:28px;border-radius:8px;
+    width:28px;height:28px;border-radius:50%;
     background:#fff;border:2px solid #3b82f6;
     display:flex;align-items:center;justify-content:center;
     box-shadow:0 2px 6px rgba(0,0,0,0.15);
@@ -56,7 +56,7 @@ const schoolIcon = L.divIcon({
 const cafeIcon = L.divIcon({
   className: '',
   html: `<div style="
-    width:28px;height:28px;border-radius:8px;
+    width:28px;height:28px;border-radius:50%;
     background:#fff;border:2px solid #f97316;
     display:flex;align-items:center;justify-content:center;
     box-shadow:0 2px 6px rgba(0,0,0,0.15);
@@ -96,7 +96,7 @@ function MapClickHandler({ onClick }) {
 const hospitalIconMarker = L.divIcon({
   className: '',
   html: `<div style="
-    width:28px;height:28px;border-radius:8px;
+    width:28px;height:28px;border-radius:50%;
     background:#fff;border:2px solid #ef4444;
     display:flex;align-items:center;justify-content:center;
     box-shadow:0 2px 6px rgba(0,0,0,0.15);
@@ -131,7 +131,7 @@ function HospitalLayer({ onHospitalClick }) {
 const mallIcon = L.divIcon({
   className: '',
   html: `<div style="
-    width:28px;height:28px;border-radius:8px;
+    width:28px;height:28px;border-radius:50%;
     background:#fff;border:2px solid #8b5cf6;
     display:flex;align-items:center;justify-content:center;
     box-shadow:0 2px 6px rgba(0,0,0,0.15);
