@@ -24,7 +24,7 @@ const LAYER_BUTTONS = [
   { id: 'kmz_school',     label: 'โรงเรียน',                  icon: FaGraduationCap,   activeBg: 'rgba(37,99,235,0.10)',   activeBorder: 'rgba(37,99,235,0.4)',   iconColor: '#2563EB' },
   { id: 'kmz_village',    label: 'หมู่บ้าน',                  icon: FaHome,            activeBg: 'rgba(219,39,119,0.10)', activeBorder: 'rgba(219,39,119,0.4)', iconColor: '#DB2777' },
   { id: 'building_density', label: 'ความหนาแน่นอาคาร',        icon: FaBuilding,        activeBg: 'rgba(180,83,9,0.10)',   activeBorder: 'rgba(180,83,9,0.4)',   iconColor: '#B45309' },
-  { id: 'open_buildings',   label: 'ขอบเขตอาคาร (ML)',        icon: FaBuilding,        activeBg: 'rgba(245,158,11,0.10)', activeBorder: 'rgba(245,158,11,0.4)', iconColor: '#F59E0B' },
+  { id: 'old_buildings',    label: 'อาคาร',                   icon: FaBuilding,        activeBg: 'rgba(245,158,11,0.10)',  activeBorder: 'rgba(245,158,11,0.4)',  iconColor: '#F59E0B' },
 ];
 
 /* ── Weather illustration SVG ── */

@@ -46,7 +46,7 @@ export default function App() {
     kmz_school:        { visible: true, opacity: 0.90 },
     kmz_village:       { visible: true, opacity: 0.85 },
     building_density:  { visible: true, opacity: 0.75 },
-    open_buildings:    { visible: true, opacity: 0.80 },
+    old_buildings:     { visible: true, opacity: 0.80 },
   });
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
