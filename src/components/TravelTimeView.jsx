@@ -4,6 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { KK_CENTER, KK_DEFAULT_ZOOM, KK_BOUNDS } from '../data/mockData';
 import { CAFES } from '../data/cafeData';
+import { HOSPITALS } from '../data/hospitalData';
 
 const ORS_KEY = import.meta.env.VITE_ORS_KEY;
 
@@ -88,6 +89,44 @@ function CafeLayer({ onCafeClick }) {
 
 function MapClickHandler({ onClick }) {
   useMapEvents({ click: e => onClick(e.latlng) });
+  return null;
+}
+
+function hospitalIcon(type) {
+  const color = type === 'รัฐบาล' ? '#3b82f6' : '#10b981';
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      width:28px;height:28px;border-radius:8px;
+      background:#fff;border:2px solid ${color};
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 2px 6px rgba(0,0,0,0.15);
+      font-size:16px;cursor:pointer;">🏥</div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+  });
+}
+
+function HospitalLayer({ onHospitalClick }) {
+  const map = useMap();
+  const layerRef = useRef(null);
+
+  useEffect(() => {
+    const lyr = L.layerGroup();
+    HOSPITALS.forEach(h => {
+      const marker = L.marker([h.lat, h.lng], { icon: hospitalIcon(h.type) });
+      marker.bindTooltip(`${h.name} (${h.type})`, { direction: 'top', offset: [0, -14] });
+      marker.on('click', (e) => {
+        L.DomEvent.stopPropagation(e);
+        onHospitalClick({ lat: h.lat, lng: h.lng }, h.name);
+      });
+      lyr.addLayer(marker);
+    });
+    lyr.addTo(map);
+    layerRef.current = lyr;
+    return () => { map.removeLayer(lyr); layerRef.current = null; };
+  }, [map, onHospitalClick]);
+
   return null;
 }
 
@@ -205,8 +244,9 @@ export default function TravelTimeView() {
   const [loading, setLoading]       = useState(false);
   const [error, setError]           = useState(null);
   const [showSchools, setShowSchools] = useState(true);
-  const [showCafes, setShowCafes]     = useState(true);
-  const [basemap, setBasemap]         = useState('light');
+  const [showCafes, setShowCafes]         = useState(true);
+  const [showHospitals, setShowHospitals] = useState(true);
+  const [basemap, setBasemap]             = useState('light');
   const geojsonKey = useRef(0);
 
   const toggleTime = useCallback((t) => {
@@ -238,7 +278,8 @@ export default function TravelTimeView() {
 
   const handleMapClick    = useCallback((latlng) => runIsochrone(latlng, null), [runIsochrone]);
   const handleSchoolClick = useCallback((latlng, name) => runIsochrone(latlng, name), [runIsochrone]);
-  const handleCafeClick   = useCallback((latlng, name) => runIsochrone(latlng, name), [runIsochrone]);
+  const handleCafeClick     = useCallback((latlng, name) => runIsochrone(latlng, name), [runIsochrone]);
+  const handleHospitalClick = useCallback((latlng, name) => runIsochrone(latlng, name), [runIsochrone]);
 
   const styleFeature = useCallback((feature) => {
     const seconds = feature.properties?.value ?? 0;
@@ -278,7 +319,8 @@ export default function TravelTimeView() {
         )}
         <MapClickHandler onClick={handleMapClick} />
         {showSchools && <SchoolLayer onSchoolClick={handleSchoolClick} />}
-        {showCafes  && <CafeLayer   onCafeClick={handleCafeClick} />}
+        {showCafes     && <CafeLayer     onCafeClick={handleCafeClick} />}
+        {showHospitals && <HospitalLayer onHospitalClick={handleHospitalClick} />}
 
         {geojson && (
           <GeoJSON
@@ -340,6 +382,19 @@ export default function TravelTimeView() {
         >
           <span style={{ fontSize: 16 }}>🏫</span>
           โรงเรียน
+        </button>
+        <button
+          onClick={() => setShowHospitals(v => !v)}
+          className="flex items-center gap-2 rounded-2xl px-3 py-2 text-xs font-semibold shadow-md transition-all"
+          style={{
+            background: showHospitals ? '#eff6ff' : 'rgba(255,255,255,0.97)',
+            color:      showHospitals ? '#3b82f6' : '#94a3b8',
+            border:     showHospitals ? '1.5px solid #93c5fd' : '1.5px solid #e2e8f0',
+            backdropFilter: 'blur(12px)',
+          }}
+        >
+          <span style={{ fontSize: 16 }}>🏥</span>
+          โรงพยาบาล
         </button>
         <button
           onClick={() => setShowCafes(v => !v)}
