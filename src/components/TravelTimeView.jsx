@@ -91,6 +91,10 @@ function MapClickHandler({ onClick }) {
   return null;
 }
 
+const SCHOOL_NAME_OVERRIDES = {
+  'โรงเรียนหนองแวงวิทยา': 'โรงเรียนเทศบาลวัดกลาง',
+};
+
 function kmlDocToGeoJson(doc) {
   const features = [];
   const parseCoords = t => (t || '').trim().split(/\s+/).map(c => {
@@ -143,11 +147,13 @@ function SchoolLayer({ onSchoolClick }) {
                 && lng >= KK_BOUNDS[0][1] && lng <= KK_BOUNDS[1][1];
           },
           pointToLayer: (feature, ll) => {
+            const rawName = feature.properties?.name || 'โรงเรียน';
+            const name = SCHOOL_NAME_OVERRIDES[rawName] ?? rawName;
             const marker = L.marker(ll, { icon: schoolIcon });
-            marker.bindTooltip(feature.properties?.name || 'โรงเรียน', { direction: 'top', offset: [0, -14] });
+            marker.bindTooltip(name, { direction: 'top', offset: [0, -14] });
             marker.on('click', (e) => {
               L.DomEvent.stopPropagation(e);
-              onSchoolClick({ lat: ll.lat, lng: ll.lng }, feature.properties?.name || 'โรงเรียน');
+              onSchoolClick({ lat: ll.lat, lng: ll.lng }, name);
             });
             return marker;
           },
