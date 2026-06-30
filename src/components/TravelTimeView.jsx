@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, GeoJSON, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { KK_CENTER, KK_DEFAULT_ZOOM } from '../data/mockData';
+import { KK_CENTER, KK_DEFAULT_ZOOM, KK_BOUNDS } from '../data/mockData';
 
 const ORS_KEY = import.meta.env.VITE_ORS_KEY;
 
@@ -94,7 +94,12 @@ function SchoolLayer({ onSchoolClick }) {
         if (cancelled) return;
 
         const lyr = L.geoJSON(gj, {
-          filter: f => f.geometry?.type === 'Point',
+          filter: f => {
+            if (f.geometry?.type !== 'Point') return false;
+            const [lng, lat] = f.geometry.coordinates;
+            return lat >= KK_BOUNDS[0][0] && lat <= KK_BOUNDS[1][0]
+                && lng >= KK_BOUNDS[0][1] && lng <= KK_BOUNDS[1][1];
+          },
           pointToLayer: (feature, ll) => {
             const marker = L.marker(ll, { icon: schoolIcon });
             marker.bindTooltip(feature.properties?.name || 'โรงเรียน', { direction: 'top', offset: [0, -14] });
