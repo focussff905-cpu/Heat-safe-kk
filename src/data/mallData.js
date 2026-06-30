@@ -1,0 +1,17 @@
+export const MALLS = [
+  { name: 'Central Khon Kaen',                 lat: 16.433780, lng: 102.825550 },
+  { name: 'Central Khonkaen Campus',            lat: 16.462720, lng: 102.830470 },
+  { name: 'Fairy Plaza',                        lat: 16.430030, lng: 102.835640 },
+  { name: 'Hugz Mall',                          lat: 16.430940, lng: 102.835120 },
+  { name: "Lotus's Khonkaen",                   lat: 16.403360, lng: 102.814350 },
+  { name: 'Big C Supercenter Khon Kaen 1',      lat: 16.401210, lng: 102.814420 },
+  { name: 'Big C Supercenter Khon Kaen 2',      lat: 16.406580, lng: 102.811620 },
+  { name: 'Makro Khon Kaen',                    lat: 16.418250, lng: 102.806980 },
+  { name: 'Index Living Mall Khon Kaen',        lat: 16.399540, lng: 102.808350 },
+  { name: 'HomePro & MegaHome Khon Kaen',       lat: 16.406830, lng: 102.811480 },
+  { name: 'Global House Khon Kaen',             lat: 16.453640, lng: 102.824250 },
+  { name: 'Thai Watsadu Khon Kaen',             lat: 16.396520, lng: 102.805510 },
+  { name: 'Do Home Khon Kaen',                  lat: 16.505470, lng: 102.844860 },
+  { name: 'Tukcom Khon Kaen',                   lat: 16.431870, lng: 102.836020 },
+  { name: 'KaenKa Mall',                        lat: 16.421140, lng: 102.844960 },
+];

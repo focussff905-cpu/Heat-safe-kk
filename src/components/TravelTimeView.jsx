@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import { KK_CENTER, KK_DEFAULT_ZOOM, KK_BOUNDS } from '../data/mockData';
 import { CAFES } from '../data/cafeData';
 import { HOSPITALS } from '../data/hospitalData';
+import { MALLS } from '../data/mallData';
 
 const ORS_KEY = import.meta.env.VITE_ORS_KEY;
 
@@ -127,6 +128,41 @@ function HospitalLayer({ onHospitalClick }) {
   return null;
 }
 
+const mallIcon = L.divIcon({
+  className: '',
+  html: `<div style="
+    width:28px;height:28px;border-radius:8px;
+    background:#fff;border:2px solid #8b5cf6;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 2px 6px rgba(0,0,0,0.15);
+    font-size:16px;cursor:pointer;">🛍️</div>`,
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
+});
+
+function MallLayer({ onMallClick }) {
+  const map = useMap();
+  const layerRef = useRef(null);
+
+  useEffect(() => {
+    const lyr = L.layerGroup();
+    MALLS.forEach(m => {
+      const marker = L.marker([m.lat, m.lng], { icon: mallIcon });
+      marker.bindTooltip(m.name, { direction: 'top', offset: [0, -14] });
+      marker.on('click', (e) => {
+        L.DomEvent.stopPropagation(e);
+        onMallClick({ lat: m.lat, lng: m.lng }, m.name);
+      });
+      lyr.addLayer(marker);
+    });
+    lyr.addTo(map);
+    layerRef.current = lyr;
+    return () => { map.removeLayer(lyr); layerRef.current = null; };
+  }, [map, onMallClick]);
+
+  return null;
+}
+
 const SCHOOL_NAME_OVERRIDES = {
   'โรงเรียนหนองแวงวิทยา': 'โรงเรียนเทศบาลวัดกลาง',
 };
@@ -243,6 +279,7 @@ export default function TravelTimeView() {
   const [showSchools, setShowSchools] = useState(true);
   const [showCafes, setShowCafes]         = useState(true);
   const [showHospitals, setShowHospitals] = useState(true);
+  const [showMalls, setShowMalls]         = useState(true);
   const [basemap, setBasemap]             = useState('light');
   const geojsonKey = useRef(0);
 
@@ -277,6 +314,7 @@ export default function TravelTimeView() {
   const handleSchoolClick = useCallback((latlng, name) => runIsochrone(latlng, name), [runIsochrone]);
   const handleCafeClick     = useCallback((latlng, name) => runIsochrone(latlng, name), [runIsochrone]);
   const handleHospitalClick = useCallback((latlng, name) => runIsochrone(latlng, name), [runIsochrone]);
+  const handleMallClick     = useCallback((latlng, name) => runIsochrone(latlng, name), [runIsochrone]);
 
   const styleFeature = useCallback((feature) => {
     const seconds = feature.properties?.value ?? 0;
@@ -318,6 +356,7 @@ export default function TravelTimeView() {
         {showSchools && <SchoolLayer onSchoolClick={handleSchoolClick} />}
         {showCafes     && <CafeLayer     onCafeClick={handleCafeClick} />}
         {showHospitals && <HospitalLayer onHospitalClick={handleHospitalClick} />}
+        {showMalls     && <MallLayer     onMallClick={handleMallClick} />}
 
         {geojson && (
           <GeoJSON
@@ -379,6 +418,19 @@ export default function TravelTimeView() {
         >
           <span style={{ fontSize: 16 }}>🏫</span>
           โรงเรียน
+        </button>
+        <button
+          onClick={() => setShowMalls(v => !v)}
+          className="flex items-center gap-2 rounded-2xl px-3 py-2 text-xs font-semibold shadow-md transition-all"
+          style={{
+            background: showMalls ? '#f5f3ff' : 'rgba(255,255,255,0.97)',
+            color:      showMalls ? '#8b5cf6' : '#94a3b8',
+            border:     showMalls ? '1.5px solid #c4b5fd' : '1.5px solid #e2e8f0',
+            backdropFilter: 'blur(12px)',
+          }}
+        >
+          <span style={{ fontSize: 16 }}>🛍️</span>
+          ห้างสรรพสินค้า
         </button>
         <button
           onClick={() => setShowHospitals(v => !v)}
