@@ -15,6 +15,7 @@ import HeatRiskLayer from './layers/HeatRiskLayer';
 import HeatmapLayer from './layers/HeatmapLayer';
 import BuildingDensityLayer from './layers/BuildingDensityLayer';
 import OldBuildingLayer from './layers/OldBuildingLayer';
+import ReportPinsLayer from './layers/ReportPinsLayer';
 import 'leaflet/dist/leaflet.css';
 
 const KMZ_LAYER_DEFS = [
@@ -537,6 +538,8 @@ export default function MapView({ activeLayers, tambons, selectedDistrict, onDis
         {KMZ_LAYER_DEFS.filter(def => has(def.id) && s(def.id).visible).map(def => (
           <KMZLayer key={def.id} url={def.url} color={def.color} weight={def.weight} opacity={s(def.id).opacity} />
         ))}
+
+        <ReportPinsLayer />
       </MapContainer>
     </div>
   );

@@ -259,6 +259,14 @@ const STATUS_STYLES = {
   resolved: { label: 'แก้ไขแล้ว', bg: 'rgba(16,185,129,0.1)',  color: '#059669' },
 };
 
+const TYPE_STYLES = {
+  flood:    { label: 'น้ำท่วม',    icon: '🌊', color: '#3b82f6' },
+  accident: { label: 'อุบัติเหตุ', icon: '🚨', color: '#ef4444' },
+  complain: { label: 'ร้องเรียน',  icon: '📢', color: '#f97316' },
+  rain:     { label: 'ฝนตก',       icon: '🌧️', color: '#0ea5e9' },
+  weather:  { label: 'สภาพอากาศ', icon: '⛅', color: '#64748b' },
+};
+
 function ReportCard({ r, onSetStatus, onDelete }) {
   const st = STATUS_STYLES[r.status] ?? STATUS_STYLES.new;
   const [replyOpen,    setReplyOpen]    = useState(false);
@@ -328,6 +336,18 @@ function ReportCard({ r, onSetStatus, onDelete }) {
       {/* Top row */}
       <div className="flex items-start gap-2.5">
         <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+            {r.type && TYPE_STYLES[r.type] && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                style={{
+                  background: TYPE_STYLES[r.type].color + '18',
+                  color: TYPE_STYLES[r.type].color,
+                  border: `1px solid ${TYPE_STYLES[r.type].color}40`,
+                }}>
+                {TYPE_STYLES[r.type].icon} {TYPE_STYLES[r.type].label}
+              </span>
+            )}
+          </div>
           <p className="font-bold text-sm text-slate-800 leading-tight truncate">{r.address ?? r.location}</p>
           {r.lat && r.lng && (
             <a href={`https://www.google.com/maps?q=${r.lat},${r.lng}`}

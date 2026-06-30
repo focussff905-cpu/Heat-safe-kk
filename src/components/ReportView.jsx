@@ -4,6 +4,14 @@ import { db } from '../firebase';
 
 const IMGBB_KEY = 'b48174b520f12cf5eb763cff034282cd';
 
+const REPORT_TYPES = [
+  { id: 'flood',    label: 'น้ำท่วม',     icon: '🌊', color: '#3b82f6' },
+  { id: 'accident', label: 'อุบัติเหตุ',  icon: '🚨', color: '#ef4444' },
+  { id: 'complain', label: 'ร้องเรียน',   icon: '📢', color: '#f97316' },
+  { id: 'rain',     label: 'ฝนตก',        icon: '🌧️', color: '#0ea5e9' },
+  { id: 'weather',  label: 'สภาพอากาศ',  icon: '⛅', color: '#64748b' },
+];
+
 async function uploadToImgBB(blob) {
   const form = new FormData();
   form.append('image', blob, 'report.jpg');
@@ -51,13 +59,14 @@ export default function ReportView() {
   const [imgLoading, setImgLoading] = useState(false);
   const [name,      setName]      = useState('');
   const [phone,     setPhone]     = useState('');
+  const [reportType,  setReportType]  = useState('');
   const [submitted,   setSubmitted]   = useState(false);
   const [trackingId,  setTrackingId]  = useState('');
   const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState('');
   const fileRef = useRef(null);
 
-  const canSubmit = location && detail.trim() && image;
+  const canSubmit = location && detail.trim() && image && reportType;
 
   const getLocation = () => {
     if (!navigator.geolocation) { setGeoError('อุปกรณ์นี้ไม่รองรับ GPS'); setGeoStatus('error'); return; }
@@ -116,6 +125,7 @@ export default function ReportView() {
         image:     imageUrl,
         name:      name.trim() || 'ไม่ระบุ',
         phone:     phone.trim() || 'ไม่ระบุ',
+        type:      reportType,
         status:    'new',
         createdAt: serverTimestamp(),
       });
@@ -146,7 +156,7 @@ export default function ReportView() {
     if (image?.preview) URL.revokeObjectURL(image.preview);
     setLocation(null); setGeoStatus('idle'); setGeoError('');
     setDetail(''); setImage(null); setName(''); setPhone('');
-    setSubmitted(false); setError('');
+    setReportType(''); setSubmitted(false); setError('');
   };
 
   /* ── Success screen ── */
@@ -222,6 +232,31 @@ export default function ReportView() {
           <div>
             <p className="font-black text-slate-800 text-lg leading-tight">แจ้งเหตุ</p>
             <p className="text-xs text-slate-400">ระบบติดตามสภาพแวดล้อม จ.ขอนแก่น</p>
+          </div>
+        </div>
+
+        {/* Report type */}
+        <div>
+          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-2">
+            ประเภทการแจ้งเตือน <span className="text-red-400">*</span>
+          </p>
+          <div className="grid grid-cols-3 gap-2">
+            {REPORT_TYPES.map(t => (
+              <button
+                key={t.id}
+                onClick={() => setReportType(t.id)}
+                className="flex flex-col items-center gap-1 py-3 rounded-2xl text-xs font-bold transition-all active:scale-95"
+                style={{
+                  background:  reportType === t.id ? t.color + '18' : 'white',
+                  border:      reportType === t.id ? `2px solid ${t.color}` : '1.5px solid #e0eaff',
+                  color:       reportType === t.id ? t.color : '#94a3b8',
+                  boxShadow:   reportType === t.id ? `0 2px 8px ${t.color}30` : 'none',
+                }}
+              >
+                <span style={{ fontSize: 22 }}>{t.icon}</span>
+                {t.label}
+              </button>
+            ))}
           </div>
         </div>
 
