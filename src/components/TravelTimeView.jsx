@@ -237,6 +237,23 @@ export default function TravelTimeView() {
         {origin && <Marker position={origin} icon={originIcon} />}
       </MapContainer>
 
+      {/* ── Layer toggles (right) ── */}
+      <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
+        <button
+          onClick={() => setShowSchools(v => !v)}
+          className="flex items-center gap-2 rounded-2xl px-3 py-2 text-xs font-semibold shadow-md transition-all"
+          style={{
+            background: showSchools ? '#eff6ff' : 'rgba(255,255,255,0.97)',
+            color:      showSchools ? '#3b82f6' : '#94a3b8',
+            border:     showSchools ? '1.5px solid #93c5fd' : '1.5px solid #e2e8f0',
+            backdropFilter: 'blur(12px)',
+          }}
+        >
+          <span style={{ fontSize: 16 }}>🏫</span>
+          โรงเรียน
+        </button>
+      </div>
+
       {/* ── Control panel ── */}
       <div
         className="absolute top-3 left-1/2 z-[1000] w-[calc(100%-24px)] max-w-sm"
@@ -308,21 +325,6 @@ export default function TravelTimeView() {
                 </button>
               );
             })}
-          </div>
-
-          {/* Layer toggles */}
-          <div className="flex gap-2 mt-2">
-            <button
-              onClick={() => setShowSchools(v => !v)}
-              className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all"
-              style={{
-                background: showSchools ? '#eff6ff' : '#f1f5f9',
-                color:      showSchools ? '#3b82f6' : '#94a3b8',
-                border:     showSchools ? '1.5px solid #93c5fd' : '1.5px solid transparent',
-              }}
-            >
-              🏫 โรงเรียน {showSchools ? 'เปิด' : 'ปิด'}
-            </button>
           </div>
 
           {/* Legend */}
