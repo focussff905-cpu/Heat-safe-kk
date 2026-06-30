@@ -156,6 +156,7 @@ export default function TravelTimeView() {
   const [geojson, setGeojson]       = useState(null);
   const [loading, setLoading]       = useState(false);
   const [error, setError]           = useState(null);
+  const [showSchools, setShowSchools] = useState(true);
   const geojsonKey = useRef(0);
 
   const toggleTime = useCallback((t) => {
@@ -217,7 +218,7 @@ export default function TravelTimeView() {
           attribution='© OpenStreetMap © CARTO'
         />
         <MapClickHandler onClick={handleMapClick} />
-        <SchoolLayer onSchoolClick={handleSchoolClick} />
+        {showSchools && <SchoolLayer onSchoolClick={handleSchoolClick} />}
 
         {geojson && (
           <GeoJSON
@@ -307,6 +308,21 @@ export default function TravelTimeView() {
                 </button>
               );
             })}
+          </div>
+
+          {/* Layer toggles */}
+          <div className="flex gap-2 mt-2">
+            <button
+              onClick={() => setShowSchools(v => !v)}
+              className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all"
+              style={{
+                background: showSchools ? '#eff6ff' : '#f1f5f9',
+                color:      showSchools ? '#3b82f6' : '#94a3b8',
+                border:     showSchools ? '1.5px solid #93c5fd' : '1.5px solid transparent',
+              }}
+            >
+              🏫 โรงเรียน {showSchools ? 'เปิด' : 'ปิด'}
+            </button>
           </div>
 
           {/* Legend */}
