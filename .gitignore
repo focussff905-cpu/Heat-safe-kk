@@ -9,4 +9,6 @@ dist/
 *.zip
 Old_Cellsize03/
 Old_Cellsize03_extracted/
+# ยกเว้นไฟล์ geojson ใน public/data ที่ app ใช้งาน
 *.geojson
+!public/data/*.geojson
