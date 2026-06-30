@@ -1,5 +1,5 @@
-import { useState, useCallback, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, GeoJSON, useMapEvents } from 'react-leaflet';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, GeoJSON, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { KK_CENTER, KK_DEFAULT_ZOOM } from '../data/mockData';
@@ -32,8 +32,93 @@ const originIcon = L.divIcon({
   iconAnchor: [9, 9],
 });
 
+const schoolIcon = L.divIcon({
+  className: '',
+  html: `<div style="
+    width:28px;height:28px;border-radius:8px;
+    background:#fff;border:2px solid #3b82f6;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 2px 6px rgba(0,0,0,0.15);
+    font-size:16px;cursor:pointer;">🏫</div>`,
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
+});
+
 function MapClickHandler({ onClick }) {
   useMapEvents({ click: e => onClick(e.latlng) });
+  return null;
+}
+
+function kmlDocToGeoJson(doc) {
+  const features = [];
+  const parseCoords = t => (t || '').trim().split(/\s+/).map(c => {
+    const p = c.split(',');
+    return [parseFloat(p[0]), parseFloat(p[1])];
+  }).filter(([x, y]) => !isNaN(x) && !isNaN(y));
+
+  for (const pm of doc.getElementsByTagName('Placemark')) {
+    const name = pm.querySelector('name')?.textContent || '';
+    const ptc = pm.querySelector('Point coordinates');
+    if (ptc) {
+      const p = ptc.textContent.trim().split(',');
+      features.push({ type: 'Feature', properties: { name }, geometry: { type: 'Point', coordinates: [+p[0], +p[1]] } });
+    }
+  }
+  return { type: 'FeatureCollection', features };
+}
+
+function SchoolLayer({ onSchoolClick }) {
+  const map = useMap();
+  const layerRef = useRef(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const res = await fetch('/kmz/school.kmz');
+        if (!res.ok || cancelled) return;
+        const buf = await res.arrayBuffer();
+
+        let kmlText = null;
+        if (window.JSZip) {
+          const zip = await window.JSZip.loadAsync(buf);
+          for (const [fn, file] of Object.entries(zip.files)) {
+            if (fn.toLowerCase().endsWith('.kml')) { kmlText = await file.async('text'); break; }
+          }
+        }
+        if (!kmlText || cancelled) return;
+
+        const doc = new DOMParser().parseFromString(kmlText, 'text/xml');
+        const gj = window.toGeoJSON ? window.toGeoJSON.kml(doc) : kmlDocToGeoJson(doc);
+        if (cancelled) return;
+
+        const lyr = L.geoJSON(gj, {
+          filter: f => f.geometry?.type === 'Point',
+          pointToLayer: (feature, ll) => {
+            const marker = L.marker(ll, { icon: schoolIcon });
+            marker.bindTooltip(feature.properties?.name || 'โรงเรียน', { direction: 'top', offset: [0, -14] });
+            marker.on('click', (e) => {
+              L.DomEvent.stopPropagation(e);
+              onSchoolClick({ lat: ll.lat, lng: ll.lng }, feature.properties?.name || 'โรงเรียน');
+            });
+            return marker;
+          },
+        });
+        lyr.addTo(map);
+        layerRef.current = lyr;
+      } catch (e) {
+        console.warn('School KMZ load error:', e);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+      if (layerRef.current) { map.removeLayer(layerRef.current); layerRef.current = null; }
+    };
+  }, [map, onSchoolClick]);
+
   return null;
 }
 
@@ -60,6 +145,7 @@ async function fetchIsochrones(lat, lng, profile, minutes) {
 
 export default function TravelTimeView() {
   const [origin, setOrigin]         = useState(null);
+  const [originName, setOriginName] = useState(null);
   const [mode, setMode]             = useState('driving-car');
   const [times, setTimes]           = useState([15, 30]);
   const [geojson, setGeojson]       = useState(null);
@@ -73,11 +159,12 @@ export default function TravelTimeView() {
     );
   }, []);
 
-  const handleMapClick = useCallback(async (latlng) => {
+  const runIsochrone = useCallback(async (latlng, name = null) => {
     if (!ORS_KEY) { setError('ยังไม่ได้ตั้งค่า VITE_ORS_KEY ใน .env'); return; }
     if (times.length === 0) { setError('เลือกช่วงเวลาอย่างน้อย 1 รายการ'); return; }
 
     setOrigin(latlng);
+    setOriginName(name);
     setError(null);
     setLoading(true);
     setGeojson(null);
@@ -92,6 +179,9 @@ export default function TravelTimeView() {
       setLoading(false);
     }
   }, [mode, times]);
+
+  const handleMapClick  = useCallback((latlng) => runIsochrone(latlng, null), [runIsochrone]);
+  const handleSchoolClick = useCallback((latlng, name) => runIsochrone(latlng, name), [runIsochrone]);
 
   const styleFeature = useCallback((feature) => {
     const seconds = feature.properties?.value ?? 0;
@@ -122,8 +212,8 @@ export default function TravelTimeView() {
           attribution='© OpenStreetMap © CARTO'
         />
         <MapClickHandler onClick={handleMapClick} />
+        <SchoolLayer onSchoolClick={handleSchoolClick} />
 
-        {/* Isochrone polygons — render largest first so smaller ones sit on top */}
         {geojson && (
           <GeoJSON
             key={geojsonKey.current}
@@ -163,9 +253,11 @@ export default function TravelTimeView() {
             >
               <span style={{ fontSize: 16 }}>←</span>
             </button>
-            <div>
+            <div className="flex-1 min-w-0">
               <div className="font-bold text-sm" style={{ color: '#1e293b' }}>Travel Time Map</div>
-              <div className="text-[10px]" style={{ color: '#94a3b8' }}>คลิกบนแผนที่เพื่อเลือกจุดเริ่มต้น</div>
+              <div className="text-[10px] truncate" style={{ color: '#94a3b8' }}>
+                {originName ? `📍 ${originName}` : 'คลิกแผนที่หรือ 🏫 โรงเรียนเพื่อเลือกจุดเริ่มต้น'}
+              </div>
             </div>
           </div>
 
@@ -245,8 +337,7 @@ export default function TravelTimeView() {
         {!ORS_KEY && (
           <div className="mt-2 text-xs py-2 px-4 rounded-xl"
             style={{ background: '#fffbeb', color: '#92400e', border: '1px solid #fde68a' }}>
-            ⚙️ ตั้งค่า <code>VITE_ORS_KEY</code> ใน .env เพื่อใช้งาน<br />
-            รับ API key ฟรีที่ openrouteservice.org
+            ⚙️ ตั้งค่า <code>VITE_ORS_KEY</code> ใน .env เพื่อใช้งาน
           </div>
         )}
       </div>
