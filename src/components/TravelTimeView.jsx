@@ -42,6 +42,39 @@ const originIcon = L.divIcon({
   iconAnchor: [9, 9],
 });
 
+const userLocationIcon = L.divIcon({
+  className: '',
+  html: `<div style="position:relative;width:24px;height:24px">
+    <div style="
+      position:absolute;inset:0;border-radius:50%;
+      background:rgba(59,130,246,0.25);
+      animation:pulse-ring 1.8s ease-out infinite">
+    </div>
+    <div style="
+      position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+      width:14px;height:14px;border-radius:50%;
+      background:#2563eb;border:3px solid #fff;
+      box-shadow:0 2px 8px rgba(37,99,235,0.7)">
+    </div>
+  </div>
+  <style>
+    @keyframes pulse-ring {
+      0%   { transform:scale(0.5); opacity:1; }
+      100% { transform:scale(2.2); opacity:0; }
+    }
+  </style>`,
+  iconSize: [24, 24],
+  iconAnchor: [12, 12],
+});
+
+function FlyTo({ latlng }) {
+  const map = useMap();
+  useEffect(() => {
+    if (latlng) map.flyTo([latlng.lat, latlng.lng], 14, { duration: 1.2 });
+  }, [map, latlng]);
+  return null;
+}
+
 const schoolIcon = L.divIcon({
   className: '',
   html: `<div style="
@@ -312,6 +345,9 @@ export default function TravelTimeView() {
   const [geojson, setGeojson]       = useState(null);
   const [loading, setLoading]       = useState(false);
   const [error, setError]           = useState(null);
+  const [userLocation, setUserLocation]   = useState(null);
+  const [locating, setLocating]           = useState(false);
+  const [flyTarget, setFlyTarget]         = useState(null);
   const [showSchools, setShowSchools] = useState(true);
   const [showCafes, setShowCafes]         = useState(true);
   const [showHospitals, setShowHospitals] = useState(true);
@@ -346,6 +382,24 @@ export default function TravelTimeView() {
       setLoading(false);
     }
   }, [mode, times]);
+
+  const handleLocateMe = useCallback(() => {
+    if (!navigator.geolocation) { setError('เบราว์เซอร์ไม่รองรับ Geolocation'); return; }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const latlng = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setUserLocation(latlng);
+        setFlyTarget({ ...latlng, ts: Date.now() });
+        setLocating(false);
+      },
+      (err) => {
+        setError('ไม่สามารถเข้าถึงตำแหน่งได้: ' + err.message);
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, []);
 
   const handleMapClick    = useCallback((latlng) => runIsochrone(latlng, null), [runIsochrone]);
   const handleSchoolClick = useCallback((latlng, name) => runIsochrone(latlng, name), [runIsochrone]);
@@ -391,6 +445,14 @@ export default function TravelTimeView() {
           />
         )}
         <MapClickHandler onClick={handleMapClick} />
+        {flyTarget && <FlyTo latlng={flyTarget} />}
+        {userLocation && (
+          <Marker
+            position={userLocation}
+            icon={userLocationIcon}
+            eventHandlers={{ click: () => runIsochrone(userLocation, 'ตำแหน่งของฉัน') }}
+          />
+        )}
         {showSchools && <SchoolLayer onSchoolClick={handleSchoolClick} />}
         {showCafes     && <CafeLayer     onCafeClick={handleCafeClick} />}
         {showHospitals && <HospitalLayer onHospitalClick={handleHospitalClick} />}
@@ -537,9 +599,24 @@ export default function TravelTimeView() {
             <div className="flex-1 min-w-0">
               <div className="font-bold text-sm" style={{ color: '#1e293b' }}>Travel Time Map</div>
               <div className="text-[10px] truncate" style={{ color: '#94a3b8' }}>
-                {originName ? `📍 ${originName}` : 'คลิกแผนที่หรือ 🏫 โรงเรียนเพื่อเลือกจุดเริ่มต้น'}
+                {originName ? `📍 ${originName}` : 'คลิกแผนที่หรือ marker เพื่อเลือกจุดเริ่มต้น'}
               </div>
             </div>
+            <button
+              onClick={handleLocateMe}
+              disabled={locating}
+              title="ตำแหน่งของฉัน"
+              className="flex items-center justify-center rounded-full transition-all"
+              style={{
+                width: 32, height: 32, flexShrink: 0,
+                background: userLocation ? '#dbeafe' : '#f1f5f9',
+                border: userLocation ? '2px solid #3b82f6' : '2px solid transparent',
+                color: userLocation ? '#2563eb' : '#64748b',
+                opacity: locating ? 0.6 : 1,
+              }}
+            >
+              <span style={{ fontSize: 16 }}>{locating ? '⏳' : '📍'}</span>
+            </button>
           </div>
 
           {/* Travel mode */}
