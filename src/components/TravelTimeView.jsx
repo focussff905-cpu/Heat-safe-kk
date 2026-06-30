@@ -92,20 +92,17 @@ function MapClickHandler({ onClick }) {
   return null;
 }
 
-function hospitalIcon(type) {
-  const color = type === 'รัฐบาล' ? '#3b82f6' : '#10b981';
-  return L.divIcon({
-    className: '',
-    html: `<div style="
-      width:28px;height:28px;border-radius:8px;
-      background:#fff;border:2px solid ${color};
-      display:flex;align-items:center;justify-content:center;
-      box-shadow:0 2px 6px rgba(0,0,0,0.15);
-      font-size:16px;cursor:pointer;">🏥</div>`,
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-  });
-}
+const hospitalIconMarker = L.divIcon({
+  className: '',
+  html: `<div style="
+    width:28px;height:28px;border-radius:8px;
+    background:#fff;border:2px solid #ef4444;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 2px 6px rgba(0,0,0,0.15);
+    font-size:16px;cursor:pointer;">🏥</div>`,
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
+});
 
 function HospitalLayer({ onHospitalClick }) {
   const map = useMap();
@@ -114,8 +111,8 @@ function HospitalLayer({ onHospitalClick }) {
   useEffect(() => {
     const lyr = L.layerGroup();
     HOSPITALS.forEach(h => {
-      const marker = L.marker([h.lat, h.lng], { icon: hospitalIcon(h.type) });
-      marker.bindTooltip(`${h.name} (${h.type})`, { direction: 'top', offset: [0, -14] });
+      const marker = L.marker([h.lat, h.lng], { icon: hospitalIconMarker });
+      marker.bindTooltip(h.name, { direction: 'top', offset: [0, -14] });
       marker.on('click', (e) => {
         L.DomEvent.stopPropagation(e);
         onHospitalClick({ lat: h.lat, lng: h.lng }, h.name);
