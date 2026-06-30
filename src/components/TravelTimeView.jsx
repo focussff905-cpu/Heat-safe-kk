@@ -7,6 +7,12 @@ import { CAFES } from '../data/cafeData';
 
 const ORS_KEY = import.meta.env.VITE_ORS_KEY;
 
+const BASEMAPS = {
+  light:     { label: 'สว่าง',    icon: '☀️', url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', attr: '© OpenStreetMap © CARTO' },
+  satellite: { label: 'ดาวเทียม', icon: '🛰️', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr: 'Tiles © Esri' },
+  street:    { label: 'แผนที่',   icon: '🗺️', url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attr: '© OpenStreetMap contributors' },
+};
+
 const MODES = [
   { id: 'driving-car',     label: 'รถยนต์',    icon: '🚗' },
   { id: 'foot-walking',    label: 'เดินเท้า',  icon: '🚶' },
@@ -194,6 +200,7 @@ export default function TravelTimeView() {
   const [error, setError]           = useState(null);
   const [showSchools, setShowSchools] = useState(true);
   const [showCafes, setShowCafes]     = useState(true);
+  const [basemap, setBasemap]         = useState('light');
   const geojsonKey = useRef(0);
 
   const toggleTime = useCallback((t) => {
@@ -252,9 +259,17 @@ export default function TravelTimeView() {
         zoomControl={false}
       >
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-          attribution='© OpenStreetMap © CARTO'
+          key={basemap}
+          url={BASEMAPS[basemap].url}
+          attribution={BASEMAPS[basemap].attr}
         />
+        {basemap === 'satellite' && (
+          <TileLayer
+            key="sat-labels"
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+            attribution=""
+          />
+        )}
         <MapClickHandler onClick={handleMapClick} />
         {showSchools && <SchoolLayer onSchoolClick={handleSchoolClick} />}
         {showCafes  && <CafeLayer   onCafeClick={handleCafeClick} />}
@@ -278,6 +293,35 @@ export default function TravelTimeView() {
 
       {/* ── Layer toggles (right) ── */}
       <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
+        {/* Basemap switcher */}
+        <div style={{
+          background: 'rgba(255,255,255,0.97)',
+          backdropFilter: 'blur(12px)',
+          borderRadius: 16,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
+          padding: '8px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 4,
+        }}>
+          {Object.entries(BASEMAPS).map(([key, bm]) => (
+            <button
+              key={key}
+              onClick={() => setBasemap(key)}
+              className="flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all"
+              style={{
+                background: basemap === key ? '#3b82f6' : 'transparent',
+                color:      basemap === key ? '#fff'    : '#64748b',
+                border: 'none',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <span>{bm.icon}</span>
+              {bm.label}
+            </button>
+          ))}
+        </div>
+
         <button
           onClick={() => setShowSchools(v => !v)}
           className="flex items-center gap-2 rounded-2xl px-3 py-2 text-xs font-semibold shadow-md transition-all"
