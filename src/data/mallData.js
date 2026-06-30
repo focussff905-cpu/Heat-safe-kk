@@ -1,5 +1,6 @@
 export const MALLS = [
   { name: 'Central Plaza',          lat: 16.433250262948462, lng: 102.82612117371235 },
+  { name: 'Central Khonkaen Campus', lat: 16.463074596950317, lng: 102.83164248021806 },
   { name: 'Fairy Plaza',            lat: 16.4229591567419,   lng: 102.83463197261085 },
   { name: 'Hugz Mall',              lat: 16.431579594443487, lng: 102.83105380911175 },
   { name: 'Tukcom Kosa',            lat: 16.430234305288245, lng: 102.83198385935779 },
