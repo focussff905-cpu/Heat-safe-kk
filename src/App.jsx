@@ -27,7 +27,9 @@ export default function App() {
   const [isAdmin]  = useState(() => new URLSearchParams(window.location.search).has('admin'));
   const [isReport] = useState(() => new URLSearchParams(window.location.search).has('report'));
   const [isTrack]  = useState(() => new URLSearchParams(window.location.search).has('track'));
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState(() =>
+    new URLSearchParams(window.location.search).has('map') ? 'map' : 'home'
+  );
   const [activeLayers, setActiveLayers] = useState(new Set());
   const [infoLayer, setInfoLayer] = useState('temperature');
   const [selectedDistrict, setSelectedDistrict] = useState(null);
