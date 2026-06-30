@@ -280,7 +280,7 @@ export default function TravelTimeView() {
   const [showCafes, setShowCafes]         = useState(true);
   const [showHospitals, setShowHospitals] = useState(true);
   const [showMalls, setShowMalls]         = useState(true);
-  const [basemap, setBasemap]             = useState('light');
+  const [basemap, setBasemap]             = useState('street');
   const geojsonKey = useRef(0);
 
   const toggleTime = useCallback((t) => {
