@@ -15,6 +15,7 @@ import { useAutoNotify } from './hooks/useAutoNotify';
 import AdminView from './components/AdminView';
 import ReportView from './components/ReportView';
 import TrackView from './components/TrackView';
+import TravelTimeView from './components/TravelTimeView';
 import WelcomePopup from './components/WelcomePopup';
 import GuideModal from './components/GuideModal';
 
@@ -24,9 +25,10 @@ export default function App() {
   const { needsBanner, requestNow } = useAutoNotify();
 
   // Special routes via URL query params
-  const [isAdmin]  = useState(() => new URLSearchParams(window.location.search).has('admin'));
-  const [isReport] = useState(() => new URLSearchParams(window.location.search).has('report'));
-  const [isTrack]  = useState(() => new URLSearchParams(window.location.search).has('track'));
+  const [isAdmin]       = useState(() => new URLSearchParams(window.location.search).has('admin'));
+  const [isReport]      = useState(() => new URLSearchParams(window.location.search).has('report'));
+  const [isTrack]       = useState(() => new URLSearchParams(window.location.search).has('track'));
+  const [isTravelTime]  = useState(() => new URLSearchParams(window.location.search).has('traveltime'));
   const [activeTab, setActiveTab] = useState(() =>
     new URLSearchParams(window.location.search).has('map') ? 'map' : 'home'
   );
@@ -103,8 +105,9 @@ export default function App() {
 
   const onMap = !isAdmin && !isReport && activeTab === 'map';
 
-  if (isReport) return <ReportView />;
-  if (isTrack)  return <TrackView />;
+  if (isReport)     return <ReportView />;
+  if (isTrack)      return <TrackView />;
+  if (isTravelTime) return <TravelTimeView />;
 
   return (
     <div className="relative w-full overflow-hidden bg-[#f8faff]"
