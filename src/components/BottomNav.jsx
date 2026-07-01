@@ -57,7 +57,7 @@ export default function BottomNav({ activeTab, onTabChange }) {
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           paddingLeft:   'env(safe-area-inset-left, 0px)',
           paddingRight:  'env(safe-area-inset-right, 0px)',
-          background: 'rgba(219,234,254,0.97)',
+          background: 'rgba(255,255,255,0.97)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           borderTop: '1px solid #e0eaff',
@@ -115,7 +115,7 @@ export default function BottomNav({ activeTab, onTabChange }) {
         className="hidden lg:flex fixed left-0 top-0 bottom-0 z-[1001] flex-col"
         style={{
           width: '80px',
-          background: 'rgba(219,234,254,0.97)',
+          background: 'rgba(255,255,255,0.97)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           borderRight: '1px solid #e0eaff',
