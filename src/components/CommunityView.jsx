@@ -504,17 +504,30 @@ export default function CommunityView() {
         {/* Feed tab */}
         {tab === 'feed' && (
           <>
-            <a href="/?report"
-              className="flex items-center gap-3 px-4 py-3 rounded-2xl mb-4 transition-all active:scale-95"
-              style={{ background: 'white', border: '1.5px dashed #bfdbfe', boxShadow: '0 2px 8px rgba(59,130,246,0.06)' }}>
-              <div className="w-8 h-8 rounded-full flex items-center justify-center"
-                style={{ background: 'rgba(59,130,246,0.1)' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-              </div>
-              <p className="text-sm text-slate-500">พบเหตุผิดปกติ? แจ้งเหตุให้ชุมชนทราบ...</p>
-            </a>
+            <div className="flex gap-2 mb-4">
+              <a href="/?report"
+                className="flex-1 flex items-center gap-3 px-4 py-3 rounded-2xl transition-all active:scale-95"
+                style={{ background: 'white', border: '1.5px dashed #bfdbfe', boxShadow: '0 2px 8px rgba(59,130,246,0.06)' }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'rgba(59,130,246,0.1)' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                </div>
+                <p className="text-sm text-slate-500">พบเหตุผิดปกติ? แจ้งเหตุ...</p>
+              </a>
+
+              <a href="/?traveltime"
+                className="flex flex-col items-center justify-center gap-1 px-4 py-3 rounded-2xl transition-all active:scale-95 flex-shrink-0"
+                style={{
+                  background: 'linear-gradient(135deg,#eff6ff,#dbeafe)',
+                  border: '1.5px solid #bfdbfe',
+                  boxShadow: '0 2px 8px rgba(59,130,246,0.10)',
+                }}>
+                <span style={{ fontSize: 22 }}>🗺️</span>
+                <span className="text-[11px] font-bold text-blue-600 whitespace-nowrap">Travel Map</span>
+              </a>
+            </div>
 
             {loading && (
               <div className="flex flex-col items-center justify-center py-16 gap-3">
