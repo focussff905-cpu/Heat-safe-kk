@@ -1,12 +1,12 @@
 import { useState, useRef } from 'react';
-import { FaHome, FaMap, FaFireAlt, FaExclamationTriangle, FaUsers } from 'react-icons/fa';
+import { FaHome, FaMap, FaFireAlt, FaExclamationTriangle, FaRoute } from 'react-icons/fa';
 
 const TABS = [
   { id: 'map',         label: 'แผนที่',     icon: FaMap },
   { id: 'simulation',  label: 'Heat Safe',  icon: FaFireAlt },
   { id: 'home',        label: 'หน้าหลัก',  icon: FaHome },
   { id: 'risk-areas',  label: 'เสี่ยงภัย', icon: FaExclamationTriangle },
-  { id: 'community',   label: 'ชุมชน',      icon: FaUsers },
+  { id: 'traveltime',  label: 'Travel Map', icon: FaRoute },
 ];
 
 const TAB_COLORS = {
@@ -14,7 +14,7 @@ const TAB_COLORS = {
   map:           ['#34d399', '#10b981'],
   simulation:    ['#fb923c', '#ef4444'],
   'risk-areas':  ['#fbbf24', '#f97316'],
-  community:     ['#a78bfa', '#8b5cf6'],
+  traveltime:    ['#a78bfa', '#8b5cf6'],
 };
 
 /* ─── shared animation ─── */

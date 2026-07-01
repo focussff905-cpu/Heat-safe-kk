@@ -208,8 +208,12 @@ export default function App() {
       )}
 
 
-      {/* ── Community tab ── */}
-      {!isAdmin && activeTab === 'community' && <CommunityView />}
+      {/* ── Travel Time tab ── */}
+      {!isAdmin && activeTab === 'traveltime' && (
+        <div className="absolute inset-0" style={{ zIndex: 1 }}>
+          <TravelTimeView />
+        </div>
+      )}
 
       {/* ── Admin (hidden route via ?admin in URL) ── */}
       {isAdmin && <AdminView />}

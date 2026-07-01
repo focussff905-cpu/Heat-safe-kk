@@ -404,6 +404,7 @@ function TambonPinMarker({ pin }) {
 
 export default function MapView({ activeLayers, tambons, selectedDistrict, onDistrictClick, onMapClick, forecastDatetime, layerSettings, selectedMonth, flyToTarget, initialCenter, initialZoom, onMapMove, mapPin, basemap = 'satellite', heatRiskFilter = 'all' }) {
   const [tempPoint, setTempPoint] = useState(null);
+  const [showReportHeat, setShowReportHeat] = useState(true);
   const [himawariband, setHimawariband] = useState('ir');
   /* basemap + showMapBox are now controlled by parent */
   const [himawariFrames] = useState(() => generateFrames(12));
@@ -539,8 +540,25 @@ export default function MapView({ activeLayers, tambons, selectedDistrict, onDis
           <KMZLayer key={def.id} url={def.url} color={def.color} weight={def.weight} opacity={s(def.id).opacity} />
         ))}
 
-        <ReportPinsLayer />
+        {showReportHeat && <ReportPinsLayer />}
       </MapContainer>
+
+      {/* ── Report heat toggle ── */}
+      <button
+        onClick={() => setShowReportHeat(v => !v)}
+        className="absolute z-[1000] flex items-center gap-2 px-3 py-2 rounded-2xl text-[11px] font-bold shadow-md transition-all active:scale-95"
+        style={{
+          bottom: 'calc(var(--nav-bottom) + 12px)',
+          left: '12px',
+          background:     showReportHeat ? 'rgba(239,68,68,0.12)' : 'rgba(255,255,255,0.92)',
+          border:         showReportHeat ? '1.5px solid #ef4444'  : '1.5px solid #e2e8f0',
+          color:          showReportHeat ? '#ef4444'              : '#94a3b8',
+          backdropFilter: 'blur(10px)',
+        }}
+      >
+        <span style={{ fontSize: 14 }}>🌡️</span>
+        จุดเฝ้าระวัง
+      </button>
     </div>
   );
 }
