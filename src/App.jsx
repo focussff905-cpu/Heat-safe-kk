@@ -210,7 +210,7 @@ export default function App() {
 
       {/* ── Travel Time tab ── */}
       {!isAdmin && activeTab === 'traveltime' && (
-        <div className="absolute inset-0" style={{ zIndex: 1 }}>
+        <div className="absolute inset-0">
           <TravelTimeView />
         </div>
       )}
@@ -225,7 +225,7 @@ export default function App() {
       {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
 
       {/* ── Help button ── */}
-      {!isAdmin && (
+      {!isAdmin && activeTab !== 'traveltime' && (
         <button
           onClick={() => setShowGuide(true)}
           className="fixed z-[1000] flex items-center justify-center rounded-full shadow-lg transition-all hover:scale-110 active:scale-95"

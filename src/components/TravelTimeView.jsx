@@ -2,6 +2,9 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, GeoJSON, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+import 'leaflet.markercluster';
 import { KK_CENTER, KK_DEFAULT_ZOOM, KK_BOUNDS } from '../data/mockData';
 import { CAFES } from '../data/cafeData';
 import { HOSPITALS } from '../data/hospitalData';
@@ -104,7 +107,7 @@ function CafeLayer({ onCafeClick }) {
   const layerRef = useRef(null);
 
   useEffect(() => {
-    const lyr = L.layerGroup();
+    const lyr = L.markerClusterGroup({ maxClusterRadius: 40, disableClusteringAtZoom: 16 });
     CAFES.forEach(cafe => {
       const marker = L.marker([cafe.lat, cafe.lng], { icon: cafeIcon });
       marker.bindTooltip(cafe.name, { direction: 'top', offset: [0, -14] });
@@ -144,7 +147,7 @@ function HospitalLayer({ onHospitalClick }) {
   const layerRef = useRef(null);
 
   useEffect(() => {
-    const lyr = L.layerGroup();
+    const lyr = L.markerClusterGroup({ maxClusterRadius: 40, disableClusteringAtZoom: 16 });
     HOSPITALS.forEach(h => {
       const marker = L.marker([h.lat, h.lng], { icon: hospitalIconMarker });
       marker.bindTooltip(h.name, { direction: 'top', offset: [0, -14] });
@@ -179,7 +182,7 @@ function MallLayer({ onMallClick }) {
   const layerRef = useRef(null);
 
   useEffect(() => {
-    const lyr = L.layerGroup();
+    const lyr = L.markerClusterGroup({ maxClusterRadius: 40, disableClusteringAtZoom: 16 });
     MALLS.forEach(m => {
       const marker = L.marker([m.lat, m.lng], { icon: mallIcon });
       marker.bindTooltip(m.name, { direction: 'top', offset: [0, -14] });
@@ -214,7 +217,7 @@ function ParkLayer({ onParkClick }) {
   const layerRef = useRef(null);
 
   useEffect(() => {
-    const lyr = L.layerGroup();
+    const lyr = L.markerClusterGroup({ maxClusterRadius: 40, disableClusteringAtZoom: 16 });
     PARKS.forEach(p => {
       const marker = L.marker([p.lat, p.lng], { icon: parkIcon });
       marker.bindTooltip(p.name, { direction: 'top', offset: [0, -14] });
@@ -280,7 +283,8 @@ function SchoolLayer({ onSchoolClick }) {
         const gj = window.toGeoJSON ? window.toGeoJSON.kml(doc) : kmlDocToGeoJson(doc);
         if (cancelled) return;
 
-        const lyr = L.geoJSON(gj, {
+        const cluster = L.markerClusterGroup({ maxClusterRadius: 40, disableClusteringAtZoom: 16 });
+        const geoLayer = L.geoJSON(gj, {
           filter: f => {
             if (f.geometry?.type !== 'Point') return false;
             const [lng, lat] = f.geometry.coordinates;
@@ -299,8 +303,9 @@ function SchoolLayer({ onSchoolClick }) {
             return marker;
           },
         });
-        lyr.addTo(map);
-        layerRef.current = lyr;
+        cluster.addLayer(geoLayer);
+        cluster.addTo(map);
+        layerRef.current = cluster;
       } catch (e) {
         console.warn('School KMZ load error:', e);
       }
@@ -422,282 +427,115 @@ export default function TravelTimeView() {
     layer.bindTooltip(`${minutes} นาที`, { sticky: true });
   }, []);
 
+  const LAYERS = [
+    { key: 'schools',   icon: '🏫', label: 'โรงเรียน',  state: showSchools,   toggle: () => setShowSchools(v => !v) },
+    { key: 'parks',     icon: '🌳', label: 'สวน',        state: showParks,     toggle: () => setShowParks(v => !v) },
+    { key: 'malls',     icon: '🛍️', label: 'ห้าง',       state: showMalls,     toggle: () => setShowMalls(v => !v) },
+    { key: 'hospitals', icon: '🏥', label: 'โรงพยาบาล', state: showHospitals, toggle: () => setShowHospitals(v => !v) },
+    { key: 'cafes',     icon: '☕', label: 'คาเฟ่',      state: showCafes,     toggle: () => setShowCafes(v => !v) },
+  ];
+
   return (
     <div className="relative w-full" style={{ height: '100dvh' }}>
 
-      {/* ── Map ── */}
-      <MapContainer
-        center={KK_CENTER}
-        zoom={KK_DEFAULT_ZOOM}
-        style={{ width: '100%', height: '100%' }}
-        zoomControl={false}
-      >
-        <TileLayer
-          key={basemap}
-          url={BASEMAPS[basemap].url}
-          attribution={BASEMAPS[basemap].attr}
-        />
+      {/* Map */}
+      <MapContainer center={KK_CENTER} zoom={KK_DEFAULT_ZOOM} style={{ width: '100%', height: '100%' }} zoomControl={false}>
+        <TileLayer key={basemap} url={BASEMAPS[basemap].url} attribution={BASEMAPS[basemap].attr} />
         {basemap === 'satellite' && (
-          <TileLayer
-            key="sat-labels"
+          <TileLayer key="sat-labels"
             url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-            attribution=""
-          />
+            attribution="" />
         )}
         <MapClickHandler onClick={handleMapClick} />
         {flyTarget && <FlyTo latlng={flyTarget} />}
         {userLocation && (
-          <Marker
-            position={userLocation}
-            icon={userLocationIcon}
-            eventHandlers={{ click: () => runIsochrone(userLocation, 'ตำแหน่งของฉัน') }}
-          />
+          <Marker position={userLocation} icon={userLocationIcon}
+            eventHandlers={{ click: () => runIsochrone(userLocation, 'ตำแหน่งของฉัน') }} />
         )}
-        {showSchools && <SchoolLayer onSchoolClick={handleSchoolClick} />}
+        {showSchools   && <SchoolLayer   onSchoolClick={handleSchoolClick} />}
         {showCafes     && <CafeLayer     onCafeClick={handleCafeClick} />}
         {showHospitals && <HospitalLayer onHospitalClick={handleHospitalClick} />}
         {showMalls     && <MallLayer     onMallClick={handleMallClick} />}
         {showParks     && <ParkLayer     onParkClick={handleParkClick} />}
-
         {geojson && (
           <GeoJSON
             key={geojsonKey.current}
-            data={{
-              ...geojson,
-              features: [...geojson.features].sort(
-                (a, b) => (b.properties?.value ?? 0) - (a.properties?.value ?? 0)
-              ),
-            }}
+            data={{ ...geojson, features: [...geojson.features].sort((a, b) => (b.properties?.value ?? 0) - (a.properties?.value ?? 0)) }}
             style={styleFeature}
             onEachFeature={onEachFeature}
           />
         )}
-
         {origin && <Marker position={origin} icon={originIcon} />}
       </MapContainer>
 
-      {/* ── Layer toggles (right) ── */}
-      <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
-        {/* Basemap switcher */}
-        <div style={{
-          background: 'rgba(255,255,255,0.97)',
-          backdropFilter: 'blur(12px)',
-          borderRadius: 16,
-          boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
-          padding: '8px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 4,
-        }}>
-          {Object.entries(BASEMAPS).map(([key, bm]) => (
-            <button
-              key={key}
-              onClick={() => setBasemap(key)}
-              className="flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all"
-              style={{
-                background: basemap === key ? '#3b82f6' : 'transparent',
-                color:      basemap === key ? '#fff'    : '#64748b',
-                border: 'none',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              <span>{bm.icon}</span>
-              {bm.label}
-            </button>
-          ))}
-        </div>
-
-        <button
-          onClick={() => setShowSchools(v => !v)}
-          className="flex items-center gap-2 rounded-2xl px-3 py-2 text-xs font-semibold shadow-md transition-all"
-          style={{
-            background: showSchools ? '#eff6ff' : 'rgba(255,255,255,0.97)',
-            color:      showSchools ? '#3b82f6' : '#94a3b8',
-            border:     showSchools ? '1.5px solid #93c5fd' : '1.5px solid #e2e8f0',
-            backdropFilter: 'blur(12px)',
-          }}
-        >
-          <span style={{ fontSize: 16 }}>🏫</span>
-          โรงเรียน
-        </button>
-        <button
-          onClick={() => setShowParks(v => !v)}
-          className="flex items-center gap-2 rounded-2xl px-3 py-2 text-xs font-semibold shadow-md transition-all"
-          style={{
-            background: showParks ? '#f0fdf4' : 'rgba(255,255,255,0.97)',
-            color:      showParks ? '#16a34a' : '#94a3b8',
-            border:     showParks ? '1.5px solid #86efac' : '1.5px solid #e2e8f0',
-            backdropFilter: 'blur(12px)',
-          }}
-        >
-          <span style={{ fontSize: 16 }}>🌳</span>
-          สวนสาธารณะ
-        </button>
-        <button
-          onClick={() => setShowMalls(v => !v)}
-          className="flex items-center gap-2 rounded-2xl px-3 py-2 text-xs font-semibold shadow-md transition-all"
-          style={{
-            background: showMalls ? '#f5f3ff' : 'rgba(255,255,255,0.97)',
-            color:      showMalls ? '#8b5cf6' : '#94a3b8',
-            border:     showMalls ? '1.5px solid #c4b5fd' : '1.5px solid #e2e8f0',
-            backdropFilter: 'blur(12px)',
-          }}
-        >
-          <span style={{ fontSize: 16 }}>🛍️</span>
-          ห้างสรรพสินค้า
-        </button>
-        <button
-          onClick={() => setShowHospitals(v => !v)}
-          className="flex items-center gap-2 rounded-2xl px-3 py-2 text-xs font-semibold shadow-md transition-all"
-          style={{
-            background: showHospitals ? '#eff6ff' : 'rgba(255,255,255,0.97)',
-            color:      showHospitals ? '#3b82f6' : '#94a3b8',
-            border:     showHospitals ? '1.5px solid #93c5fd' : '1.5px solid #e2e8f0',
-            backdropFilter: 'blur(12px)',
-          }}
-        >
-          <span style={{ fontSize: 16 }}>🏥</span>
-          โรงพยาบาล
-        </button>
-        <button
-          onClick={() => setShowCafes(v => !v)}
-          className="flex items-center gap-2 rounded-2xl px-3 py-2 text-xs font-semibold shadow-md transition-all"
-          style={{
-            background: showCafes ? '#fff7ed' : 'rgba(255,255,255,0.97)',
-            color:      showCafes ? '#f97316' : '#94a3b8',
-            border:     showCafes ? '1.5px solid #fdba74' : '1.5px solid #e2e8f0',
-            backdropFilter: 'blur(12px)',
-          }}
-        >
-          <span style={{ fontSize: 16 }}>☕</span>
-          คาเฟ่
-        </button>
-      </div>
-
-      {/* ── Control panel ── */}
-      <div
-        className="absolute top-3 left-1/2 z-[1000] w-[calc(100%-24px)] max-w-sm"
-        style={{ transform: 'translateX(-50%)' }}
-      >
-        <div style={{
-          background: 'rgba(255,255,255,0.97)',
-          backdropFilter: 'blur(16px)',
-          borderRadius: 16,
-          boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
-          padding: '14px 16px',
-        }}>
-
-          {/* Header */}
-          <div className="flex items-center gap-2 mb-3">
-            <button
-              onClick={() => window.location.href = '/'}
-              className="flex items-center justify-center rounded-full"
-              style={{ width: 32, height: 32, background: '#f1f5f9', flexShrink: 0 }}
-            >
-              <span style={{ fontSize: 16 }}>←</span>
-            </button>
+      {/* Top control panel */}
+      <div className="absolute top-2 left-2 right-2 z-[1000]">
+        <div style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(16px)', borderRadius: 16, boxShadow: '0 4px 20px rgba(0,0,0,0.12)', padding: '10px 12px' }}>
+          <div className="flex items-center gap-2 mb-2">
             <div className="flex-1 min-w-0">
-              <div className="font-bold text-sm" style={{ color: '#1e293b' }}>Travel Time Map</div>
+              <div className="font-black text-sm leading-tight" style={{ color: '#1e293b' }}>Travel Time Map</div>
               <div className="text-[10px] truncate" style={{ color: '#94a3b8' }}>
-                {originName ? `📍 ${originName}` : 'คลิกแผนที่หรือ marker เพื่อเลือกจุดเริ่มต้น'}
+                {loading ? '⏳ กำลังคำนวณ...' : originName ? `📍 ${originName}` : 'แตะแผนที่หรือ marker เพื่อเลือกจุด'}
               </div>
             </div>
-            <button
-              onClick={handleLocateMe}
-              disabled={locating}
-              title="ตำแหน่งของฉัน"
-              className="flex items-center justify-center rounded-full transition-all"
-              style={{
-                width: 32, height: 32, flexShrink: 0,
-                background: userLocation ? '#dbeafe' : '#f1f5f9',
-                border: userLocation ? '2px solid #3b82f6' : '2px solid transparent',
-                color: userLocation ? '#2563eb' : '#64748b',
-                opacity: locating ? 0.6 : 1,
-              }}
-            >
+            <button onClick={handleLocateMe} disabled={locating}
+              style={{ width: 34, height: 34, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: userLocation ? '#dbeafe' : '#f1f5f9', border: userLocation ? '2px solid #3b82f6' : '2px solid transparent', color: userLocation ? '#2563eb' : '#64748b', opacity: locating ? 0.6 : 1, cursor: 'pointer' }}>
               <span style={{ fontSize: 16 }}>{locating ? '⏳' : '📍'}</span>
             </button>
           </div>
-
-          {/* Travel mode */}
-          <div className="flex gap-2 mb-3">
-            {MODES.map(m => (
-              <button
-                key={m.id}
-                onClick={() => { setMode(m.id); setGeojson(null); setError(null); }}
-                className="flex-1 flex flex-col items-center gap-0.5 rounded-xl py-2 transition-all"
-                style={{
-                  background: mode === m.id ? '#3b82f6' : '#f1f5f9',
-                  color: mode === m.id ? '#fff' : '#475569',
-                  fontWeight: mode === m.id ? 700 : 400,
-                  border: 'none',
-                  fontSize: 11,
-                }}
-              >
-                <span style={{ fontSize: 18 }}>{m.icon}</span>
-                {m.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Time range */}
-          <div className="flex gap-2">
-            {TIME_OPTIONS.map(t => {
-              const active = times.includes(t);
-              const style  = RING_STYLE[t];
-              return (
-                <button
-                  key={t}
-                  onClick={() => toggleTime(t)}
-                  className="flex-1 rounded-xl py-1.5 text-xs font-semibold transition-all"
-                  style={{
-                    background: active ? style.fillColor : '#f1f5f9',
-                    color:      active ? '#fff'           : '#64748b',
-                    border:     active ? `2px solid ${style.color}` : '2px solid transparent',
-                  }}
-                >
-                  {t} นาที
+          <div className="flex gap-1.5">
+            <div className="flex gap-1 flex-1">
+              {MODES.map(m => (
+                <button key={m.id} onClick={() => { setMode(m.id); setGeojson(null); setError(null); }}
+                  style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, borderRadius: 12, padding: '6px 2px', background: mode === m.id ? '#3b82f6' : '#f1f5f9', color: mode === m.id ? '#fff' : '#475569', border: 'none', fontSize: 9, fontWeight: mode === m.id ? 700 : 400, cursor: 'pointer' }}>
+                  <span style={{ fontSize: 17 }}>{m.icon}</span>{m.label}
                 </button>
-              );
-            })}
-          </div>
-
-          {/* Legend */}
-          {geojson && (
-            <div className="flex gap-3 mt-3 flex-wrap">
-              {times.map(t => (
-                <div key={t} className="flex items-center gap-1">
-                  <div style={{
-                    width: 10, height: 10, borderRadius: 2,
-                    background: RING_STYLE[t].fillColor,
-                    border: `1.5px solid ${RING_STYLE[t].color}`,
-                  }} />
-                  <span className="text-[10px]" style={{ color: '#475569' }}>{t} นาที</span>
-                </div>
               ))}
+            </div>
+            <div style={{ width: 1, background: '#e2e8f0', margin: '2px 0', borderRadius: 1 }} />
+            <div className="flex gap-1 flex-1">
+              {TIME_OPTIONS.map(t => {
+                const active = times.includes(t);
+                const s = RING_STYLE[t];
+                return (
+                  <button key={t} onClick={() => toggleTime(t)}
+                    style={{ flex: 1, borderRadius: 10, padding: '6px 2px', background: active ? s.fillColor : '#f1f5f9', color: active ? '#fff' : '#94a3b8', border: active ? `2px solid ${s.color}` : '2px solid transparent', fontSize: 9, fontWeight: active ? 700 : 400, cursor: 'pointer' }}>
+                    {t}'
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          {error && (
+            <div style={{ marginTop: 6, fontSize: 10, padding: '5px 10px', borderRadius: 8, background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
+              {error}
             </div>
           )}
         </div>
+      </div>
 
-        {/* Status messages */}
-        {loading && (
-          <div className="mt-2 text-center text-xs font-medium py-2 px-4 rounded-xl"
-            style={{ background: 'rgba(255,255,255,0.95)', color: '#3b82f6' }}>
-            ⏳ กำลังคำนวณเส้นทาง…
+      {/* Bottom bar: layer toggles + basemap */}
+      <div className="absolute left-2 right-2 z-[1000]" style={{ bottom: 'calc(var(--nav-bottom, 52px) + 8px)' }}>
+        <div style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(14px)', borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.10)', padding: '8px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 6, flex: 1, overflowX: 'auto', scrollbarWidth: 'none' }}>
+            {LAYERS.map(l => (
+              <button key={l.key} onClick={l.toggle}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, borderRadius: 12, padding: '6px 8px', flexShrink: 0, background: l.state ? 'rgba(59,130,246,0.10)' : 'transparent', border: l.state ? '1.5px solid #93c5fd' : '1.5px solid transparent', opacity: l.state ? 1 : 0.35, cursor: 'pointer' }}>
+                <span style={{ fontSize: 20 }}>{l.icon}</span>
+                <span style={{ fontSize: 9, fontWeight: 600, color: l.state ? '#2563eb' : '#94a3b8', whiteSpace: 'nowrap' }}>{l.label}</span>
+              </button>
+            ))}
           </div>
-        )}
-        {error && (
-          <div className="mt-2 text-xs py-2 px-4 rounded-xl"
-            style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
-            ⚠️ {error}
+          <div style={{ width: 1, alignSelf: 'stretch', background: '#e2e8f0', borderRadius: 1 }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0 }}>
+            {Object.entries(BASEMAPS).map(([key, bm]) => (
+              <button key={key} onClick={() => setBasemap(key)}
+                style={{ width: 34, height: 24, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: basemap === key ? '#3b82f6' : '#f1f5f9', border: 'none', fontSize: 14, cursor: 'pointer' }}>
+                {bm.icon}
+              </button>
+            ))}
           </div>
-        )}
-        {!ORS_KEY && (
-          <div className="mt-2 text-xs py-2 px-4 rounded-xl"
-            style={{ background: '#fffbeb', color: '#92400e', border: '1px solid #fde68a' }}>
-            ⚙️ ตั้งค่า <code>VITE_ORS_KEY</code> ใน .env เพื่อใช้งาน
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );
