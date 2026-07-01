@@ -29,9 +29,8 @@ export default function App() {
   const [isReport]      = useState(() => new URLSearchParams(window.location.search).has('report'));
   const [isTrack]       = useState(() => new URLSearchParams(window.location.search).has('track'));
   const [isTravelTime]  = useState(() => new URLSearchParams(window.location.search).has('traveltime'));
-  const [activeTab, setActiveTab] = useState(() =>
-    new URLSearchParams(window.location.search).has('map') ? 'map' : 'home'
-  );
+  const [isMap]         = useState(() => new URLSearchParams(window.location.search).has('map'));
+  const [activeTab, setActiveTab] = useState('home');
   const [activeLayers, setActiveLayers] = useState(new Set(['report_heat']));
   const [infoLayer, setInfoLayer] = useState('temperature');
   const [selectedDistrict, setSelectedDistrict] = useState(null);
@@ -108,6 +107,57 @@ export default function App() {
   if (isReport)     return <ReportView />;
   if (isTrack)      return <TrackView />;
   if (isTravelTime) return <TravelTimeView />;
+  if (isMap) return (
+    <div className="relative w-full overflow-hidden" style={{ height: '100dvh' }}>
+      <div className="absolute right-0" style={{ top: 0, left: 'var(--nav-x)', bottom: 0 }}>
+        <MapView
+          activeLayers={activeLayers}
+          tambons={tambons}
+          selectedDistrict={selectedDistrict}
+          onDistrictClick={handleDistrictSelect}
+          onMapClick={handleMapClick}
+          forecastDatetime={forecastDatetime}
+          layerSettings={layerSettings}
+          selectedMonth={selectedMonth}
+          flyToTarget={flyToTarget}
+          initialCenter={mapPosition.center}
+          initialZoom={mapPosition.zoom}
+          onMapMove={handleMapMove}
+          mapPin={mapPin}
+          basemap={basemap}
+          heatRiskFilter={heatRiskFilter}
+        />
+      </div>
+      <Sidebar
+        activeLayers={activeLayers}
+        infoLayer={infoLayer}
+        onLayerToggle={handleLayerToggle}
+        tambons={tambons}
+        weatherStatus={weatherStatus}
+        lastUpdated={lastUpdated}
+        onRefreshWeather={refreshWeather}
+        onFlyTo={handleFlyTo}
+        selectedDistrict={selectedDistrict}
+        onDistrictSelect={handleDistrictSelect}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        isOpen={sidebarOpen}
+        onToggle={() => setSidebarOpen(v => !v)}
+        layerSettings={layerSettings}
+        onLayerSettingChange={updateLayerSetting}
+        basemap={basemap}
+        onBasemapChange={setBasemap}
+        heatRiskFilter={heatRiskFilter}
+        onHeatRiskFilterChange={setHeatRiskFilter}
+      />
+      {activeLayers.has('temperature') && (
+        <ForecastTimePicker datetime={forecastDatetime} onChange={setForecastDatetime} sidebarOpen={sidebarOpen} />
+      )}
+      {activeLayers.has('monthly_temp') && (
+        <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} sidebarOpen={sidebarOpen} />
+      )}
+    </div>
+  );
 
   return (
     <div className="relative w-full overflow-hidden bg-[#f8faff]"
