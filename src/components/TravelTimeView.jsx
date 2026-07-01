@@ -436,7 +436,7 @@ export default function TravelTimeView() {
   ];
 
   return (
-    <div className="relative w-full" style={{ height: '100dvh' }}>
+    <div className="relative w-full h-full">
 
       {/* Map */}
       <MapContainer center={KK_CENTER} zoom={KK_DEFAULT_ZOOM} style={{ width: '100%', height: '100%' }} zoomControl={false}>
@@ -469,7 +469,7 @@ export default function TravelTimeView() {
       </MapContainer>
 
       {/* Top control panel */}
-      <div className="absolute top-2 left-2 right-2 z-[1000]">
+      <div className="absolute top-2 left-2 right-2 z-[1000] lg:left-1/2 lg:right-auto lg:-translate-x-1/2 lg:w-[440px]">
         <div style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(16px)', borderRadius: 16, boxShadow: '0 4px 20px rgba(0,0,0,0.12)', padding: '10px 12px' }}>
           <div className="flex items-center gap-2 mb-2">
             <div className="flex-1 min-w-0">
@@ -514,8 +514,8 @@ export default function TravelTimeView() {
         </div>
       </div>
 
-      {/* Bottom bar: layer toggles + basemap */}
-      <div className="absolute left-2 right-2 z-[1000]" style={{ bottom: 'calc(var(--nav-bottom, 52px) + 8px)' }}>
+      {/* Mobile: bottom bar (hidden on desktop) */}
+      <div className="absolute left-2 right-2 z-[1000] lg:hidden" style={{ bottom: 'calc(var(--nav-bottom, 52px) + 8px)' }}>
         <div style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(14px)', borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.10)', padding: '8px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ display: 'flex', gap: 6, flex: 1, overflowX: 'auto', scrollbarWidth: 'none' }}>
             {LAYERS.map(l => (
@@ -535,6 +535,27 @@ export default function TravelTimeView() {
               </button>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Desktop: right side panel (hidden on mobile) */}
+      <div className="absolute right-2 z-[1000] hidden lg:flex lg:flex-col" style={{ top: '50%', transform: 'translateY(-50%)', gap: 8 }}>
+        <div style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(14px)', borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.10)', padding: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          {LAYERS.map(l => (
+            <button key={l.key} onClick={l.toggle}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, borderRadius: 12, padding: '8px 10px', width: '100%', background: l.state ? 'rgba(59,130,246,0.10)' : 'transparent', border: l.state ? '1.5px solid #93c5fd' : '1.5px solid transparent', opacity: l.state ? 1 : 0.35, cursor: 'pointer' }}>
+              <span style={{ fontSize: 22 }}>{l.icon}</span>
+              <span style={{ fontSize: 9, fontWeight: 600, color: l.state ? '#2563eb' : '#94a3b8', whiteSpace: 'nowrap' }}>{l.label}</span>
+            </button>
+          ))}
+          <div style={{ width: '100%', height: 1, background: '#e2e8f0', borderRadius: 1, margin: '2px 0' }} />
+          {Object.entries(BASEMAPS).map(([key, bm]) => (
+            <button key={key} onClick={() => setBasemap(key)}
+              title={bm.label}
+              style={{ width: 38, height: 28, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: basemap === key ? '#3b82f6' : '#f1f5f9', border: 'none', fontSize: 16, cursor: 'pointer' }}>
+              {bm.icon}
+            </button>
+          ))}
         </div>
       </div>
     </div>

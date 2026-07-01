@@ -32,7 +32,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState(() =>
     new URLSearchParams(window.location.search).has('map') ? 'map' : 'home'
   );
-  const [activeLayers, setActiveLayers] = useState(new Set());
+  const [activeLayers, setActiveLayers] = useState(new Set(['report_heat']));
   const [infoLayer, setInfoLayer] = useState('temperature');
   const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -210,7 +210,7 @@ export default function App() {
 
       {/* ── Travel Time tab ── */}
       {!isAdmin && activeTab === 'traveltime' && (
-        <div className="absolute inset-0">
+        <div className="absolute" style={{ top: 0, left: 'var(--nav-x)', right: 0, bottom: 0 }}>
           <TravelTimeView />
         </div>
       )}
